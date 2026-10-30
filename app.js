@@ -729,14 +729,14 @@
     if (leg.type === 'tbd') {
       res.state = 'unknown'; res.detail = 'Pick not in yet'; return res;
     }
-    if (leg.period && leg.period !== 'game' && leg.period !== 'full') {
-      res.state = 'unknown'; res.detail = leg.note || 'Result unknown'; return res;
-    }
     const recorded = Weeks && Weeks.terminalState(leg.result);
     if (recorded) {
       res.state = recorded; res.final = true;
       res.detail = leg.detail || ('Recorded ' + (recorded === 'won' ? 'win' : recorded === 'lost' ? 'loss' : recorded));
       return res;
+    }
+    if (leg.period && leg.period !== 'game' && leg.period !== 'full') {
+      res.state = 'unknown'; res.detail = leg.note || 'Result unknown'; return res;
     }
     if (leg.result === 'unknown' || leg.result === 'pending') {
       res.state = 'unknown'; res.detail = leg.note || 'Result unknown'; return res;
