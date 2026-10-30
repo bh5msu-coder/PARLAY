@@ -85,7 +85,11 @@ export default async function handler(req, res) {
   } else if (path === 'summary' && event) {
     url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=' + encodeURIComponent(event);
   } else if (path === 'ffl') {
-    const league = String(req.query.league || process.env.ESPN_LEAGUE_ID || '182263');
+    const league = String(process.env.ESPN_LEAGUE_ID || '182263');
+    if ((req.query.league && String(req.query.league) !== league) || !/^\d{4}$/.test(String(season))) {
+      res.status(400).json({ error: 'Invalid fantasy league or season' });
+      return;
+    }
     const params = new URLSearchParams();
     params.append('view', 'mMatchupScore');
     params.append('view', 'mTeam');
