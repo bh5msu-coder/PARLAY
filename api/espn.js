@@ -1,3 +1,5 @@
+const FFL_SEASON = '2026';
+
 function allowBrowser(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -20,8 +22,14 @@ function configuredLeagueId() {
 }
 
 function fantasySeason(value) {
-  const season = value == null || value === '' ? '2026' : value;
-  return typeof season === 'string' && /^[0-9]{4}$/.test(season) ? season : '';
+  if (value == null || value === '') return FFL_SEASON;
+  return value === FFL_SEASON ? FFL_SEASON : '';
+}
+
+function scoringPeriodId(week) {
+  if (week == null || week === '') return '';
+  if (typeof week !== 'string' || !/^(?:[1-9]|1[0-8])$/.test(week)) return null;
+  return week;
 }
 
 function fantasyLeagueQueryOk(queryLeague, league) {
@@ -29,15 +37,17 @@ function fantasyLeagueQueryOk(queryLeague, league) {
   return typeof queryLeague === 'string' && queryLeague === league;
 }
 
-function pinnedFantasyUrl(year, league, week) {
-  const expectedPath = `/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${league}`;
+function pinnedFantasyUrl(league, week) {
+  const period = scoringPeriodId(week);
+  if (period == null) return '';
+  const expectedPath = `/apis/v3/games/ffl/seasons/${FFL_SEASON}/segments/0/leagues/${league}`;
   const url = new URL(`https://lm-api-reads.fantasy.espn.com${expectedPath}`);
   if (url.origin !== 'https://lm-api-reads.fantasy.espn.com' || url.pathname !== expectedPath) return '';
   if (url.username || url.password || url.hash) return '';
   url.searchParams.append('view', 'mMatchupScore');
   url.searchParams.append('view', 'mTeam');
   url.searchParams.append('view', 'mSettings');
-  if (week && /^[0-9]+$/.test(String(week))) url.searchParams.set('scoringPeriodId', String(week));
+  if (period) url.searchParams.set('scoringPeriodId', period);
   if (url.pathname !== expectedPath) return '';
   return url.href;
 }
@@ -114,7 +124,7 @@ export default async function handler(req, res) {
     const league = configuredLeagueId();
     const year = fantasySeason(req.query.season);
     url = league && year && fantasyLeagueQueryOk(req.query.league, league)
-      ? pinnedFantasyUrl(year, league, week)
+      ? pinnedFantasyUrl(league, week)
       : '';
     if (!url) {
       res.status(400).json({ error: 'Invalid fantasy league or season' });
