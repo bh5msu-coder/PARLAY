@@ -14,6 +14,34 @@ function espnCookies() {
   return parts.join('; ');
 }
 
+function configuredLeagueId() {
+  const league = String(process.env.ESPN_LEAGUE_ID || '182263').trim();
+  return /^[0-9]{1,10}$/.test(league) ? league : '';
+}
+
+function fantasySeason(value) {
+  const season = value == null || value === '' ? '2026' : value;
+  return typeof season === 'string' && /^[0-9]{4}$/.test(season) ? season : '';
+}
+
+function fantasyLeagueQueryOk(queryLeague, league) {
+  if (queryLeague == null || queryLeague === '') return true;
+  return typeof queryLeague === 'string' && queryLeague === league;
+}
+
+function pinnedFantasyUrl(year, league, week) {
+  const expectedPath = `/apis/v3/games/ffl/seasons/${year}/segments/0/leagues/${league}`;
+  const url = new URL(`https://lm-api-reads.fantasy.espn.com${expectedPath}`);
+  if (url.origin !== 'https://lm-api-reads.fantasy.espn.com' || url.pathname !== expectedPath) return '';
+  if (url.username || url.password || url.hash) return '';
+  url.searchParams.append('view', 'mMatchupScore');
+  url.searchParams.append('view', 'mTeam');
+  url.searchParams.append('view', 'mSettings');
+  if (week && /^[0-9]+$/.test(String(week))) url.searchParams.set('scoringPeriodId', String(week));
+  if (url.pathname !== expectedPath) return '';
+  return url.href;
+}
+
 function memberName(m) {
   if (!m) return '';
   return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.displayName || '';
@@ -73,37 +101,39 @@ export default async function handler(req, res) {
   const week = req.query.week;
   const event = req.query.event;
   const headers = { 'User-Agent': 'HolmLeagueParlay/1.0', Accept: 'application/json' };
-  const cookie = espnCookies();
-  if (cookie) headers.Cookie = cookie;
 
   let url;
   let cache = 's-maxage=20, stale-while-revalidate=40';
   if (path === 'scoreboard') {
     const params = new URLSearchParams({ seasontype: '2', dates: String(season) });
-    if (week && /^\d+$/.test(String(week))) params.set('week', String(week));
+    if (week && /^[0-9]+$/.test(String(week))) params.set('week', String(week));
     url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?' + params;
   } else if (path === 'summary' && event) {
     url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=' + encodeURIComponent(event);
   } else if (path === 'ffl') {
-    const league = String(process.env.ESPN_LEAGUE_ID || '182263');
-    if ((req.query.league && String(req.query.league) !== league) || !/^\d{4}$/.test(String(season))) {
+    const league = configuredLeagueId();
+    const year = fantasySeason(req.query.season);
+    url = league && year && fantasyLeagueQueryOk(req.query.league, league)
+      ? pinnedFantasyUrl(year, league, week)
+      : '';
+    if (!url) {
       res.status(400).json({ error: 'Invalid fantasy league or season' });
       return;
     }
-    const params = new URLSearchParams();
-    params.append('view', 'mMatchupScore');
-    params.append('view', 'mTeam');
-    params.append('view', 'mSettings');
-    if (week && /^\d+$/.test(String(week))) params.set('scoringPeriodId', String(week));
-    url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leagues/${league}?` + params;
     cache = 's-maxage=30, stale-while-revalidate=60';
+    const cookie = espnCookies();
+    if (cookie) headers.Cookie = cookie;
   } else {
     res.status(400).json({ error: 'Need path=scoreboard|summary|ffl' });
     return;
   }
 
   try {
-    const r = await fetch(url, { headers });
+    const r = await fetch(url, { headers, redirect: path === 'ffl' ? 'manual' : 'follow' });
+    if (path === 'ffl' && r.status >= 300 && r.status < 400) {
+      res.status(502).json({ error: 'ESPN fantasy request failed' });
+      return;
+    }
     const text = await r.text();
     res.setHeader('Cache-Control', cache);
     res.setHeader('Content-Type', 'application/json');
