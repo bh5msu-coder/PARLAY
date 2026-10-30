@@ -1,0 +1,1188 @@
+{
+ "version": 1,
+ "generatedAt": "2026-10-29",
+ "scope": "Holm League weekly $10 group parlay. Includes only 11 or 12 leg tickets whose legs match picks posted in the group chat. Side bets and singles are excluded and never attributed.",
+ "sources": {
+  "chat": "WhatsApp export \"Our Holm League\" (7/31/26 to 10/29/26). Line numbers (L###) refer to that export.",
+  "slips": "DraftKings slip photos in the chat",
+  "results": "ESPN site API scoreboard + summary (final scores and box scores), unless the chat states the result"
+ },
+ "confidenceKey": {
+  "espn-final": "Graded from the ESPN final score or box score against the line on the slip or in chat",
+  "espn-consensus-line": "Line not in chat; graded against the ESPN consensus line. Every margin is 4.5+ pts.",
+  "inferred-margin": "Line not in chat; result clears any realistic line",
+  "(none)": "Result stated in the chat itself"
+ },
+ "seasonsWithoutData": [
+  {
+   "season": "2025 and earlier",
+   "why": "Not in the chat export. No pre-2026 picks or slips appear in the export."
+  }
+ ],
+ "parlays": [
+  {
+   "season": 2026,
+   "week": 2,
+   "label": "Week 2",
+   "legs": [
+    {
+     "who": "Adam Meltser",
+     "label": "Derrick Henry anytime TD",
+     "type": "player",
+     "game": [
+      "NO",
+      "BAL"
+     ],
+     "kickoff": "2026-09-20T17:00Z",
+     "result": "win",
+     "player": "Derrick Henry",
+     "stat": "anyTD",
+     "actual": "1 rush TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "Giants +7",
+     "type": "spread",
+     "game": [
+      "NYG",
+      "LAR"
+     ],
+     "kickoff": "2026-09-22T00:15Z",
+     "result": "loss",
+     "team": "NYG",
+     "line": 7,
+     "actual": "NYG 6, LAR 28",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Joseph McKeon",
+     "label": "Seahawks -3.5",
+     "type": "spread",
+     "game": [
+      "SEA",
+      "ARI"
+     ],
+     "kickoff": "2026-09-20T20:25Z",
+     "result": "win",
+     "team": "SEA",
+     "line": -3.5,
+     "actual": "SEA 31, ARI 7",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Panthers ML",
+     "type": "ml",
+     "game": [
+      "CAR",
+      "ATL"
+     ],
+     "kickoff": "2026-09-20T17:00Z",
+     "result": "win",
+     "team": "CAR",
+     "actual": "CAR 34, ATL 3",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Vikings/Bears over 48.5",
+     "type": "total",
+     "game": [
+      "MIN",
+      "CHI"
+     ],
+     "kickoff": "2026-09-20T17:00Z",
+     "result": "loss",
+     "line": 48.5,
+     "side": "over",
+     "actual": "12 total pts (MIN 9, CHI 3)",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Chargers -6.5",
+     "type": "spread",
+     "game": [
+      "LV",
+      "LAC"
+     ],
+     "kickoff": "2026-09-20T20:05Z",
+     "result": "loss",
+     "team": "LAC",
+     "line": -6.5,
+     "actual": "LV 26, LAC 14",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kyle Heller",
+     "label": "Texans ML",
+     "type": "ml",
+     "game": [
+      "CIN",
+      "HOU"
+     ],
+     "kickoff": "2026-09-20T17:00Z",
+     "result": "loss",
+     "team": "HOU",
+     "actual": "CIN 20, HOU 6",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "David Montgomery anytime TD",
+     "type": "player",
+     "game": [
+      "CIN",
+      "HOU"
+     ],
+     "kickoff": "2026-09-20T17:00Z",
+     "result": "loss",
+     "player": "David Montgomery",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Brad Holm",
+     "label": "Jahmyr Gibbs anytime TD",
+     "type": "player",
+     "game": [
+      "DET",
+      "BUF"
+     ],
+     "kickoff": "2026-09-18T00:15Z",
+     "result": "win",
+     "player": "Jahmyr Gibbs",
+     "stat": "anyTD",
+     "actual": "1 rec TD",
+     "confidence": "espn-final",
+     "note": "Attribution inferred: the slip has 12 legs and 11 were claimed by name in chat. Brad is the only picker left, and Gibbs ATD sits in his Low Man Parlay message."
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "Josh Allen over 249.5 pass yds",
+     "type": "player",
+     "game": [
+      "DET",
+      "BUF"
+     ],
+     "kickoff": "2026-09-18T00:15Z",
+     "result": "loss",
+     "line": 249.5,
+     "side": "over",
+     "player": "Josh Allen",
+     "stat": "passYds",
+     "actual": "248 pass yds",
+     "confidence": "espn-final",
+     "missBy": "1.5 pass yds"
+    },
+    {
+     "who": "Ryan Hoffman",
+     "label": "Chiefs -6.5",
+     "type": "spread",
+     "game": [
+      "IND",
+      "KC"
+     ],
+     "kickoff": "2026-09-21T00:20Z",
+     "result": "loss",
+     "team": "KC",
+     "line": -6.5,
+     "actual": "KC 33, IND 30 (OT)",
+     "confidence": "espn-final",
+     "missBy": "3.5 pts (won by 3 in OT)"
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "Kenneth Walker III anytime TD",
+     "type": "player",
+     "game": [
+      "IND",
+      "KC"
+     ],
+     "kickoff": "2026-09-21T00:20Z",
+     "result": "loss",
+     "player": "Kenneth Walker III",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    }
+   ],
+   "stake": 10,
+   "toPay": 4349,
+   "boost": "15% profit boost",
+   "placedBy": "Chas Rossman",
+   "payer": "Kyle McFadden",
+   "source": "chat L316-338; slip e168a70f (Wager $10, To Pay $4,349)",
+   "notes": "Last slip leg partially cut off in the photo. Legs match the chat claims.",
+   "record": {
+    "win": 4,
+    "loss": 8,
+    "unknown": 0,
+    "pending": 0
+   },
+   "result": "loss"
+  },
+  {
+   "season": 2026,
+   "week": 4,
+   "label": "Week 4 (double stake)",
+   "legs": [
+    {
+     "who": "Brad Holm",
+     "label": "David Montgomery anytime TD",
+     "type": "player",
+     "game": [
+      "DAL",
+      "HOU"
+     ],
+     "kickoff": "2026-10-04T17:00Z",
+     "result": "loss",
+     "player": "David Montgomery",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final",
+     "note": "Chat L584: \"Need D. Montgomery to score.\" L586: \"Houston scores but the wrong guy.\""
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Bryce Young 250+ pass yds",
+     "type": "player",
+     "game": [
+      "DET",
+      "CAR"
+     ],
+     "kickoff": "2026-10-05T00:20Z",
+     "result": "win",
+     "line": 249.5,
+     "side": "over",
+     "player": "Bryce Young",
+     "stat": "passYds",
+     "actual": "329 pass yds",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Raiders/Chiefs over",
+     "type": "total",
+     "game": [
+      "KC",
+      "LV"
+     ],
+     "kickoff": "2026-10-04T20:25Z",
+     "result": "win",
+     "side": "over",
+     "actual": "57 total; ESPN consensus O/U 47.5",
+     "confidence": "espn-consensus-line",
+     "note": "The slip line is not legible in the chat text. Graded against the ESPN consensus line."
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "Colts -3.5",
+     "type": "spread",
+     "game": [
+      "IND",
+      "WSH"
+     ],
+     "kickoff": "2026-10-04T13:30Z",
+     "result": "win",
+     "team": "IND",
+     "line": -3.5,
+     "actual": "IND 30, WSH 13",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Amon-Ra St. Brown anytime TD",
+     "type": "player",
+     "game": [
+      "DET",
+      "CAR"
+     ],
+     "kickoff": "2026-10-05T00:20Z",
+     "result": "loss",
+     "player": "Amon-Ra St. Brown",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Joseph McKeon",
+     "label": "Cowboys/Texans over",
+     "type": "total",
+     "game": [
+      "DAL",
+      "HOU"
+     ],
+     "kickoff": "2026-10-04T17:00Z",
+     "result": "win",
+     "side": "over",
+     "actual": "64 total; ESPN consensus O/U 48.5",
+     "confidence": "espn-consensus-line"
+    },
+    {
+     "who": "Kyle Heller",
+     "label": "Jared Goff over pass yds",
+     "type": "player",
+     "game": [
+      "DET",
+      "CAR"
+     ],
+     "kickoff": "2026-10-05T00:20Z",
+     "result": "win",
+     "side": "over",
+     "player": "Jared Goff",
+     "stat": "passYds",
+     "actual": "412 pass yds",
+     "confidence": "inferred-margin",
+     "note": "The line is not in chat. 412 yds clears any realistic Goff prop."
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "Lions/Panthers over",
+     "type": "total",
+     "game": [
+      "DET",
+      "CAR"
+     ],
+     "kickoff": "2026-10-05T00:20Z",
+     "result": "win",
+     "side": "over",
+     "actual": "58 total; ESPN consensus O/U 52.5",
+     "confidence": "espn-consensus-line"
+    },
+    {
+     "who": "Ryan Hoffman",
+     "label": "Bills -5.5",
+     "type": "spread",
+     "game": [
+      "NE",
+      "BUF"
+     ],
+     "kickoff": "2026-10-04T17:00Z",
+     "result": "loss",
+     "team": "BUF",
+     "line": -5.5,
+     "actual": "NE 29, BUF 26",
+     "confidence": "espn-final",
+     "note": "Picked at -6. Placed at -5.5 (chat L517)."
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "Kenneth Walker III anytime TD",
+     "type": "player",
+     "game": [
+      "KC",
+      "LV"
+     ],
+     "kickoff": "2026-10-04T20:25Z",
+     "result": "win",
+     "player": "Kenneth Walker III",
+     "stat": "anyTD",
+     "actual": "2 rush TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Adam Meltser",
+     "label": "Derrick Henry anytime TD",
+     "type": "player",
+     "game": [
+      "TEN",
+      "BAL"
+     ],
+     "kickoff": "2026-10-04T17:00Z",
+     "result": "win",
+     "player": "Derrick Henry",
+     "stat": "anyTD",
+     "actual": "1 rush TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "Ja'Marr Chase anytime TD",
+     "type": "player",
+     "game": [
+      "JAX",
+      "CIN"
+     ],
+     "kickoff": "2026-10-04T17:00Z",
+     "result": "unknown",
+     "player": "Ja'Marr Chase",
+     "stat": "anyTD",
+     "actual": "0 TD; left injured in Q2",
+     "note": "Chat L576-583: hurt in Q2, possible void. Book settlement not in chat."
+    }
+   ],
+   "stake": 20,
+   "placedBy": "Joseph McKeon",
+   "payer": "Joseph McKeon + Kyle Heller",
+   "source": "chat L489-519 (pick list, two slip photos), L562-586 (in-game)",
+   "notes": "$20 stake because Week 3 was never placed (Joey forgot, L383-424).",
+   "record": {
+    "win": 8,
+    "loss": 3,
+    "unknown": 1,
+    "pending": 0
+   },
+   "result": "loss"
+  },
+  {
+   "season": 2026,
+   "week": 5,
+   "label": "Week of Oct 12",
+   "legs": [
+    {
+     "who": "Brad Holm",
+     "label": "Trey McBride over 70 rec yds",
+     "type": "player",
+     "game": [
+      "DET",
+      "ARI"
+     ],
+     "kickoff": "2026-10-11T20:25Z",
+     "result": "loss",
+     "line": 70,
+     "side": "over",
+     "player": "Trey McBride",
+     "stat": "recYds",
+     "actual": "66 rec yds",
+     "source": "chat L797",
+     "missBy": "4 rec yds"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "Derrick Henry anytime TD",
+     "type": "player",
+     "game": [
+      "BAL",
+      "ATL"
+     ],
+     "kickoff": "2026-10-12T00:20Z",
+     "result": "win",
+     "player": "Derrick Henry",
+     "stat": "anyTD",
+     "actual": "1 rec TD",
+     "source": "chat L797"
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Amon-Ra St. Brown anytime TD",
+     "type": "player",
+     "game": [
+      "DET",
+      "ARI"
+     ],
+     "kickoff": "2026-10-11T20:25Z",
+     "result": "loss",
+     "player": "Amon-Ra St. Brown",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "source": "chat L797"
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "Steelers -3",
+     "type": "spread",
+     "game": [
+      "IND",
+      "PIT"
+     ],
+     "kickoff": "2026-10-11T17:00Z",
+     "result": "win",
+     "team": "PIT",
+     "line": -3,
+     "actual": "PIT 34, IND 22",
+     "source": "chat L797"
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Seahawks -3",
+     "type": "spread",
+     "game": [
+      "SF",
+      "SEA"
+     ],
+     "kickoff": "2026-10-11T20:25Z",
+     "result": "loss",
+     "team": "SEA",
+     "line": -3,
+     "actual": "SEA 29, SF 32",
+     "source": "chat L797",
+     "missBy": "6 pts (lost by 3)"
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Saints ML",
+     "type": "ml",
+     "game": [
+      "MIN",
+      "NO"
+     ],
+     "kickoff": "2026-10-11T17:00Z",
+     "result": "loss",
+     "team": "NO",
+     "actual": "NO 13, MIN 23",
+     "source": "chat L797"
+    },
+    {
+     "who": "Joseph McKeon",
+     "label": "Steelers/Colts over",
+     "type": "total",
+     "game": [
+      "IND",
+      "PIT"
+     ],
+     "kickoff": "2026-10-11T17:00Z",
+     "result": "win",
+     "side": "over",
+     "actual": "56 total",
+     "source": "chat L797"
+    },
+    {
+     "who": "Ryan Hoffman",
+     "label": "Patriots -3.5",
+     "type": "spread",
+     "game": [
+      "LV",
+      "NE"
+     ],
+     "kickoff": "2026-10-11T17:00Z",
+     "result": "win",
+     "team": "NE",
+     "line": -3.5,
+     "actual": "NE 45, LV 17",
+     "source": "chat L797"
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "Trey McBride anytime TD",
+     "type": "player",
+     "game": [
+      "DET",
+      "ARI"
+     ],
+     "kickoff": "2026-10-11T20:25Z",
+     "result": "win",
+     "player": "Trey McBride",
+     "stat": "anyTD",
+     "actual": "1 TD",
+     "source": "chat L797"
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "Texans/Titans over",
+     "type": "total",
+     "game": [
+      "HOU",
+      "TEN"
+     ],
+     "kickoff": "2026-10-11T17:00Z",
+     "result": "loss",
+     "side": "over",
+     "actual": "29 total",
+     "source": "chat L797"
+    },
+    {
+     "who": "Adam Meltser",
+     "label": "Jonathan Taylor anytime TD",
+     "type": "player",
+     "game": [
+      "IND",
+      "PIT"
+     ],
+     "kickoff": "2026-10-11T17:00Z",
+     "result": "loss",
+     "player": "Jonathan Taylor",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "source": "chat L797"
+    }
+   ],
+   "stake": 10,
+   "placedBy": "Chas Rossman",
+   "payer": "Brad Holm",
+   "source": "chat L747-797; final grades posted L797",
+   "notes": "Heller opted out from here on.",
+   "record": {
+    "win": 5,
+    "loss": 6,
+    "unknown": 0,
+    "pending": 0
+   },
+   "result": "loss"
+  },
+  {
+   "season": 2026,
+   "week": 6,
+   "label": "Week of Oct 19",
+   "legs": [
+    {
+     "who": "Ryan Hoffman",
+     "label": "Bills ML",
+     "type": "ml",
+     "game": [
+      "BUF",
+      "LV"
+     ],
+     "kickoff": "2026-10-18T20:25Z",
+     "result": "win",
+     "team": "BUF",
+     "actual": "BUF 33, LV 30",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "Derrick Henry anytime TD",
+     "type": "player",
+     "game": [
+      "BAL",
+      "CLE"
+     ],
+     "kickoff": "2026-10-18T17:00Z",
+     "result": "loss",
+     "player": "Derrick Henry",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Packers ML",
+     "type": "ml",
+     "game": [
+      "DAL",
+      "GB"
+     ],
+     "kickoff": "2026-10-19T00:20Z",
+     "result": "win",
+     "team": "GB",
+     "actual": "GB 23, DAL 13",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Bills/Raiders over",
+     "type": "total",
+     "game": [
+      "BUF",
+      "LV"
+     ],
+     "kickoff": "2026-10-18T20:25Z",
+     "result": "win",
+     "side": "over",
+     "actual": "63 total; ESPN consensus O/U 54.5",
+     "confidence": "espn-consensus-line"
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "Jaguars -2.5",
+     "type": "spread",
+     "game": [
+      "HOU",
+      "JAX"
+     ],
+     "kickoff": "2026-10-18T13:30Z",
+     "result": "loss",
+     "team": "JAX",
+     "line": -2.5,
+     "actual": "JAX 31, HOU 34",
+     "confidence": "espn-final",
+     "missBy": "5.5 pts (lost by 3)"
+    },
+    {
+     "who": "Adam Meltser",
+     "label": "Christian Watson anytime TD",
+     "type": "player",
+     "game": [
+      "DAL",
+      "GB"
+     ],
+     "kickoff": "2026-10-19T00:20Z",
+     "result": "loss",
+     "player": "Christian Watson",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Brad Holm",
+     "label": "Jordan Love 2+ pass TD",
+     "type": "player",
+     "game": [
+      "DAL",
+      "GB"
+     ],
+     "kickoff": "2026-10-19T00:20Z",
+     "result": "loss",
+     "line": 1.5,
+     "side": "over",
+     "player": "Jordan Love",
+     "stat": "passTD",
+     "actual": "1 pass TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Joseph McKeon",
+     "label": "Steelers/Bucs under",
+     "type": "total",
+     "game": [
+      "PIT",
+      "TB"
+     ],
+     "kickoff": "2026-10-18T17:00Z",
+     "result": "loss",
+     "side": "under",
+     "actual": "45 total (OT); ESPN consensus O/U 37.5",
+     "confidence": "espn-consensus-line"
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "Falcons 1st half +0.5",
+     "type": "spread",
+     "game": [
+      "CHI",
+      "ATL"
+     ],
+     "kickoff": "2026-10-18T17:00Z",
+     "result": "loss",
+     "team": "ATL",
+     "line": 0.5,
+     "actual": "1H: ATL 7, CHI 21",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "Jets/Patriots under 43.5",
+     "type": "total",
+     "game": [
+      "NYJ",
+      "NE"
+     ],
+     "kickoff": "2026-10-18T17:00Z",
+     "result": "loss",
+     "line": 43.5,
+     "side": "under",
+     "actual": "45 total",
+     "confidence": "espn-final",
+     "missBy": "1.5 pts"
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Josh Allen 40+ rush yds",
+     "type": "player",
+     "game": [
+      "BUF",
+      "LV"
+     ],
+     "kickoff": "2026-10-18T20:25Z",
+     "result": "loss",
+     "line": 39.5,
+     "side": "over",
+     "player": "Josh Allen",
+     "stat": "rushYds",
+     "actual": "1 rush yd",
+     "confidence": "espn-final",
+     "note": "Originally Darnold INT. Changed before placement."
+    }
+   ],
+   "stake": 10,
+   "placedBy": "Chas Rossman",
+   "payer": "DJ Dangerous",
+   "source": "chat L858-876 (pick list + DK share link)",
+   "record": {
+    "win": 3,
+    "loss": 8,
+    "unknown": 0,
+    "pending": 0
+   },
+   "result": "loss"
+  },
+  {
+   "season": 2026,
+   "week": 7,
+   "label": "Week of Oct 26",
+   "legs": [
+    {
+     "who": "Ryan Hoffman",
+     "label": "Broncos ML",
+     "type": "ml",
+     "game": [
+      "DEN",
+      "ARI"
+     ],
+     "kickoff": "2026-10-25T20:05Z",
+     "result": "win",
+     "team": "DEN",
+     "actual": "DEN 30, ARI 16",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Joseph McKeon",
+     "label": "Dolphins/Jets under 39.5",
+     "type": "total",
+     "game": [
+      "MIA",
+      "NYJ"
+     ],
+     "kickoff": "2026-10-25T17:00Z",
+     "result": "loss",
+     "line": 39.5,
+     "side": "under",
+     "actual": "53 total",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "Panthers ML",
+     "type": "ml",
+     "game": [
+      "TB",
+      "CAR"
+     ],
+     "kickoff": "2026-10-25T17:00Z",
+     "result": "loss",
+     "team": "CAR",
+     "actual": "TB 43, CAR 13",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "J.J. McCarthy over 0.5 INT",
+     "type": "player",
+     "game": [
+      "NYG",
+      "HOU"
+     ],
+     "kickoff": "2026-10-25T17:00Z",
+     "result": "loss",
+     "line": 0.5,
+     "side": "over",
+     "player": "J.J. McCarthy",
+     "stat": "passINT",
+     "actual": "0 INT",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Bears ML",
+     "type": "ml",
+     "game": [
+      "NE",
+      "CHI"
+     ],
+     "kickoff": "2026-10-23T00:15Z",
+     "result": "win",
+     "team": "CHI",
+     "actual": "CHI 30, NE 24",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Patriots/Bears over 50.5",
+     "type": "total",
+     "game": [
+      "NE",
+      "CHI"
+     ],
+     "kickoff": "2026-10-23T00:15Z",
+     "result": "win",
+     "line": 50.5,
+     "side": "over",
+     "actual": "54 total",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "A.J. Brown anytime TD",
+     "type": "player",
+     "game": [
+      "NE",
+      "CHI"
+     ],
+     "kickoff": "2026-10-23T00:15Z",
+     "result": "loss",
+     "player": "A.J. Brown",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Lions ML",
+     "type": "ml",
+     "game": [
+      "GB",
+      "DET"
+     ],
+     "kickoff": "2026-10-25T20:25Z",
+     "result": "win",
+     "team": "DET",
+     "actual": "DET 20, GB 17",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "Jordan Love 282+ pass yds",
+     "type": "player",
+     "game": [
+      "GB",
+      "DET"
+     ],
+     "kickoff": "2026-10-25T20:25Z",
+     "result": "loss",
+     "line": 281.5,
+     "side": "over",
+     "player": "Jordan Love",
+     "stat": "passYds",
+     "actual": "274 pass yds",
+     "confidence": "espn-final",
+     "missBy": "7.5 pass yds"
+    },
+    {
+     "who": "Brad Holm",
+     "label": "Christian Watson 80+ rec yds",
+     "type": "player",
+     "game": [
+      "GB",
+      "DET"
+     ],
+     "kickoff": "2026-10-25T20:25Z",
+     "result": "loss",
+     "line": 79.5,
+     "side": "over",
+     "player": "Christian Watson",
+     "stat": "recYds",
+     "actual": "57 rec yds",
+     "confidence": "espn-final"
+    },
+    {
+     "who": "Adam Meltser",
+     "label": "Jahmyr Gibbs anytime TD",
+     "type": "player",
+     "game": [
+      "GB",
+      "DET"
+     ],
+     "kickoff": "2026-10-25T20:25Z",
+     "result": "loss",
+     "player": "Jahmyr Gibbs",
+     "stat": "anyTD",
+     "actual": "0 TD",
+     "confidence": "espn-final"
+    }
+   ],
+   "stake": 10,
+   "odds": 22840,
+   "toPay": 2294.04,
+   "placedBy": "Jarn Sachs",
+   "payer": "Chas Rossman",
+   "source": "Supabase holm_parlay_weeks week 7 (read-only mirror) + chat L880-938",
+   "notes": "Mirrors the live DB ticket for stats only. The DB was not written.",
+   "record": {
+    "win": 4,
+    "loss": 7,
+    "unknown": 0,
+    "pending": 0
+   },
+   "result": "loss"
+  },
+  {
+   "season": 2026,
+   "week": 8,
+   "label": "Week of Oct 27",
+   "legs": [
+    {
+     "who": "Joseph McKeon",
+     "label": "Browns/Steelers under",
+     "type": "total",
+     "game": [
+      "CLE",
+      "PIT"
+     ],
+     "kickoff": "2026-11-01T18:00Z",
+     "result": "pending",
+     "side": "under"
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Cowboys/Cardinals over",
+     "type": "total",
+     "game": [
+      "ARI",
+      "DAL"
+     ],
+     "kickoff": "2026-11-01T18:00Z",
+     "result": "pending",
+     "side": "over"
+    },
+    {
+     "who": "Adam Meltser",
+     "label": "Jahmyr Gibbs 30+ rec yds",
+     "type": "player",
+     "game": [
+      "MIN",
+      "DET"
+     ],
+     "kickoff": "2026-11-01T18:00Z",
+     "result": "pending",
+     "line": 29.5,
+     "side": "over",
+     "player": "Jahmyr Gibbs",
+     "stat": "recYds"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "Justin Jefferson anytime TD",
+     "type": "player",
+     "game": [
+      "MIN",
+      "DET"
+     ],
+     "kickoff": "2026-11-01T18:00Z",
+     "result": "pending",
+     "player": "Justin Jefferson",
+     "stat": "anyTD"
+    },
+    {
+     "who": "Ryan Hoffman",
+     "label": "Raiders +1.5",
+     "type": "spread",
+     "game": [
+      "LV",
+      "NYJ"
+     ],
+     "kickoff": "2026-11-01T18:00Z",
+     "result": "pending",
+     "team": "LV",
+     "line": 1.5
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "Bills -2.5",
+     "type": "spread",
+     "game": [
+      "BAL",
+      "BUF"
+     ],
+     "kickoff": "2026-11-01T18:00Z",
+     "result": "pending",
+     "team": "BUF",
+     "line": -2.5
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Broncos ML",
+     "type": "ml",
+     "game": [
+      "KC",
+      "DEN"
+     ],
+     "kickoff": "2026-11-01T21:25Z",
+     "result": "pending",
+     "team": "DEN"
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "Over tonight (Panthers/Packers TNF)",
+     "type": "total",
+     "game": [
+      "CAR",
+      "GB"
+     ],
+     "kickoff": "2026-10-30T00:15Z",
+     "result": "pending",
+     "side": "over",
+     "note": "Line not in chat."
+    },
+    {
+     "who": "Brad Holm",
+     "label": "Ollie Gordon over rush yds",
+     "type": "player",
+     "game": [
+      "NE",
+      "MIA"
+     ],
+     "kickoff": "2026-11-01T21:25Z",
+     "result": "pending",
+     "side": "over",
+     "player": "Ollie Gordon II",
+     "stat": "rushYds"
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Dolphins +7.5",
+     "type": "spread",
+     "game": [
+      "NE",
+      "MIA"
+     ],
+     "kickoff": "2026-11-01T21:25Z",
+     "result": "pending",
+     "team": "MIA",
+     "line": 7.5
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "Seahawks",
+     "type": "ml",
+     "game": [
+      "CHI",
+      "SEA"
+     ],
+     "kickoff": "2026-11-03T01:15Z",
+     "result": "pending",
+     "team": "SEA",
+     "note": "Recorded as \"Seahawks\". Bet type (ML vs spread) not stated."
+    }
+   ],
+   "stake": 10,
+   "source": "Parent brief (final 11/11 list); chat L958-962 partial",
+   "notes": "Results pending.",
+   "record": {
+    "win": 0,
+    "loss": 0,
+    "unknown": 0,
+    "pending": 11
+   },
+   "result": "pending"
+  }
+ ],
+ "excluded": [
+  {
+   "what": "Week 3 picks (11 posted)",
+   "why": "Ticket never placed (Joey forgot, L383-424). Stake rolled into Week 4 at $20.",
+   "ref": "L383-424"
+  },
+  {
+   "what": "Week 1",
+   "why": "No pick list or slip in the export",
+   "ref": null
+  },
+  {
+   "what": "Draft-night FSU/SMU bet idea",
+   "why": "College side bet, not the weekly group parlay",
+   "ref": "L163-190"
+  },
+  {
+   "what": "Joey's AI 'best 11' list",
+   "why": "Suggestion list, not anyone's pick",
+   "ref": "L703-713"
+  },
+  {
+   "what": "Brad's 'add McMillan' idea and 'commission check' same-bet riff",
+   "why": "Side ideas, not placed group legs",
+   "ref": "L769-771"
+  },
+  {
+   "what": "Heller's protest pick",
+   "why": "Heller had opted out. Not on the ticket.",
+   "ref": "L673"
+  },
+  {
+   "what": "2025 and earlier seasons",
+   "why": "No data in the export. Never invented.",
+   "ref": null
+  }
+ ]
+}
