@@ -253,7 +253,7 @@
     const q = raw.indexOf('?');
     const path = q === -1 ? raw : raw.slice(0, q);
     const params = new URLSearchParams(q === -1 ? '' : raw.slice(q + 1));
-    const routes = ['week', 'pick', 'standings', 'league', 'chat', 'admin'];
+    const routes = ['week', 'pick', 'standings', 'league', 'history', 'chat', 'admin'];
     return { path: routes.indexOf(path) === -1 ? 'week' : path, params };
   }
   function openChatPair(a, b, draft) {
@@ -1130,8 +1130,9 @@
           const ra = atYear(a, y).rank, rb = atYear(b, y).rank;
           const s = ra < rb ? 1 : ra > rb ? 0 : 0.5;
           const e = 1 / (1 + Math.pow(10, (R[b.id] - R[a.id]) / 400));
-          d[a.id] += K * (s - e);
-          d[b.id] -= K * (s - e);
+          const adj = K * (s - e) / (field.length - 1);
+          d[a.id] += adj;
+          d[b.id] -= adj;
         }
       }
       field.forEach((p) => {
@@ -1148,12 +1149,21 @@
       name: p.name,
       rating: R[p.id],
       seasons: seasonRows(p).length,
+      gaps: gapLabels(years.filter((y) => atYear(p, y))),
       peak: peak[p.id],
       low: low[p.id],
     })).sort((a, b) => b.rating - a.rating || a.nick.localeCompare(b.nick));
     return { years, series, now };
   }
 
+  function gapLabels(played) {
+    const out = [];
+    for (let i = 1; i < played.length; i++) {
+      const a = played[i - 1] + 1, b = played[i] - 1;
+      if (b >= a) out.push(a === b ? String(a) : a + '–' + b);
+    }
+    return out;
+  }
   function fmtElo(n) { return String(Math.round(n)); }
 
   function drawSeasonElo(c, elo, selectedName) {
@@ -1201,6 +1211,7 @@
     const elo = calcSeasonElo();
     if (!elo.now.length) return h('section', { class: 'card' }, h('div', { class: 'empty' }, 'No seasons on file to rate.'));
     const selected = ident.selectedOwner || ident.people[0].name;
+    const noSeason = ident.people.filter((p) => !seasonRows(p).length);
     const canvas = h('canvas', { class: 'elo-chart', role: 'img', 'aria-label': 'Season Elo by year, 2010 to 2025. Lower on the table is a worse rating.' });
     drawSeasonElo(canvas, elo, selected);
     const strip = h('div', { class: 'elo-now' }, elo.now.map((r, i) =>
@@ -1218,7 +1229,7 @@
         h('td', { class: 'rank' }, String(i + 1)),
         h('td', null, r.nick),
         h('td', { class: 'r num' }, fmtElo(r.rating)),
-        h('td', { class: 'r num hide-m' }, String(r.seasons)),
+        h('td', { class: 'r num hide-m' }, String(r.seasons) + (r.gaps.length ? ' · gap ' + r.gaps.join(', ') : '')),
         h('td', { class: 'r num hide-m' }, fmtElo(r.peak)),
         h('td', { class: 'r num hide-m' }, fmtElo(r.low))));
     });
@@ -1227,10 +1238,11 @@
       h('div', { class: 'card__body' },
         strip,
         canvas,
-        h('p', { class: 'muted' }, 'Season Elo from final place among current managers who played that year. Start 1500, K = 8, no offseason regression. Not weekly head-to-head. Source: league-lore.json, ESPN 182263, 2010–2025.'),
+        h('p', { class: 'muted' }, 'Season Elo from final place among current managers who played that year. Start 1500, K = 8 split across the field (each pairwise update ÷ n−1), no offseason regression. Gaps = seasons sat out between a manager’s first and last year. Not weekly head-to-head. Source: league-lore.json, ESPN 182263, 2010–2025.'),
         h('div', { class: 'tablewrap' }, h('table', null,
           h('thead', null, h('tr', null, h('th', null, '#'), h('th', null, 'Manager'), h('th', { class: 'r' }, 'Elo'), h('th', { class: 'r hide-m' }, 'Seasons'), h('th', { class: 'r hide-m' }, 'Peak'), h('th', { class: 'r hide-m' }, 'Low'))),
-          tbody))));
+          tbody)),
+        noSeason.length ? h('p', { class: 'muted' }, noSeason.map((p) => (p.nick || p.name)).join(', ') + ': no season finishes yet, so no Elo.') : null));
   }
 
   function renderKpiIdeas() {
@@ -1995,6 +2007,167 @@
         } }, 'Import picks'))));
   }
 
+  // ---------- parlay history (static parlay-history.json, read-only) ----------
+  let parlayHistory = null;
+  async function loadParlayHistory() {
+    if (parlayHistory) return parlayHistory;
+    try { parlayHistory = await fetch('/parlay-history.json').then((r) => r.ok ? r.json() : null); } catch (e) { parlayHistory = null; }
+    return parlayHistory;
+  }
+  const SMALL_N = 5;
+  const isPrime = (iso) => { const hr = new Date(iso).getUTCHours(); return hr >= 23 || hr < 6; };
+  const hitPct = (w, n) => n ? Math.round((w / n) * 100) + '%' : '–';
+  const sampleTag = (n) => n < SMALL_N ? h('span', { class: 'pill' }, 'small sample') : null;
+
+  function calcParlayStats(data) {
+    const graded = data.parlays.filter((p) => p.result !== 'pending');
+    const legs = [];
+    graded.forEach((p) => p.legs.forEach((l) => legs.push(Object.assign({ week: p.week, wlabel: p.label }, l))));
+    const decided = legs.filter((l) => l.result === 'win' || l.result === 'loss');
+    const people = {};
+    const P = (name) => people[name] || (people[name] = { name, nick: ident.nick(name), w: 0, l: 0, u: 0, seq: [], pw: 0, pn: 0, types: {}, busts: 0, picks: [] });
+    legs.forEach((l) => {
+      const r = P(l.who);
+      r.picks.push(l);
+      if (l.result === 'unknown') { r.u++; return; }
+      const win = l.result === 'win';
+      if (win) r.w++; else { r.l++; r.busts++; }
+      r.seq.push(win);
+      if (isPrime(l.kickoff)) { r.pn++; if (win) r.pw++; }
+      const t = r.types[l.type] || (r.types[l.type] = { w: 0, n: 0 });
+      t.n++; if (win) t.w++;
+    });
+    Object.values(people).forEach((r) => {
+      r.n = r.w + r.l;
+      let best = 0, cur = 0, worst = 0, curL = 0;
+      r.seq.forEach((x) => { if (x) { cur++; curL = 0; } else { curL++; cur = 0; } best = Math.max(best, cur); worst = Math.max(worst, curL); });
+      r.bestStreak = best; r.coldStreak = worst;
+      const last = r.seq[r.seq.length - 1];
+      let k = 0; for (let i = r.seq.length - 1; i >= 0 && r.seq[i] === last; i--) k++;
+      r.streak = r.seq.length ? (last ? 'W' : 'L') + k : '–';
+    });
+    const rows = Object.values(people).sort((a, b) => (b.w / (b.n || 1)) - (a.w / (a.n || 1)) || b.n - a.n);
+    const types = {};
+    decided.forEach((l) => { const t = types[l.type] || (types[l.type] = { w: 0, n: 0 }); t.n++; if (l.result === 'win') t.w++; });
+    const teams = {};
+    legs.forEach((l) => { const key = l.player || l.team; if (!key) return; const t = teams[key] || (teams[key] = { key, n: 0, w: 0, by: {} }); t.n++; if (l.result === 'win') t.w++; t.by[ident.nick(l.who)] = 1; });
+    const favs = Object.values(teams).filter((t) => t.n >= 2).sort((a, b) => b.n - a.n || b.w - a.w);
+    return { graded, legs, decided, rows, types, favs, people };
+  }
+
+  async function renderHistory() {
+    const view = $('#view'); view.innerHTML = '';
+    renderHeader('Parlay history', 'Weekly $10 group parlay · 11–12 leg tickets only');
+    const data = await loadParlayHistory();
+    if (state.route !== 'history') return;
+    if (!data) { view.appendChild(h('div', { class: 'card' }, h('div', { class: 'empty' }, 'Parlay history did not load.'))); return; }
+    const S = calcParlayStats(data);
+    const wins = S.decided.filter((l) => l.result === 'win').length;
+    const closest = S.graded.slice().sort((a, b) => a.record.loss - b.record.loss)[0];
+    const stake = S.graded.reduce((s, p) => s + (p.stake || 0), 0);
+    view.appendChild(h('section', { class: 'stats stats--lore' },
+      kpiCard('Tickets graded', String(S.graded.length), `2026 · ${S.graded.filter((p) => p.result === 'win').length} cashed`),
+      kpiCard('Leg hit rate', hitPct(wins, S.decided.length), `${wins}–${S.decided.length - wins} on decided legs`),
+      kpiCard('Closest call', closest ? closest.label : '–', closest ? `${closest.record.loss} legs from cashing` : ''),
+      kpiCard('Money in', '$' + stake, 'Stakes on graded tickets · $0 back')));
+
+    // awards
+    const elig = S.rows.filter((r) => r.n >= 4);
+    const lock = elig[0];
+    const cursed = elig.slice().sort((a, b) => (a.w / a.n) - (b.w / b.n) || b.l - a.l)[0];
+    const reliable = S.rows.slice().sort((a, b) => b.bestStreak - a.bestStreak || (b.w / (b.n || 1)) - (a.w / (a.n || 1)))[0];
+    const henry = S.legs.filter((l) => /Derrick Henry/.test(l.label));
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Awards'), h('span', { class: 'sub' }, `${S.graded.length} graded tickets · everything here is a small sample`)),
+      h('div', { class: 'card__body stats' },
+        kpiCard('Lock of the Year', lock ? lock.nick : '–', lock ? `${lock.w}–${lock.l} (${hitPct(lock.w, lock.n)})` : 'min 4 legs'),
+        kpiCard('Cursed Leg', cursed ? cursed.nick : '–', cursed ? `${cursed.w}–${cursed.l} (${hitPct(cursed.w, cursed.n)})` : ''),
+        kpiCard('Mr. Reliable', reliable ? reliable.nick : '–', reliable ? `${reliable.bestStreak} straight hits` : ''),
+        kpiCard('Henry truthers', String(henry.length) + ' picks', `${henry.filter((l) => l.result === 'win').length} hit · ${[...new Set(henry.map((l) => ident.nick(l.who)))].join(', ')}`))));
+
+    // leaderboard
+    const tbody = h('tbody');
+    S.rows.forEach((r, i) => tbody.appendChild(h('tr', { class: r.name === ident.selectedOwner ? 'me' : '' },
+      h('td', { class: 'rank' }, String(i + 1)),
+      h('td', null, r.nick, ' ', sampleTag(r.n)),
+      h('td', { class: 'r num' }, `${r.w}–${r.l}` + (r.u ? ` (${r.u}?)` : '')),
+      h('td', { class: 'r num' }, hitPct(r.w, r.n)),
+      h('td', { class: 'r num' }, r.streak),
+      h('td', { class: 'r num hide-m' }, String(r.bestStreak)),
+      h('td', { class: 'r num hide-m' }, String(r.coldStreak)),
+      h('td', { class: 'r num hide-m' }, String(r.busts)),
+      h('td', { class: 'r num hide-m' }, r.pn ? `${r.pw}/${r.pn}` : '–'))));
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Leg hit rate'), h('span', { class: 'sub' }, 'Graded legs only · unknown in ( )')),
+      h('div', { class: 'card__body' },
+        h('div', { class: 'tablewrap' }, h('table', null,
+          h('thead', null, h('tr', null, h('th', null, '#'), h('th', null, 'Picker'), h('th', { class: 'r' }, 'W–L'), h('th', { class: 'r' }, 'Hit'), h('th', { class: 'r' }, 'Now'),
+            h('th', { class: 'r hide-m' }, 'Hot'), h('th', { class: 'r hide-m' }, 'Cold'), h('th', { class: 'r hide-m' }, 'Busted'), h('th', { class: 'r hide-m' }, 'Primetime'))),
+          tbody)),
+        h('p', { class: 'muted' }, 'Busted = legs that lost on a ticket that lost. Every graded ticket lost, so each loss counts. Primetime = night kickoffs (TNF/SNF/MNF). Under 5 legs is flagged as a small sample.'))));
+
+    // who busted it, by week
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Who busted it'), h('span', { class: 'sub' }, 'Losing legs per ticket')),
+      h('div', { class: 'card__body' }, data.parlays.map((p) => h('div', { class: 'field' },
+        h('b', null, `${p.label} · ${p.legs.length} legs · `), p.result === 'pending' ? h('span', { class: 'pill' }, 'pending') : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : ''),
+        p.toPay ? h('span', { class: 'muted' }, ` · would have paid $${p.toPay.toLocaleString()}`) : null,
+        h('div', null, p.legs.filter((l) => l.result === 'loss').map((l) => h('span', { class: 'chip' }, `${ident.nick(l.who)}: ${l.label}`))))))));
+
+    // near misses
+    const near = S.legs.filter((l) => l.missBy);
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Near misses'), h('span', { class: 'sub' }, 'Lost by a hair')),
+      h('div', { class: 'card__body' }, h('div', { class: 'tablewrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Wk'), h('th', null, 'Picker'), h('th', null, 'Leg'), h('th', null, 'Actual'), h('th', null, 'Missed by'))),
+        h('tbody', null, near.map((l) => h('tr', null, h('td', null, String(l.week)), h('td', null, ident.nick(l.who)), h('td', null, l.label), h('td', null, l.actual || ''), h('td', null, l.missBy)))))))));
+
+    // bet types + favorites
+    const tlab = { ml: 'Moneyline', spread: 'Spread', total: 'Game total', player: 'Player prop' };
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Bet-type performance'), h('span', { class: 'sub' }, 'All pickers')),
+      h('div', { class: 'card__body stats' }, Object.keys(S.types).map((k) => kpiCard(tlab[k] || k, hitPct(S.types[k].w, S.types[k].n), `${S.types[k].w}–${S.types[k].n - S.types[k].w}` + (S.types[k].n < SMALL_N ? ' · small sample' : ''))))));
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Favorite teams & players'), h('span', { class: 'sub' }, 'Picked 2+ times')),
+      h('div', { class: 'card__body' }, h('div', { class: 'tablewrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Team / player'), h('th', { class: 'r' }, 'Picks'), h('th', { class: 'r' }, 'Hit'), h('th', null, 'By'))),
+        h('tbody', null, S.favs.map((t) => h('tr', null, h('td', null, t.key), h('td', { class: 'r num' }, String(t.n)), h('td', { class: 'r num' }, `${t.w}/${t.n}`), h('td', null, Object.keys(t.by).join(', ')))))))))); 
+
+    // rivalries
+    const recOf = (id) => { const p = ident.people.find((x) => x.id === id); const r = p && S.rows.find((x) => ident.person(x.name) === p); return { nick: p ? (p.nick || p.name) : id, r }; };
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Rivalry head-to-head: parlay edition'), h('span', { class: 'sub' }, 'League-lore rivalries, scored by leg hit rate')),
+      h('div', { class: 'card__body' }, RIVALRIES.map((rv) => {
+        const a = recOf(rv.a), b = recOf(rv.b);
+        if (rv.a === rv.b) return h('div', { class: 'field' }, h('b', null, rv.title + ' · '), `${a.nick} vs himself: ${a.r ? a.r.w + '–' + a.r.l : 'no legs'} on parlay legs`);
+        const fa = a.r ? `${a.r.w}–${a.r.l}` : 'no legs', fb = b.r ? `${b.r.w}–${b.r.l}` : 'no legs';
+        const ra = a.r && a.r.n ? a.r.w / a.r.n : null, rb = b.r && b.r.n ? b.r.w / b.r.n : null;
+        const edge = ra == null || rb == null ? 'No contest: one side has no graded legs' : ra === rb ? 'Dead even' : `Edge: ${ra > rb ? a.nick : b.nick}`;
+        return h('div', { class: 'field' }, h('b', null, rv.title + ' · '), `${a.nick} ${fa} vs ${b.nick} ${fb} · ${edge}`);
+      }), h('p', { class: 'muted' }, 'No weekly fantasy matchup records exist in league-lore.json, so this compares parlay legs only. Small sample.'))));
+
+    // elo vs betting
+    const elo = calcSeasonElo();
+    const eloRank = {}; elo.now.forEach((r, i) => { eloRank[r.name] = i + 1; });
+    const ebody = h('tbody');
+    S.rows.forEach((r, i) => { const p = ident.person(r.name); const er = p ? eloRank[p.name] : null; const e = p && elo.now.find((x) => x.name === p.name);
+      ebody.appendChild(h('tr', null, h('td', null, r.nick), h('td', { class: 'r num' }, e ? fmtElo(e.rating) : 'no seasons'), h('td', { class: 'r num' }, er ? '#' + er : '–'), h('td', { class: 'r num' }, '#' + (i + 1)), h('td', { class: 'r num' }, hitPct(r.w, r.n)))); });
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Elo vs betting accuracy'), h('span', { class: 'sub' }, 'Good at fantasy ≠ good at picking')),
+      h('div', { class: 'card__body' }, h('div', { class: 'tablewrap' }, h('table', null,
+        h('thead', null, h('tr', null, h('th', null, 'Manager'), h('th', { class: 'r' }, 'Season Elo'), h('th', { class: 'r' }, 'Elo rank'), h('th', { class: 'r' }, 'Pick rank'), h('th', { class: 'r' }, 'Hit'))), ebody)))));
+
+    // hypothetical + sources
+    const dec110 = 1 + 100 / 110;
+    view.appendChild(h('section', { class: 'card' },
+      h('div', { class: 'card__head' }, h('h2', null, 'Hypothetical payouts'), h('span', { class: 'sub' }, 'What one cash would have meant')),
+      h('div', { class: 'card__body' },
+        h('p', null, data.parlays.filter((p) => p.toPay).map((p) => `${p.label}: $${p.toPay.toLocaleString()} on $${p.stake}. `).join('')),
+        h('p', null, `A straight 11-leg ticket at -110 every leg pays about $${Math.round(10 * Math.pow(dec110, 11)).toLocaleString()} on $10. 12 legs pays about $${Math.round(10 * Math.pow(dec110, 12)).toLocaleString()}. Those are assumed prices, not slip odds.`),
+        h('p', { class: 'muted' }, 'Sources: ' + Object.values(data.sources).join(' · ')),
+        h('p', { class: 'muted' }, 'Excluded: ' + data.excluded.map((x) => `${x.what} (${x.why})`).join('; ')))));
+  }
+
   // ---------- routing / refresh ----------
   function render() {
     state.route = hashRoute().path;
@@ -2002,6 +2175,7 @@
     else if (state.route === 'pick') renderPick();
     else if (state.route === 'standings') renderStandings();
     else if (state.route === 'league') renderLeague();
+    else if (state.route === 'history') renderHistory();
     else if (state.route === 'chat') renderChat();
     else renderAdmin();
   }
