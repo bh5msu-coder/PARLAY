@@ -1,5 +1,9 @@
 {
   "name": "holm-parlay",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/weeks.test.mjs test/espn-proxy.test.mjs",
+    "check": "node --check app.js && node --check api/espn.js && node --check api/pick.js && node --check lib/weeks.mjs && node --check lib/ticket.mjs && node --check test/espn-proxy.test.mjs && node --check test/weeks.test.mjs"
+  }
 }
