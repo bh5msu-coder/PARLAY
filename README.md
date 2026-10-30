@@ -1,4 +1,10 @@
-# PARLAY
+# Holm Parlay
+
+Live weekly parlay tracker for Our Holm League.
+
+## Weekly tape (`data/bets.json`)
+
+Wins and losses live only in `data/bets.json`. That file is the only place a week is added or graded. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into this file.
 
 ## Parlay history (`parlay-history.json`)
 

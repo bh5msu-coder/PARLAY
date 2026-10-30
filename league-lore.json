@@ -1,7 +1,7 @@
 {
   "leagueName": "Our Holm League",
   "espnLeagueId": 182263,
-  "span": "2010\u20132025",
+  "span": "2010–2025",
   "seasonCount": 16,
   "people": [
     {
@@ -9,7 +9,9 @@
       "name": "Brad Holm",
       "nick": "Brad",
       "aliases": [
-        "Brad"
+        "Brad",
+        "Brlaude",
+        "Low Man Brad"
       ],
       "parlay": true,
       "firstYear": false,
@@ -210,7 +212,10 @@
       "nick": "Jarn",
       "aliases": [
         "Jarn",
-        "Jarn Sachs"
+        "Jarn Sachs",
+        "Jarn the Action",
+        "Jarn Home Depot",
+        "Jarn the Ticket"
       ],
       "parlay": true,
       "firstYear": false,
@@ -411,7 +416,9 @@
       "name": "Ryan Hoffman",
       "nick": "Hoss",
       "aliases": [
-        "Hoss"
+        "Hoss",
+        "Hoss the Three-Peat",
+        "Hoss Greatness"
       ],
       "parlay": true,
       "firstYear": false,
@@ -524,7 +531,9 @@
       "name": "Kevin Sack",
       "nick": "Kev",
       "aliases": [
-        "Kev"
+        "Kev",
+        "Kev the Belt",
+        "Kev Nice Thought"
       ],
       "parlay": true,
       "firstYear": false,
@@ -669,7 +678,9 @@
       "aliases": [
         "Joey",
         "Joseph McKeon",
-        "Joe McKeon"
+        "Joe McKeon",
+        "Joey Dawg Pound",
+        "Joey Auto-Draft"
       ],
       "parlay": true,
       "firstYear": false,
@@ -724,7 +735,9 @@
       "name": "Nick Curtis",
       "nick": "Nick",
       "aliases": [
-        "Nick"
+        "Nick",
+        "Nick O-Town",
+        "Nick Barely Tracks"
       ],
       "parlay": true,
       "firstYear": false,
@@ -801,7 +814,9 @@
       "name": "Chas Rossman",
       "nick": "Chas",
       "aliases": [
-        "Chas"
+        "Chas",
+        "Charles Q",
+        "Charles Q on Tab"
       ],
       "parlay": true,
       "firstYear": false,
@@ -1003,7 +1018,9 @@
       "nick": "Kyle",
       "aliases": [
         "Kyle Mcfadden",
-        "Kyle"
+        "Kyle",
+        "Worst Team Kyle",
+        "Kyle-on-Kyle"
       ],
       "parlay": true,
       "firstYear": false,
@@ -1036,7 +1053,9 @@
       "name": "Kyle Heller",
       "nick": "Heller",
       "aliases": [
-        "Heller"
+        "Heller",
+        "H-Bomb",
+        "H 💣"
       ],
       "parlay": false,
       "firstYear": false,
@@ -1238,7 +1257,9 @@
       "name": "Jace Clark",
       "nick": "Jace",
       "aliases": [
-        "Jace"
+        "Jace",
+        "Jace the Bowtie",
+        "Jace Last-Place Hill"
       ],
       "parlay": true,
       "firstYear": false,
@@ -1370,7 +1391,9 @@
       "name": "Adam Meltser",
       "nick": "Meltser",
       "aliases": [
-        "Meltser"
+        "Meltser",
+        "Meltser Truck Stick",
+        "Bloomfield Meltser"
       ],
       "parlay": true,
       "firstYear": false,
@@ -1568,7 +1591,10 @@
       "name": "DJ Dangerous",
       "nick": "DJ",
       "aliases": [
-        "DJ"
+        "DJ",
+        "DJ Cricket",
+        "Rickety Cricket",
+        "DJ the Trap"
       ],
       "parlay": true,
       "firstYear": true,
@@ -2633,6 +2659,6 @@
     "pickers": 11,
     "abstain": "Kyle Heller",
     "stake": 10,
-    "note": "Each of 11 managers picks one leg. Heller sits this one out. Whoever scored lowest in fantasy the week before funds the $10 ticket. Winnings split among the 11. Long shot on purpose."
+    "note": "Each of 11 managers picks one leg. H-Bomb sits this one out. Whoever scored lowest in fantasy the week before funds the $10 ticket. Winnings split among the 11. Long shot on purpose."
   }
 }

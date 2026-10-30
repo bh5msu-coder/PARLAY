@@ -1,6 +1,9 @@
 /* Holm League Parlay Tracker
    Data: Supabase table holm_parlay_weeks (season, week, data jsonb). Week 0 = league config.
-   Scores: ESPN public API via /api/espn (same-origin proxy). Grading runs in the browser. */
+   Scores: ESPN public API via /api/espn (same-origin proxy). Grading runs in the browser.
+   NFL week rolls as soon as the prior week's last game is final (usually MNF; Wednesday
+   kickoffs do not wait for ESPN's Wednesday calendar tick). Last-place payer is prior
+   ESPN FFL scoring period via /api/espn?path=ffl (needs ESPN_S2 + ESPN_SWID if private). */
 (function () {
   'use strict';
 
@@ -8,23 +11,24 @@
   const SUPABASE_KEY = window.__SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
   const SEASON = 2026;
   const localPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-  const liveOrigin = localPreview ? 'https://holm-parlay.vercel.app' : '';
+  const vercelDev = localPreview && location.port === '3000';
+  const liveOrigin = localPreview && !vercelDev ? 'https://holm-parlay.vercel.app' : '';
   const API = window.__ESPN_API || (liveOrigin + '/api/espn');
   const PICK_API = window.__PICK_API || (liveOrigin + '/api/pick');
 
   const FALLBACK_PEOPLE = [
-    { id: 'brad', name: 'Brad Holm', nick: 'Brad', aliases: ['Brad'], parlay: true, abstain: false, firstYear: false },
-    { id: 'sachs', name: 'John Sachs', nick: 'Jarn', aliases: ['Jarn', 'Jarn Sachs'], parlay: true, abstain: false, firstYear: false },
-    { id: 'hoffman', name: 'Ryan Hoffman', nick: 'Hoss', aliases: ['Hoss'], parlay: true, abstain: false, firstYear: false },
-    { id: 'sack', name: 'Kevin Sack', nick: 'Kev', aliases: ['Kev'], parlay: true, abstain: false, firstYear: false },
-    { id: 'mckeon', name: 'Joe Mckeon', nick: 'Joey', aliases: ['Joey', 'Joseph McKeon', 'Joe McKeon'], parlay: true, abstain: false, firstYear: false },
-    { id: 'curtis', name: 'Nick Curtis', nick: 'Nick', aliases: ['Nick'], parlay: true, abstain: false, firstYear: false },
-    { id: 'chas', name: 'Chas Rossman', nick: 'Chas', aliases: ['Chas'], parlay: true, abstain: false, firstYear: false },
-    { id: 'mcfadden', name: 'Kyle McFadden', nick: 'Kyle', aliases: ['Kyle Mcfadden', 'Kyle'], parlay: true, abstain: false, firstYear: false },
-    { id: 'heller', name: 'Kyle Heller', nick: 'Heller', aliases: ['Heller'], parlay: false, abstain: true, firstYear: false },
-    { id: 'jace', name: 'Jace Clark', nick: 'Jace', aliases: ['Jace'], parlay: true, abstain: false, firstYear: false },
-    { id: 'meltser', name: 'Adam Meltser', nick: 'Meltser', aliases: ['Meltser'], parlay: true, abstain: false, firstYear: false },
-    { id: 'dj', name: 'DJ Dangerous', nick: 'DJ', aliases: ['DJ'], parlay: true, abstain: false, firstYear: true },
+    { id: 'brad', name: 'Brad Holm', nick: 'Brad', aliases: ['Brad', 'Brlaude', 'Low Man Brad'], parlay: true, abstain: false, firstYear: false },
+    { id: 'sachs', name: 'John Sachs', nick: 'Jarn', aliases: ['Jarn', 'Jarn Sachs', 'Jarn the Action', 'Jarn Home Depot', 'Jarn the Ticket'], parlay: true, abstain: false, firstYear: false },
+    { id: 'hoffman', name: 'Ryan Hoffman', nick: 'Hoss', aliases: ['Hoss', 'Hoss the Three-Peat', 'Hoss Greatness'], parlay: true, abstain: false, firstYear: false },
+    { id: 'sack', name: 'Kevin Sack', nick: 'Kev', aliases: ['Kev', 'Kev the Belt', 'Kev Nice Thought'], parlay: true, abstain: false, firstYear: false },
+    { id: 'mckeon', name: 'Joe Mckeon', nick: 'Joey', aliases: ['Joey', 'Joseph McKeon', 'Joe McKeon', 'Joey Dawg Pound', 'Joey Auto-Draft'], parlay: true, abstain: false, firstYear: false },
+    { id: 'curtis', name: 'Nick Curtis', nick: 'Nick', aliases: ['Nick', 'Nick O-Town', 'Nick Barely Tracks'], parlay: true, abstain: false, firstYear: false },
+    { id: 'chas', name: 'Chas Rossman', nick: 'Chas', aliases: ['Chas', 'Charles Q', 'Charles Q on Tab'], parlay: true, abstain: false, firstYear: false },
+    { id: 'mcfadden', name: 'Kyle McFadden', nick: 'Kyle', aliases: ['Kyle Mcfadden', 'Kyle', 'Worst Team Kyle', 'Kyle-on-Kyle'], parlay: true, abstain: false, firstYear: false },
+    { id: 'heller', name: 'Kyle Heller', nick: 'Heller', aliases: ['Heller', 'H-Bomb', 'H 💣'], parlay: false, abstain: true, firstYear: false },
+    { id: 'jace', name: 'Jace Clark', nick: 'Jace', aliases: ['Jace', 'Jace the Bowtie', 'Jace Last-Place Hill'], parlay: true, abstain: false, firstYear: false },
+    { id: 'meltser', name: 'Adam Meltser', nick: 'Meltser', aliases: ['Meltser', 'Meltser Truck Stick', 'Bloomfield Meltser'], parlay: true, abstain: false, firstYear: false },
+    { id: 'dj', name: 'DJ Dangerous', nick: 'DJ', aliases: ['DJ', 'DJ Cricket', 'Rickety Cricket', 'DJ the Trap'], parlay: true, abstain: false, firstYear: true },
   ];
 
   const ident = {
@@ -40,6 +44,10 @@
         this._index(p.name, p);
         this._index(p.nick, p);
         for (const a of p.aliases || []) this._index(a, p);
+        const hist = (p.career && p.career.history) || [];
+        let latest = null;
+        for (const s of hist) if (s && s.team && s.team !== '- -' && (!latest || s.season > latest.season)) latest = s;
+        if (latest) this._index(latest.team, p);
       }
     },
     _index(s, p) {
@@ -57,7 +65,9 @@
     abstainNames() { return this.people.filter((p) => p.abstain).map((p) => p.name); },
     nick(name) {
       const p = this.person(name);
-      return p ? (p.nick || p.name) : String(name || '');
+      if (p) return p.nick || String(p.name || '').split(/\s+/)[0] || p.name;
+      const s = String(name || '').trim();
+      return s.split(/\s+/)[0] || s;
     },
   };
   ident.load(null);
@@ -116,10 +126,61 @@
   const KPI_LS = 'hp_kpi_ideas';
   const CHAT_LS = 'hp_chat_drafts';
   let pendingChatDraft = '';
+  let Weeks = null;
+
+  // Unique Auction House handles from chat lore. Short nicks stay on Elo and the tape.
+  const HOUSE_HANDLE = {
+    heller: { sit: 'H-Bomb', default: 'H-Bomb' },
+    hoffman: { chalk: 'Hoss the Three-Peat', ml: 'Hoss the Three-Peat', killer: 'Hoss Greatness', default: 'Hoss the Three-Peat' },
+    sachs: { sgp: 'Jarn the Action', ml: 'Jarn the Action', tab: 'Jarn the Ticket', default: 'Jarn the Action' },
+    chas: { props: 'Charles Q', player: 'Charles Q', tab: 'Charles Q on Tab', default: 'Charles Q' },
+    mckeon: { total: 'Joey Dawg Pound', mixer: 'Joey Auto-Draft', default: 'Joey Dawg Pound' },
+    dj: { sgp: 'DJ Cricket', player: 'DJ Cricket', killer: 'DJ the Trap', default: 'DJ Cricket' },
+    jace: { sgp: 'Jace the Bowtie', total: 'Jace the Bowtie', bricks: 'Jace Last-Place Hill', default: 'Jace the Bowtie' },
+    curtis: { sgp: 'Nick O-Town', player: 'Nick O-Town', default: 'Nick O-Town' },
+    sack: { sgp: 'Kev the Belt', ml: 'Kev the Belt', default: 'Kev the Belt' },
+    meltser: { sgp: 'Meltser Truck Stick', player: 'Meltser Truck Stick', default: 'Meltser Truck Stick' },
+    mcfadden: { chalk: 'Worst Team Kyle', ml: 'Worst Team Kyle', default: 'Worst Team Kyle' },
+    brad: { sgp: 'Brlaude', player: 'Brlaude', default: 'Brlaude' },
+  };
+
+  function houseHandle(name, key) {
+    const p = ident.person(name);
+    const nick = ident.nick(name);
+    if (!p) return nick;
+    const bank = HOUSE_HANDLE[p.id] || {};
+    if (p.abstain || key === 'sit') return bank.sit || nick;
+    if (!key) return bank.default || nick;
+    return bank[key] || bank.default || nick;
+  }
+
+  function sitHandle(name) {
+    return houseHandle(name, 'sit');
+  }
+
+  function houseNeedle(a, b) {
+    const id = a && a.id;
+    const vs = b && b.id;
+    if (id === 'heller') return 'H-Bomb sat the ticket so Sundays can be football again.';
+    if (id === 'hoffman' && vs === 'heller') return 'Hoss said we should not concern ourselves with the opinions of non-gamblers.';
+    if (id === 'hoffman') return 'Quiet as a church. Is the three-peat intimidating, or just the Vegas tab?';
+    if (id === 'sachs') return 'Wrote 519 last year in rage. The belt is for Home Depot, not the mantle.';
+    if (id === 'mckeon') return 'Oktoberfest, auto-draft, nachos in a Dawg Bowl.';
+    if (id === 'dj') return 'Texas rickety cricket. Broker-of-the-year adjacent.';
+    if (id === 'jace') return 'Dying on the worst-team hill. Championship bowtie pending.';
+    if (id === 'curtis') return 'O-Town. Barely tracks the matchup.';
+    if (id === 'sack') return 'Proposed the belt. Not that he will ever win it. Nice thought.';
+    if (id === 'meltser') return 'Human truck stick. Henry every week until it was Gibbs.';
+    if (id === 'chas') return 'Charles Q wants the DK points and would lose the belt before displaying it.';
+    if (id === 'mcfadden') return 'Put some disrespect in the name. Self-appointed worst team.';
+    if (id === 'brad') return 'Brlaude will cover your $10.';
+    return '';
+  }
 
   function lorePerson(id) {
     return ident.people.find((p) => p.id === id) || null;
   }
+
   function seasonRows(p) {
     return (p && p.career && p.career.history) || [];
   }
@@ -246,7 +307,7 @@
       const head = t.charAt(0).toUpperCase() + t.slice(1);
       return /[.!?]$/.test(head) ? head : head + '.';
     };
-    return Object.assign(pack, { line: [sentence(open), sentence(h2h + extraClause), sentence(pf)].filter(Boolean).join(' '), stat: statBits.join(' ') });
+    return Object.assign(pack, { line: [sentence(open), sentence(h2h + extraClause), sentence(houseNeedle(a, b)), sentence(pf)].filter(Boolean).join(' '), stat: statBits.join(' ') });
   }
   function hashRoute() {
     const raw = (location.hash || '#week').replace(/^#/, '');
@@ -350,13 +411,16 @@
     },
   };
 
-  const espnCache = { scoreboard: {}, summary: {} };
+  const espnCache = { scoreboard: {}, summary: {}, ffl: {} };
   const espn = {
     async scoreboard(week, force) {
-      const key = String(week);
+      const key = week == null || week === 'now' ? 'now' : String(week);
       const c = espnCache.scoreboard[key];
       if (c && !force && Date.now() - c.at < 20000) return c.data;
-      const r = await fetch(`${API}?path=scoreboard&season=${SEASON}&week=${week}&_=${Date.now()}`);
+      const qs = key === 'now'
+        ? `path=scoreboard&season=${SEASON}`
+        : `path=scoreboard&season=${SEASON}&week=${week}`;
+      const r = await fetch(`${API}?${qs}&_=${Date.now()}`);
       if (!r.ok) throw new Error('scores unavailable');
       const data = await r.json();
       espnCache.scoreboard[key] = { at: Date.now(), data };
@@ -371,7 +435,220 @@
       espnCache.summary[eventId] = { at: Date.now(), data, final: !!finalGame };
       return data;
     },
+    async ffl(scoringPeriodId, force) {
+      const key = String(scoringPeriodId);
+      const c = espnCache.ffl[key];
+      if (c && !force && Date.now() - c.at < 30000) return c.data;
+      const league = (ident.lore && ident.lore.espnLeagueId) || 182263;
+      const r = await fetch(`${API}?path=ffl&season=${SEASON}&week=${scoringPeriodId}&league=${league}&_=${Date.now()}`);
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const err = new Error(data.error || 'fantasy scores unavailable');
+        err.unauthorized = !!(data.unauthorized || r.status === 401 || r.status === 403);
+        err.status = r.status;
+        throw err;
+      }
+      espnCache.ffl[key] = { at: Date.now(), data };
+      return data;
+    },
   };
+
+  function weekdayET(iso) {
+    if (!iso) return '';
+    return new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: 'America/New_York' }).format(new Date(iso));
+  }
+
+  function formatKickET(iso) {
+    if (!iso) return '';
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York',
+    }).format(new Date(iso)) + ' ET';
+  }
+
+  function boardSnapshot(board, weekNum) {
+    const events = ((board && board.events) || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    const snaps = events.map((ev) => {
+      const st = (ev.status || {}).type || {};
+      const state = st.state || 'pre';
+      return { date: ev.date, state, completed: !!st.completed || state === 'post', name: ev.shortName || ev.name || '' };
+    });
+    const first = snaps[0] || null;
+    const last = snaps[snaps.length - 1] || null;
+    const firstAbbr = first && first.name ? first.name.replace(/\s+/g, ' ') : '';
+    return {
+      week: weekNum,
+      count: events.length,
+      allFinal: events.length > 0 && snaps.every((s) => s.completed),
+      anyLive: snaps.some((s) => s.state === 'in'),
+      anyStarted: snaps.some((s) => s.state === 'in' || s.completed),
+      firstKick: first ? first.date : null,
+      lastKick: last ? last.date : null,
+      firstGame: firstAbbr,
+      wednesdayOpen: weekdayET(first && first.date) === 'Wed',
+      firstKickLabel: formatKickET(first && first.date),
+    };
+  }
+
+  function resolveNflWeek(espnWeek, prevS, currS) {
+    let n = Math.max(1, Math.min(18, Number(espnWeek) || 1));
+    if (currS && currS.allFinal) n = n >= 18 ? 18 : n + 1;
+    else if (prevS && prevS.count && !prevS.allFinal) n = Math.max(1, n - 1);
+    return n;
+  }
+
+  async function loadNflClock(force) {
+    const nowBoard = await espn.scoreboard('now', force);
+    const seasonType = Number((nowBoard.season || {}).type) || 2;
+    let espnWeek = Number((nowBoard.week || {}).number) || 1;
+    if (seasonType !== 2) espnWeek = 1;
+    espnWeek = Math.max(1, Math.min(18, espnWeek));
+    const prevN = espnWeek > 1 ? espnWeek - 1 : null;
+    const nextN = espnWeek < 18 ? espnWeek + 1 : null;
+    const curr = await espn.scoreboard(espnWeek, force);
+    const prev = prevN ? await espn.scoreboard(prevN, force) : null;
+    const currS = boardSnapshot(curr, espnWeek);
+    const prevS = prev ? boardSnapshot(prev, prevN) : { week: prevN, count: 0, allFinal: true };
+    const active = resolveNflWeek(espnWeek, prevS, currS);
+    let activeS = active === espnWeek ? currS : active === prevN ? prevS : null;
+    if (!activeS && nextN && active === nextN) {
+      try { activeS = boardSnapshot(await espn.scoreboard(nextN, force), nextN); } catch (e) { activeS = { week: nextN, count: 0, wednesdayOpen: false }; }
+    }
+    if (!activeS) activeS = { week: active, count: 0, wednesdayOpen: false, firstKickLabel: '', firstGame: '' };
+    state.nfl = {
+      active,
+      espnWeek,
+      payerWeek: Math.max(1, active - 1),
+      prevFinal: !prevN || !!prevS.allFinal,
+      wednesday: !!activeS.wednesdayOpen,
+      firstKick: activeS.firstKick || null,
+      firstKickLabel: activeS.firstKickLabel || '',
+      firstGame: activeS.firstGame || '',
+      snapshot: activeS,
+    };
+    return state.nfl;
+  }
+
+  function ownerPerson(ownerName, teamName) {
+    let p = ident.person(ownerName);
+    if (p) return p;
+    p = ident.person(teamName);
+    if (p) return p;
+    const first = String(ownerName || '').trim().split(/\s+/)[0];
+    if (!first) return null;
+    const k = ident.key(first);
+    const hits = ident.people.filter((x) => ident.key(x.nick) === k || ident.key(x.name).startsWith(k));
+    return hits.length === 1 ? hits[0] : null;
+  }
+
+  async function loadLastPlace(scoringPeriodId, force) {
+    if (!scoringPeriodId) {
+      state.lastPlace = null;
+      return null;
+    }
+    try {
+      const data = await espn.ffl(scoringPeriodId, force);
+      const rows = (data.standings || []).map((row) => {
+        const p = ownerPerson(row.owner, row.team);
+        return Object.assign({}, row, { who: p ? p.name : ident.canonical(row.owner) || row.owner || '' });
+      });
+      const last = rows.find((r) => r.points != null) || null;
+      state.lastPlace = {
+        week: Number(data.scoringPeriodId || scoringPeriodId),
+        who: last ? last.who : '',
+        points: last ? last.points : null,
+        team: last ? last.team : '',
+        rows,
+        unauthorized: false,
+        error: last ? '' : 'No weekly points yet',
+      };
+    } catch (e) {
+      state.lastPlace = {
+        week: Number(scoringPeriodId),
+        who: '',
+        points: null,
+        team: '',
+        rows: [],
+        unauthorized: !!e.unauthorized,
+        error: e.message || 'fantasy scores unavailable',
+      };
+    }
+    return state.lastPlace;
+  }
+
+  function payerRoster() {
+    return uniq((state.config.roster || ident.parlayRoster()).concat(state.config.abstain || ident.abstainNames()).concat(ident.people.map((p) => p.name)));
+  }
+
+  function lastPlaceFor(priorWeek) {
+    const lp = state.lastPlace;
+    if (!lp || !priorWeek || lp.week !== priorWeek) return null;
+    return lp;
+  }
+
+  function weekPayer(week) {
+    if (week && week.payer) return week.payer;
+    const lp = lastPlaceFor(week && week.week ? week.week - 1 : 0);
+    return (lp && lp.who) || '';
+  }
+
+  function weekPayerNote(week) {
+    if (week && week.payerNote) return week.payerNote;
+    const prior = week && week.week ? week.week - 1 : (state.nfl && state.nfl.payerWeek);
+    const lp = lastPlaceFor(prior);
+    if (lp && lp.who) {
+      const pts = lp.points != null ? `${Number(lp.points).toFixed(1)} PF` : '';
+      return `Last in Week ${lp.week} fantasy${pts ? ' · ' + pts : ''}${lp.team ? ' · ' + lp.team : ''}`;
+    }
+    if (lp && lp.unauthorized) return `Last place in Week ${prior} matchups · ESPN league is private`;
+    return prior ? `Last place in Week ${prior} matchups` : 'Last place last week';
+  }
+
+  function weekKickNote(n) {
+    const clock = state.nfl;
+    if (!clock || clock.active !== n) return '';
+    if (clock.wednesday) {
+      return `Week ${n} opens Wednesday — first kick ${clock.firstKickLabel}${clock.firstGame ? ' · ' + clock.firstGame : ''}. Picks are due before that game, not after the prior Monday night.`;
+    }
+    if (clock.firstKickLabel) return `First kick ${clock.firstKickLabel}${clock.firstGame ? ' · ' + clock.firstGame : ''}. The board rolls as soon as the previous week’s last game is final.`;
+    return '';
+  }
+
+  function placeholderWeek(n) {
+    return {
+      week: n, payer: '', placedBy: '', stake: 10, odds: '', toPay: '', book: '',
+      note: '', legs: [], groups: {}, overrides: {}, pendingTicket: true,
+    };
+  }
+
+  function weekRecord(n) {
+    return state.weeks.find((w) => w.week === n) || (state.nfl && state.nfl.active === n ? placeholderWeek(n) : null);
+  }
+
+  function weekTabNumbers() {
+    const nums = state.weeks.map((w) => w.week);
+    const active = state.nfl && state.nfl.active;
+    if (active && !nums.includes(active)) nums.push(active);
+    nums.sort((a, b) => a - b);
+    return nums;
+  }
+
+  async function syncNflClock(force) {
+    const prevActive = state.nfl && state.nfl.active;
+    try { await loadNflClock(force); } catch (e) { if (!state.nfl) return null; }
+    const clock = state.nfl;
+    if (!clock) return null;
+    if (state.weekFollowClock !== false) state.selectedWeek = clock.active;
+    else if (prevActive != null && state.selectedWeek === prevActive && clock.active !== prevActive) {
+      state.weekFollowClock = true;
+      state.selectedWeek = clock.active;
+    }
+    const payerWeek = clock.payerWeek;
+    if (!state.lastPlace || state.lastPlace.week !== payerWeek || force) {
+      await loadLastPlace(payerWeek, force);
+    }
+    return clock;
+  }
 
   // ---------- grading ----------
   function findEvent(scoreboard, legGame) {
@@ -449,6 +726,22 @@
       res.state = ctx.override; res.final = true; res.detail = 'Set by commissioner';
       return res;
     }
+    if (leg.type === 'tbd') {
+      res.state = 'unknown'; res.detail = 'Pick not in yet'; return res;
+    }
+    if (leg.period && leg.period !== 'game' && leg.period !== 'full') {
+      res.state = 'unknown'; res.detail = leg.note || 'Result unknown'; return res;
+    }
+    const recorded = Weeks && Weeks.terminalState(leg.result);
+    if (recorded) {
+      res.state = recorded; res.final = true;
+      res.detail = leg.detail || ('Recorded ' + (recorded === 'won' ? 'win' : recorded === 'lost' ? 'loss' : recorded));
+      return res;
+    }
+    if (leg.result === 'unknown' || leg.result === 'pending') {
+      res.state = 'unknown'; res.detail = leg.note || 'Result unknown'; return res;
+    }
+    const lineOk = leg.line != null && leg.line !== '' && !Number.isNaN(Number(leg.line));
     const g = ctx.game;
     if (!g) { res.detail = 'Game not found yet'; return res; }
     const total = g.home.score + g.away.score;
@@ -470,12 +763,14 @@
       res.current = res.final ? (mine > theirs ? `won by ${mine - theirs}` : mine < theirs ? `lost by ${theirs - mine}` : 'tie') : (mine > theirs ? 'leading' : mine < theirs ? 'trailing' : 'tied');
       settle(mine > theirs, mine === theirs);
     } else if (leg.type === 'spread') {
+      if (!lineOk) { res.detail = 'Line not posted'; res.state = 'pending'; return res; }
       const t = String(leg.team).toUpperCase();
       const margin = teamScore(t) - oppScore(t) + Number(leg.line);
       res.detail = `${clock} · ${scoreTxt}`;
       res.current = (margin > 0 ? 'covering' : margin < 0 ? 'not covering' : 'push');
       settle(margin > 0, margin === 0);
     } else if (leg.type === 'total') {
+      if (!lineOk) { res.detail = 'Line not posted'; res.state = 'pending'; return res; }
       const line = Number(leg.line);
       res.detail = `${clock} · ${scoreTxt} · ${total} pts`;
       res.current = `${total} pts`;
@@ -484,6 +779,7 @@
       if (!res.final && over && total > line) { res.state = 'won'; res.final = true; return res; } // over already clinched
       settle(over ? total > line : total < line, total === line);
     } else if (leg.type === 'player') {
+      if (!lineOk) { res.detail = 'Line not posted'; res.state = 'pending'; return res; }
       const s = ctx.summary ? playerStat(ctx.summary, leg.player, leg.stat) : { value: null, found: false };
       const line = Number(leg.line);
       const unit = { passYds: 'pass yds', recYds: 'rec yds', rushYds: 'rush yds', passTD: 'pass TD', passINT: 'INT', receptions: 'rec', anyTD: 'TD' }[leg.stat] || '';
@@ -503,11 +799,12 @@
   }
 
   function summarizeParlay(week, graded) {
+    if (Weeks) return Weeks.summarizeParlay(graded);
     const lost = graded.filter((g) => g.state === 'lost');
     const won = graded.filter((g) => g.state === 'won');
     const pushes = graded.filter((g) => g.state === 'push' || g.state === 'void');
     const live = graded.filter((g) => g.state === 'live');
-    const pending = graded.filter((g) => g.state === 'pending');
+    const pending = graded.filter((g) => g.state === 'pending' || g.state === 'unknown');
     let state = 'open';
     if (lost.length) state = 'busted';
     else if (won.length + pushes.length === graded.length && graded.length) state = 'cashed';
@@ -525,6 +822,12 @@
   async function gradeWeek(week, opts) {
     opts = opts || {};
     const legs = week.legs || [];
+    if (Weeks) {
+      const stored = Weeks.gradeStoredWeek(week);
+      if (stored) {
+        return { graded: stored.graded, summary: summarizeParlay(week, stored.graded), fromLock: true, fetchedAt: null };
+      }
+    }
     if (week.locked && week.locked.results && !opts.force) {
       // settled week: use stored results, no network
       const graded = legs.map((leg) => {
@@ -574,6 +877,9 @@
     weeks: [], // [{week, data}]
     route: 'week',
     selectedWeek: null,
+    weekFollowClock: true,
+    nfl: null,
+    lastPlace: null,
     graded: {}, // week -> gradeWeek result
     admin: { pass: sessionStorage.getItem('hp_pass') || '', editing: null },
     timer: null,
@@ -615,26 +921,52 @@
   }
 
   async function loadData() {
-    const rows = await sb.rows();
-    const cfg = rows.find((r) => r.week === 0);
-    if (cfg) state.config = Object.assign(state.config, cfg.data);
-    state.weeks = rows.filter((r) => r.week > 0).map((r) => Object.assign({ week: r.week }, r.data, { week: r.week }));
+    const fileRes = await fetch('/data/bets.json', { cache: 'no-store' });
+    if (!fileRes.ok) throw new Error('Could not load data/bets.json (' + fileRes.status + ')');
+    const file = await fileRes.json();
+    const normalized = Weeks.normalizeFile(file);
+    state.config = Object.assign(state.config, normalized.config || {});
+    let remote = [];
+    try { remote = await sb.rows(); } catch (e) { remote = []; }
+    const cfg = remote.find((r) => r.week === 0);
+    if (cfg && cfg.data) state.config = Object.assign(state.config, cfg.data);
+    const fileNums = new Set(normalized.weeks.map((w) => w.week));
+    const extra = [];
+    const conflicts = [];
+    for (const r of remote) {
+      if (!r || !(r.week > 0)) continue;
+      if (fileNums.has(r.week)) {
+        const diff = Weeks.diffWeek(normalized.weeks.find((w) => w.week === r.week), r.data);
+        if (diff) conflicts.push(diff);
+      } else {
+        extra.push(Object.assign({ week: r.week }, r.data, { week: r.week, source: 'supabase' }));
+      }
+    }
+    state.dataConflicts = conflicts;
+    state.weeks = normalized.weeks.concat(extra).sort((a, b) => a.week - b.week);
     canonicalizeLoaded();
-    if (!state.selectedWeek || !state.weeks.find((w) => w.week === state.selectedWeek)) {
-      state.selectedWeek = state.weeks.length ? state.weeks[state.weeks.length - 1].week : null;
+    const onClock = state.nfl && state.nfl.active === state.selectedWeek;
+    const inWeeks = state.weeks.find((w) => w.week === state.selectedWeek);
+    if (!state.selectedWeek || (!inWeeks && !onClock)) {
+      state.selectedWeek = (state.nfl && state.nfl.active)
+        || (state.weeks.length ? state.weeks[state.weeks.length - 1].week : null);
     }
   }
 
   // ---------- rendering ----------
   function statusBadge(st) {
-    const map = { won: 'Won', lost: 'Lost', push: 'Push', void: 'Void', live: 'Live', pending: 'Pending' };
-    return h('span', { class: 'status status--' + st }, map[st] || st);
+    const map = { won: 'Won', lost: 'Lost', push: 'Push', void: 'Void', live: 'Live', pending: 'Pending', unknown: 'Unknown' };
+    return h('span', { class: 'status status--' + (st === 'unknown' ? 'unknown' : st) }, map[st] || st);
   }
 
   function renderHeader(title, sub) {
     $('#pageTitle').textContent = title;
-    $('#pageSub').textContent = sub || '';
-    $('#leagueName').textContent = `${state.config.leagueName} · ${SEASON}`;
+    const clock = state.nfl;
+    const clockBit = clock
+      ? `NFL Week ${clock.active}${clock.wednesday ? ' · Wednesday kickoff' : clock.firstKickLabel ? ' · ' + clock.firstKickLabel : ''}`
+      : '';
+    $('#pageSub').textContent = [sub || '', clockBit].filter(Boolean).join(' · ');
+    $('#leagueName').textContent = `${state.config.leagueName} · ${SEASON}${clock ? ' · Wk ' + clock.active : ''}`;
     const chat = $('#chatLink');
     if (state.config.chat) { chat.href = state.config.chat; chat.hidden = false; } else chat.hidden = true;
     document.querySelectorAll('[data-nav]').forEach((a) => {
@@ -642,21 +974,33 @@
     });
   }
 
+  function selectWeek(n) {
+    state.selectedWeek = Number(n);
+    state.weekFollowClock = !!(state.nfl && state.selectedWeek === state.nfl.active);
+    render();
+  }
+
   function weekTabs() {
     const tabs = h('div', { class: 'tabs', role: 'tablist', 'aria-label': 'Weeks' });
-    for (const w of state.weeks) {
+    for (const n of weekTabNumbers()) {
       tabs.appendChild(h('button', {
-        class: 'tab', role: 'tab', type: 'button', 'aria-selected': w.week === state.selectedWeek ? 'true' : 'false',
-        onclick: () => { state.selectedWeek = w.week; render(); refreshScores(); },
-      }, 'Wk ' + w.week));
+        class: 'tab', role: 'tab', type: 'button',
+        'aria-selected': n === state.selectedWeek ? 'true' : 'false',
+        'data-week': String(n),
+      }, 'Wk ' + n));
     }
+    tabs.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-week]');
+      if (!btn || !tabs.contains(btn)) return;
+      selectWeek(btn.getAttribute('data-week'));
+    });
     return tabs;
   }
 
   function legRow(g, week, dead) {
     const leg = g.leg;
-    const typeLabel = { ml: 'Moneyline', spread: 'Spread', total: 'Total', player: 'Player prop' }[leg.type] || leg.type;
-    const game = (leg.game || []).join(' at ');
+    const typeLabel = { ml: 'Moneyline', spread: 'Spread', total: 'Total', player: 'Player prop', tbd: 'Not posted' }[leg.type] || leg.type;
+    const game = (leg.game || []).filter(Boolean).join(' at ');
     const inGroup = leg.group && week.groups && week.groups[leg.group];
     const right = h('div', { class: 'leg__right' },
       h('span', { class: 'leg__odds num' }, inGroup ? 'SGP' : fmtOdds(leg.odds)),
@@ -666,7 +1010,7 @@
       g.current != null && (g.state === 'live' || g.state === 'won' || g.state === 'lost') ? h('span', { class: 'cur' }, String(g.current)) : null);
     return h('li', { class: 'leg' + (dead && g.state !== 'won' && g.state !== 'lost' && g.state !== 'push' ? ' leg--dead' : '') },
       h('span', { class: 'leg__who' }, whoLabel(leg.who)),
-      h('div', null, h('div', { class: 'leg__pick' }, leg.label || ''), h('div', { class: 'leg__market' }, `${typeLabel} · ${game}`)),
+      h('div', null, h('div', { class: 'leg__pick' }, leg.label || ''), h('div', { class: 'leg__market' }, game ? `${typeLabel} · ${game}` : typeLabel)),
       gameLine,
       right);
   }
@@ -674,40 +1018,59 @@
   function renderWeek() {
     const view = $('#view');
     view.innerHTML = '';
-    if (!state.weeks.length) {
+    const n = state.selectedWeek || (state.nfl && state.nfl.active);
+    const week = (n && weekRecord(n)) || (state.weeks.length ? state.weeks[state.weeks.length - 1] : null);
+    if (!week) {
       renderHeader('No tickets yet', 'The commissioner adds the first week from the Commissioner tab.');
-      view.appendChild(h('div', { class: 'card' }, h('div', { class: 'empty' }, 'No weeks yet. Add Week 7 from the Commissioner tab.')));
+      view.appendChild(h('div', { class: 'card' }, h('div', { class: 'empty' }, 'No weeks yet. Add the current NFL week from the Commissioner tab.')));
       return;
     }
-    const week = state.weeks.find((w) => w.week === state.selectedWeek) || state.weeks[state.weeks.length - 1];
     const gr = state.graded[week.week];
     const legs = week.legs || [];
+    const pending = !!week.pendingTicket || !legs.length;
     const participants = legs.length || (state.config.roster || []).length || 11;
     const share = week.toPay ? week.toPay / participants : null;
-    renderHeader(`Week ${week.week} parlay`, `One ticket, everyone on the same side. Winnings split ${participants} ways.`);
+    const payer = weekPayer(week);
+    renderHeader(`Week ${week.week} parlay`, pending
+      ? 'Picks are open'
+      : `${participants}-way split`);
 
     view.appendChild(weekTabs());
-    const rules = (ident.lore && ident.lore.rules && ident.lore.rules.note) || '11 managers, one leg each. Heller sits. Last place last week funds $10. Split the cash if it hits.';
-    view.appendChild(h('p', { class: 'rules' }, rules));
+    const kick = weekKickNote(week.week);
+    if (kick) view.appendChild(h('p', { class: 'rules rules--warn' }, kick));
+    if (state.dataConflicts && state.dataConflicts.length) {
+      view.appendChild(h('p', { class: 'rules' }, 'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'));
+    }
 
     // banner
     const s = gr ? gr.summary : null;
+    const hold = week.results === 'unknown' || week.results === 'pending';
     let statusEl;
-    if (!s) statusEl = h('span', { class: 'status status--pending' }, 'Loading scores');
-    else if (s.state === 'busted') statusEl = h('span', { class: 'status status--lost' }, `Busted · killed by ${s.killers.map((k) => ident.nick(k)).join(', ')}`);
+    if (pending && !s) statusEl = h('span', { class: 'status status--pending' }, 'Waiting on the ticket');
+    else if (!s) statusEl = h('span', { class: 'status status--pending' }, 'Loading scores');
+    else if (s.state === 'busted') statusEl = h('span', { class: 'status status--lost' }, `Busted · killed by ${s.killers.map((k) => whoLabel(k)).join(', ')}`);
     else if (s.state === 'cashed') statusEl = h('span', { class: 'status status--won' }, `Cashed · ${fmtMoney(week.toPay)}`);
+    else if (hold) statusEl = h('span', { class: 'status status--unknown' }, `Unknown · ${s.pending} of ${s.total} not graded`);
     else statusEl = h('span', { class: 'status status--' + (s.live ? 'live' : 'pending') }, `${s.state === 'live' ? 'Live' : 'Open'} · ${s.won} of ${s.total} hit`);
+    const gradeNote = gr && gr.fetchedAt ? 'Updated ' + new Date(gr.fetchedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : hold ? 'Results not recorded' : gr && gr.fromLock ? 'Recorded result' : '';
     view.appendChild(h('section', { class: 'card banner' },
-      h('div', null, h('span', { class: 'label' }, 'Payer'), h('span', { class: 'big' }, `${week.payer ? ident.nick(week.payer) : '—'} pays ${fmtMoney(week.stake || 10)}`), h('span', { class: 'small' }, week.payerNote || `Last place in Week ${week.week - 1} matchups`)),
-      h('div', null, h('span', { class: 'label' }, 'Ticket'), h('span', { class: 'big' }, `${legs.length} legs · placed by ${week.placedBy ? ident.nick(week.placedBy) : '—'}`), h('span', { class: 'small' }, (state.config.abstain || []).length ? `${state.config.abstain.map((n) => ident.nick(n)).join(', ')} abstains` : '')),
-      h('div', null, h('span', { class: 'label' }, 'Parlay status'), h('div', null, statusEl), h('span', { class: 'small' }, gr && gr.fetchedAt ? 'Updated ' + new Date(gr.fetchedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : gr && gr.fromLock ? 'Settled' : ''))));
+      h('div', null, h('span', { class: 'label' }, 'Payer'), h('span', { class: 'big' }, payer ? `${whoLabel(payer)} pays ${fmtMoney(week.stake || 10)}` : `Stake ${fmtMoney(week.stake || 10)} · payer not recorded`), h('span', { class: 'small' }, weekPayerNote(week))),
+      h('div', null, h('span', { class: 'label' }, 'Ticket'), h('span', { class: 'big' }, pending ? 'Not placed yet' : `${legs.length} legs · placed by ${week.placedBy ? whoLabel(week.placedBy) : '—'}`), h('span', { class: 'small' }, (state.config.abstain || []).length ? `${state.config.abstain.map((n) => sitHandle(n)).join(', ')} sits` : '')),
+      h('div', null, h('span', { class: 'label' }, 'Parlay status'), h('div', null, statusEl), h('span', { class: 'small' }, gradeNote || (pending ? 'After the previous week’s last game is final' : '')))));
 
     // stats
     view.appendChild(h('section', { class: 'stats', 'aria-label': 'Week stats' },
-      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Parlay odds'), h('span', { class: 'stat__value' }, fmtOdds(week.odds)), h('span', { class: 'stat__delta' }, `${fmtMoney(week.stake || 10)} stake`)),
-      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Pays if it hits'), h('span', { class: 'stat__value' }, fmtMoney(week.toPay)), h('span', { class: 'stat__delta' }, share ? `${fmtMoney(share)} each` : '')),
-      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Legs settled'), h('span', { class: 'stat__value' }, s ? `${s.won + s.lost + s.pushes} / ${s.total}` : '–'), h('span', { class: 'stat__delta' }, s ? `${s.live} live · ${s.pending} to play` : '')),
+      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Parlay odds'), h('span', { class: 'stat__value' }, pending ? '—' : fmtOdds(week.odds)), h('span', { class: 'stat__delta' }, `${fmtMoney(week.stake || 10)} stake`)),
+      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Pays if it hits'), h('span', { class: 'stat__value' }, pending ? '—' : fmtMoney(week.toPay)), h('span', { class: 'stat__delta' }, share ? `${fmtMoney(share)} each` : '')),
+      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Legs settled'), h('span', { class: 'stat__value' }, s ? `${s.won + s.lost + s.pushes} / ${s.total}` : '–'), h('span', { class: 'stat__delta' }, s ? `${s.live} live · ${s.pending} to play` : (pending ? 'Ticket not in yet' : ''))),
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Season parlays'), h('span', { class: 'stat__value' }, seasonRecord()), h('span', { class: 'stat__delta' }, 'cashed – busted'))));
+
+    if (pending) {
+      view.appendChild(h('section', { class: 'card' },
+        h('div', { class: 'empty' }, 'No ticket for this NFL week yet. Enter picks on the Pick tab — the board already moved on because last week’s games are final.'),
+        h('div', { class: 'notice' }, h('a', { href: '#pick' }, 'Open the pick board'))));
+      return;
+    }
 
     // legs
     const list = h('ol', { class: 'legs' });
@@ -751,10 +1114,92 @@
   }
 
   function whoLabel(name) {
-    const canon = ident.canonical(name);
+    return houseHandle(name) || name || '—';
+  }
+
+  function emptyBettingStyle() {
+    return { n: 0, ml: 0, spread: 0, total: 0, player: 0, sgp: 0, fav: 0, dog: 0, paidWeeks: 0, busts: 0, hit: 0, miss: 0 };
+  }
+
+  function computeBettingStyles() {
+    const byWho = new Map();
+    const row = (who) => {
+      const c = ident.canonical(who);
+      if (!c) return null;
+      if (!byWho.has(c)) byWho.set(c, emptyBettingStyle());
+      return byWho.get(c);
+    };
+    for (const w of state.weeks) {
+      const groups = w.groups || {};
+      const payer = row(w.payer);
+      if (payer) payer.paidWeeks++;
+      const g = state.graded[w.week];
+      if (g) {
+        for (const k of g.summary.killers || []) {
+          const killer = row(k);
+          if (killer) killer.busts++;
+        }
+        for (const r of g.graded) {
+          const s = row(r.leg.who);
+          if (!s) continue;
+          const bucket = Weeks ? Weeks.tallyState(r.state) : (r.state === 'won' ? 'hit' : r.state === 'lost' ? 'miss' : 'open');
+          if (bucket === 'hit') s.hit++;
+          else if (bucket === 'miss') s.miss++;
+        }
+      }
+      const pricedSgp = new Set();
+      for (const leg of w.legs || []) {
+        const s = row(leg.who);
+        if (!s) continue;
+        s.n++;
+        const gid = leg.group;
+        if (gid && groups[gid]) {
+          s.sgp++;
+          const key = ident.canonical(leg.who) + '\0' + gid;
+          if (pricedSgp.has(key)) continue;
+          pricedSgp.add(key);
+          const o = Number(groups[gid].odds);
+          if (!isNaN(o) && o !== 0) (o < 0 ? s.fav++ : s.dog++);
+        } else {
+          if (Object.prototype.hasOwnProperty.call(s, leg.type)) s[leg.type]++;
+          const o = Number(leg.odds);
+          if (!isNaN(o) && o !== 0) (o < 0 ? s.fav++ : s.dog++);
+        }
+      }
+    }
+    return byWho;
+  }
+
+  function pickEpithet(person, s) {
+    if (person && person.abstain) return null;
+    if (!s || s.n < 1) return null;
+    const weekCount = state.weeks.length || 1;
+    if (s.paidWeeks >= 2 && s.paidWeeks >= weekCount / 2) return 'tab';
+    if (s.busts >= 2) return 'killer';
+    if (s.sgp / s.n >= 0.5) return 'sgp';
+    if (s.player / s.n >= 0.5) return 'props';
+    const priced = s.fav + s.dog;
+    if (priced && s.dog / priced >= 0.6) return 'dogs';
+    if (priced && s.fav / priced >= 0.6) return 'chalk';
+    let best = null, bestN = 0;
+    for (const t of ['ml', 'spread', 'total']) {
+      if (s[t] > bestN) { best = t; bestN = s[t]; }
+    }
+    const standalone = Math.max(s.n - s.sgp, 0);
+    if (best && standalone && bestN >= standalone * 0.5) return best;
+    const settled = s.hit + s.miss;
+    if (settled >= 4) {
+      const rate = s.hit / settled;
+      if (rate >= 0.75) return 'locks';
+      if (rate <= 0.25) return 'bricks';
+    }
+    return 'mixer';
+  }
+
+  function styleNick(name, styles) {
     const p = ident.person(name);
-    if (p && p.nick && p.nick !== p.name) return `${p.nick} · ${p.name}`;
-    return canon || name || '—';
+    const key = pickEpithet(p, styles && styles.get(ident.canonical(name)));
+    return houseHandle(name, key);
   }
 
   function computeStandings() {
@@ -783,11 +1228,14 @@
       for (const r of g.graded) {
         const who = ident.canonical(r.leg.who);
         const row = rows[who]; if (!row) continue;
-        row.legs++;
-        if (r.state === 'won') { row.hit++; row.streak.push('W'); }
-        else if (r.state === 'lost') { row.miss++; row.streak.push('L'); }
-        else if (r.state === 'push' || r.state === 'void') row.push++;
-        else row.open++;
+        if (Weeks) Weeks.applyLegToRow(row, r.state);
+        else {
+          row.legs++;
+          if (r.state === 'won') { row.hit++; row.streak.push('W'); }
+          else if (r.state === 'lost') { row.miss++; row.streak.push('L'); }
+          else if (r.state === 'push' || r.state === 'void') row.push++;
+          else row.open++;
+        }
         if (g.summary.state === 'cashed' && w.toPay) row.share += w.toPay / participants;
       }
       for (const k of g.summary.killers) {
@@ -826,14 +1274,15 @@
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Pot won together'), h('span', { class: 'stat__value' }, fmtMoney(pot)), h('span', { class: 'stat__delta' }, `${settled.length} of ${state.weeks.length} parlays settled`)),
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Stakes paid in'), h('span', { class: 'stat__value' }, fmtMoney(stakes)), h('span', { class: 'stat__delta' }, `${state.weeks.length} week${state.weeks.length === 1 ? '' : 's'}`)),
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'League leg hit rate'), h('span', { class: 'stat__value' }, pct(totHit, totLegs)), h('span', { class: 'stat__delta' }, `${totHit} of ${totLegs} settled legs`)),
-      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Most frequent payer'), h('span', { class: 'stat__value', style: 'font:600 26px/40px var(--font-display);letter-spacing:0' }, topPayer ? ident.nick(topPayer[0]) : '–'), h('span', { class: 'stat__delta' }, topPayer ? `Paid ${topPayer[1]} of ${state.weeks.length}` : ''))));
+      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Most frequent payer'), h('span', { class: 'stat__value', style: 'font:600 26px/40px var(--font-display);letter-spacing:0' }, topPayer ? whoLabel(topPayer[0]) : '–'), h('span', { class: 'stat__delta' }, topPayer ? `Paid ${topPayer[1]} of ${state.weeks.length}` : ''))));
 
+    const styles = computeBettingStyles();
     const tbody = h('tbody');
     rows.forEach((r, i) => {
       const rate = r.hit + r.miss ? r.hit / (r.hit + r.miss) : null;
       tbody.appendChild(h('tr', { class: r.who === state.config.you ? 'me' : '' },
         h('td', { class: 'rank' }, String(i + 1)),
-        h('td', { style: 'font-weight:600' }, whoLabel(r.who), r.who === state.config.you ? h('span', { class: 'muted', style: 'font-weight:400' }, ' (you)') : null),
+        h('td', { style: 'font-weight:600' }, styleNick(r.who, styles), r.who === state.config.you ? h('span', { class: 'muted', style: 'font-weight:400' }, ' (you)') : null),
         h('td', { class: 'r num hide-m' }, String(r.legs)),
         h('td', { class: 'r num' }, String(r.hit)),
         h('td', { class: 'r num' }, String(r.miss)),
@@ -844,10 +1293,10 @@
         h('td', { class: 'r num hide-m ' + (r.share ? 'pos' : '') }, r.share ? '+' + fmtMoney(r.share) : fmtMoney(0))));
     });
     for (const a of state.config.abstain || []) {
-      tbody.appendChild(h('tr', null, h('td', { class: 'rank' }, '–'), h('td', null, whoLabel(a), h('span', { class: 'muted' }, ' (abstains)')), h('td', { class: 'r num hide-m' }, '0'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num hide-m' }, '–'), h('td', { class: 'r num hide-m' }, '$0.00'), h('td', { class: 'r num hide-m' }, '$0.00')));
+      tbody.appendChild(h('tr', null, h('td', { class: 'rank' }, '–'), h('td', null, sitHandle(a), h('span', { class: 'muted' }, ' (sits the ticket)')), h('td', { class: 'r num hide-m' }, '0'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num' }, '–'), h('td', { class: 'r num hide-m' }, '–'), h('td', { class: 'r num hide-m' }, '$0.00'), h('td', { class: 'r num hide-m' }, '$0.00')));
     }
     view.appendChild(h('section', { class: 'card' },
-      h('div', { class: 'card__head' }, h('h2', null, 'Managers')),
+      h('div', { class: 'card__head' }, h('h2', null, 'Managers'), h('span', { class: 'sub' }, 'Auction House handles. Last names stay off this board. Open legs stay out of the hit rate.')),
       h('div', { class: 'tablewrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, '#'), h('th', null, 'Manager'), h('th', { class: 'r hide-m' }, 'Legs'), h('th', { class: 'r' }, 'Hit'), h('th', { class: 'r' }, 'Miss'), h('th', { class: 'r' }, 'Hit %'), h('th', { class: 'r' }, 'Busts'), h('th', { class: 'r hide-m' }, 'Streak'), h('th', { class: 'r hide-m' }, 'Paid'), h('th', { class: 'r hide-m' }, 'Won share'))),
         tbody))));
@@ -859,11 +1308,11 @@
       const s = g ? g.summary : null;
       wb.appendChild(h('tr', null,
         h('td', { class: 'num' }, String(w.week)),
-        h('td', null, w.payer ? ident.nick(w.payer) : '–'),
+        h('td', null, w.payer ? whoLabel(w.payer) : '–'),
         h('td', { class: 'r num' }, s ? `${s.won} / ${s.total}` : '–'),
         h('td', { class: 'r num hide-m' }, fmtOdds(w.odds)),
-        h('td', null, s && s.killers.length ? s.killers.map((k) => ident.nick(k)).join(', ') : '–'),
-        h('td', { class: 'r' }, statusBadge(!s ? 'pending' : s.state === 'busted' ? 'lost' : s.state === 'cashed' ? 'won' : s.live ? 'live' : 'pending'))));
+        h('td', null, s && s.killers.length ? s.killers.map((k) => whoLabel(k)).join(', ') : '–'),
+        h('td', { class: 'r' }, statusBadge(!s ? 'pending' : s.state === 'busted' ? 'lost' : s.state === 'cashed' ? 'won' : s.pending && !s.won && !s.lost && !s.live ? 'unknown' : s.live ? 'live' : 'pending'))));
     }
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Week by week')),
@@ -949,7 +1398,7 @@
       killList.length
         ? h('div', { class: 'tablewrap' }, h('table', null,
           h('thead', null, h('tr', null, h('th', null, 'Manager'), h('th', { class: 'r' }, 'Busts'))),
-          h('tbody', null, killList.map(([who, n]) => h('tr', null, h('td', null, ident.nick(who)), h('td', { class: 'r num neg' }, String(n)))))))
+          h('tbody', null, killList.map(([who, n]) => h('tr', null, h('td', null, whoLabel(who)), h('td', { class: 'r num neg' }, String(n)))))))
         : h('div', { class: 'empty' }, 'No killers yet. Give it a week.')));
     return wrap;
   }
@@ -991,7 +1440,7 @@
     current.forEach((p, i) => {
       const c = p.career || {};
       const badges = [];
-      if (p.abstain) badges.push(h('span', { class: 'pill' }, 'Abstains from parlays'));
+      if (p.abstain) badges.push(h('span', { class: 'pill' }, 'H-Bomb sits'));
       if (p.firstYear) badges.push(h('span', { class: 'pill' }, 'First year'));
       tbody.appendChild(h('tr', { class: p.name === state.config.you ? 'me' : '', onclick: () => { ident.selectedOwner = p.name; render(); } },
         h('td', { class: 'rank' }, String(i + 1)),
@@ -1053,7 +1502,7 @@
       fins.appendChild(h('div', { class: cls }, h('div', { class: 'fin__y' }, String(s.season)), h('div', { class: 'fin__r' }, String(s.rank))));
     }
     const bits = [];
-    if (p.abstain) bits.push('Sits the weekly parlay. Still on this board because three titles buy you a seat.');
+    if (p.abstain) bits.push('H-Bomb sat the ticket so Sundays can be football. Three rings still buy a seat.');
     if (p.firstYear) bits.push('New seat this year (took over for Zintak). No Holm League tape yet — he is writing it on the ticket.');
     if (!p.abstain && !p.firstYear && c.seasons) bits.push(`${c.seasons} seasons · ${c.wins}–${c.losses} · ${c.titles && c.titles.length ? c.titles.length + ' title' + (c.titles.length === 1 ? '' : 's') : 'still hunting a ring'}.`);
     return h('div', { class: 'ocard' },
@@ -1646,20 +2095,47 @@
       return;
     }
     // week picker + new week
-    const wk = state.admin.editing || (state.weeks.length ? JSON.parse(JSON.stringify(state.weeks[state.weeks.length - 1])) : newWeek(7));
+    const defaultNew = (state.nfl && state.nfl.active) || (state.weeks.length ? Math.max(...state.weeks.map((w) => w.week)) + 1 : 1);
+    const fillAutoPayer = (ticket) => {
+      const lp = lastPlaceFor(Number(ticket.week) - 1);
+      if (lp && lp.who && !ticket.payer) {
+        ticket.payer = lp.who;
+        ticket.payerNote = weekPayerNote({ week: ticket.week, payer: '', payerNote: '' });
+      }
+      return ticket;
+    };
+    const wk = state.admin.editing || (state.weeks.length ? JSON.parse(JSON.stringify(state.weeks[state.weeks.length - 1])) : fillAutoPayer(newWeek(defaultNew)));
     state.admin.editing = wk;
-    const picker = h('select', { onchange: (e) => { const v = e.target.value; if (v === 'new') { const n = (state.weeks.length ? Math.max(...state.weeks.map((w) => w.week)) : 6) + 1; state.admin.editing = newWeek(n); } else { state.admin.editing = JSON.parse(JSON.stringify(state.weeks.find((w) => w.week === Number(v)))); } render(); } });
+    const picker = h('select', { onchange: (e) => {
+      const v = e.target.value;
+      if (v === 'new') state.admin.editing = fillAutoPayer(newWeek(defaultNew));
+      else state.admin.editing = JSON.parse(JSON.stringify(state.weeks.find((w) => w.week === Number(v))));
+      render();
+    } });
     for (const w of state.weeks) picker.appendChild(h('option', { value: w.week, selected: w.week === wk.week ? 'selected' : false }, 'Week ' + w.week));
     picker.appendChild(h('option', { value: 'new', selected: !state.weeks.find((w) => w.week === wk.week) ? 'selected' : false }, '+ New week'));
 
     const roster = ident.parlayRoster();
+    const payers = payerRoster();
     const field = (label, key, type, opts) => {
       const inp = type === 'select' ? h('select', { onchange: (e) => { wk[key] = e.target.value; } }, opts.map((o) => h('option', { value: o, selected: String(wk[key]) === String(o) ? 'selected' : false }, o)))
         : h('input', { type: type || 'text', value: wk[key] == null ? '' : wk[key], oninput: (e) => { wk[key] = type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value; } });
       return h('div', { class: 'field' }, h('label', null, label), inp);
     };
+    const lp = lastPlaceFor(Number(wk.week) - 1);
+    const payerHint = lp && lp.who
+      ? `ESPN last place Week ${lp.week}: ${ident.nick(lp.who)}${lp.points != null ? ' · ' + Number(lp.points).toFixed(1) + ' PF' : ''}. Heller still pays if he finished last.`
+      : (state.lastPlace && state.lastPlace.unauthorized
+        ? 'Private ESPN league — add ESPN_S2 and ESPN_SWID on Vercel to auto-fill last place.'
+        : 'Payer is last place the week before. Auto-fills from ESPN when the league is readable.');
     const top = h('div', { class: 'card__body form' },
-      h('div', { class: 'row' }, h('div', { class: 'field' }, h('label', null, 'Week'), picker), field('Week number', 'week', 'number'), field('Payer (last place prior week)', 'payer', 'select', [''].concat(roster)), field('Placed by', 'placedBy', 'select', [''].concat(roster))),
+      h('div', { class: 'row' }, h('div', { class: 'field' }, h('label', null, 'Week'), picker), field('Week number', 'week', 'number'), field('Payer (last place prior week)', 'payer', 'select', [''].concat(payers)), field('Placed by', 'placedBy', 'select', [''].concat(roster))),
+      h('p', { class: 'muted', style: 'margin:0' }, payerHint),
+      lp && lp.who ? h('div', { class: 'inline' }, h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => {
+        wk.payer = lp.who;
+        wk.payerNote = weekPayerNote({ week: wk.week, payer: '', payerNote: '' });
+        render();
+      } }, 'Use ESPN last place')) : null,
       h('div', { class: 'row' }, field('Stake $', 'stake', 'number'), field('Parlay odds (e.g. 22840)', 'odds', 'number'), field('To pay $', 'toPay', 'number'), field('Book', 'book')),
       field('Note (shown under the legs)', 'note'));
 
@@ -1747,6 +2223,7 @@
 
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Week ticket'), h('button', { class: 'btn btn--ghost btn--sm', type: 'button', onclick: () => { state.admin.pass = ''; sessionStorage.removeItem('hp_pass'); state.admin.editing = null; render(); } }, 'Lock admin')),
+      h('p', { class: 'muted', style: 'margin:0 16px 8px' }, 'Add a week by editing data/bets.json. Weeks in that file stay on the board. A Supabase week shows up only when its week number is not in the file.'),
       top,
       h('div', { class: 'card__head' }, h('h2', null, 'Legs'), h('button', { class: 'btn btn--secondary btn--sm', type: 'button', onclick: () => { wk.legs.push(blankLeg()); renderLegs(); } }, 'Add leg')),
       legsWrap,
@@ -1783,10 +2260,15 @@
   function newWeek(n) { return { week: n, payer: '', placedBy: '', stake: 10, odds: '', toPay: '', book: '', note: '', legs: [], groups: {}, overrides: {} }; }
 
   function openPickWeek() {
-    if (!state.weeks.length) return 8;
+    if (state.nfl && state.nfl.active) return state.nfl.active;
+    if (!state.weeks.length) return 1;
     const last = Math.max(...state.weeks.map((w) => w.week));
     const w = state.weeks.find((x) => x.week === last);
-    if (w && (w.locked || ((w.legs || []).length >= 11))) return last + 1;
+    if (!w) return last;
+    const hold = w.results === 'unknown' || w.results === 'pending';
+    const openLeg = (w.legs || []).some((l) => l.type === 'tbd' || l.result === 'unknown' || l.result === 'pending');
+    if (w.locked) return last + 1;
+    if ((w.legs || []).length >= 11 && !hold && !openLeg) return last + 1;
     return last;
   }
 
@@ -1847,18 +2329,22 @@
   async function loadPickGames(week) {
     try {
       const board = await espn.scoreboard(week, true);
-      state.pick.games = (board.events || []).map((ev) => {
+      state.pick.games = (board.events || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).map((ev) => {
         const comp = ev.competitions && ev.competitions[0];
         if (!comp) return null;
-        const home = comp.competitors.find((c) => c.homeAway === 'home');
-        const away = comp.competitors.find((c) => c.homeAway === 'away');
+        const home = (comp.competitors || []).find((c) => c.homeAway === 'home');
+        const away = (comp.competitors || []).find((c) => c.homeAway === 'away');
+        if (!home || !away) return null;
         const st = (ev.status || comp.status || {}).type || {};
+        const wd = weekdayET(ev.date);
+        const kick = formatKickET(ev.date);
         return {
           away: away.team.abbreviation,
           home: home.team.abbreviation,
           label: `${away.team.abbreviation} at ${home.team.abbreviation}`,
-          detail: (away.team.shortDisplayName || away.team.abbreviation) + ' at ' + (home.team.shortDisplayName || home.team.abbreviation),
+          detail: (away.team.shortDisplayName || away.team.abbreviation) + ' at ' + (home.team.shortDisplayName || home.team.abbreviation) + (kick ? ' · ' + kick : ''),
           date: ev.date,
+          wednesday: wd === 'Wed',
           pre: st.state === 'pre' && !st.completed,
         };
       }).filter(Boolean);
@@ -1873,7 +2359,10 @@
     state.pick.week = week;
     const roster = ident.parlayRoster();
     const f = state.pick.form;
-    renderHeader(`Week ${week} picks`, 'One bet each. When all 11 are unique and book-legal, we lock them into a single Michigan parlay.');
+    const payer = weekPayer({ week, payer: (state.weeks.find((w) => w.week === week) || {}).payer });
+    renderHeader(`Week ${week} picks`, 'One bet each');
+    const kick = weekKickNote(week);
+    if (kick) view.appendChild(h('p', { class: 'rules rules--warn' }, kick));
 
     if (state.pick.setupError) {
       view.appendChild(h('section', { class: 'card' }, h('div', { class: 'card__body' },
@@ -1888,7 +2377,7 @@
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Picks in'), h('span', { class: 'stat__value' }, `${ticket.count} / ${ticket.need}`), h('span', { class: 'stat__delta' }, ticket.complete ? 'Ticket ready' : 'Waiting on the room')),
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Heller'), h('span', { class: 'stat__value stat__value--name' }, 'Sits'), h('span', { class: 'stat__delta' }, 'Does not pick')),
       h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Book'), h('span', { class: 'stat__value stat__value--name' }, 'MI'), h('span', { class: 'stat__delta' }, 'One parlay at DK / FanDuel / BetMGM')),
-      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Stake'), h('span', { class: 'stat__value' }, '$10'), h('span', { class: 'stat__delta' }, 'Last place last week pays'))));
+      h('div', { class: 'card stat' }, h('span', { class: 'label' }, 'Stake'), h('span', { class: 'stat__value' }, '$10'), h('span', { class: 'stat__delta' }, payer ? ident.nick(payer) + ' pays' : 'Last place last week pays'))));
 
     if (ticket.complete) {
       view.appendChild(h('section', { class: 'card' }, h('div', { class: 'card__body' },
@@ -1916,7 +2405,7 @@
         h('div', { class: 'muted' }, row ? (row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—')));
     }
     view.appendChild(h('section', { class: 'card' },
-      h('div', { class: 'card__head' }, h('h2', null, 'The 11'), h('span', { class: 'sub' }, 'Heller abstains')),
+      h('div', { class: 'card__head' }, h('h2', null, 'The 11'), h('span', { class: 'sub' }, 'H-Bomb sits')),
       h('div', { class: 'card__body' }, slots)));
 
     const setF = (key, val) => { state.pick.form[key] = val; };
@@ -2025,7 +2514,7 @@
     graded.forEach((p) => p.legs.forEach((l) => legs.push(Object.assign({ week: p.week, wlabel: p.label }, l))));
     const decided = legs.filter((l) => l.result === 'win' || l.result === 'loss');
     const people = {};
-    const P = (name) => people[name] || (people[name] = { name, nick: ident.nick(name), w: 0, l: 0, u: 0, seq: [], pw: 0, pn: 0, types: {}, busts: 0, picks: [] });
+    const P = (name) => people[name] || (people[name] = { name, nick: whoLabel(name), w: 0, l: 0, u: 0, seq: [], pw: 0, pn: 0, types: {}, busts: 0, picks: [] });
     legs.forEach((l) => {
       const r = P(l.who);
       r.picks.push(l);
@@ -2050,7 +2539,7 @@
     const types = {};
     decided.forEach((l) => { const t = types[l.type] || (types[l.type] = { w: 0, n: 0 }); t.n++; if (l.result === 'win') t.w++; });
     const teams = {};
-    legs.forEach((l) => { const key = l.player || l.team; if (!key) return; const t = teams[key] || (teams[key] = { key, n: 0, w: 0, by: {} }); t.n++; if (l.result === 'win') t.w++; t.by[ident.nick(l.who)] = 1; });
+    legs.forEach((l) => { const key = l.player || l.team; if (!key) return; const t = teams[key] || (teams[key] = { key, n: 0, w: 0, by: {} }); t.n++; if (l.result === 'win') t.w++; t.by[whoLabel(l.who)] = 1; });
     const favs = Object.values(teams).filter((t) => t.n >= 2).sort((a, b) => b.n - a.n || b.w - a.w);
     return { graded, legs, decided, rows, types, favs, people };
   }
@@ -2071,7 +2560,6 @@
       kpiCard('Closest call', closest ? closest.label : '–', closest ? `${closest.record.loss} legs from cashing` : ''),
       kpiCard('Money in', '$' + stake, 'Stakes on graded tickets · $0 back')));
 
-    // awards
     const elig = S.rows.filter((r) => r.n >= 4);
     const lock = elig[0];
     const cursed = elig.slice().sort((a, b) => (a.w / a.n) - (b.w / b.n) || b.l - a.l)[0];
@@ -2083,9 +2571,8 @@
         kpiCard('Lock of the Year', lock ? lock.nick : '–', lock ? `${lock.w}–${lock.l} (${hitPct(lock.w, lock.n)})` : 'min 4 legs'),
         kpiCard('Cursed Leg', cursed ? cursed.nick : '–', cursed ? `${cursed.w}–${cursed.l} (${hitPct(cursed.w, cursed.n)})` : ''),
         kpiCard('Mr. Reliable', reliable ? reliable.nick : '–', reliable ? `${reliable.bestStreak} straight hits` : ''),
-        kpiCard('Henry truthers', String(henry.length) + ' picks', `${henry.filter((l) => l.result === 'win').length} hit · ${[...new Set(henry.map((l) => ident.nick(l.who)))].join(', ')}`))));
+        kpiCard('Henry truthers', String(henry.length) + ' picks', `${henry.filter((l) => l.result === 'win').length} hit · ${[...new Set(henry.map((l) => whoLabel(l.who)))].join(', ')}`))));
 
-    // leaderboard
     const tbody = h('tbody');
     S.rows.forEach((r, i) => tbody.appendChild(h('tr', { class: r.name === ident.selectedOwner ? 'me' : '' },
       h('td', { class: 'rank' }, String(i + 1)),
@@ -2106,23 +2593,20 @@
           tbody)),
         h('p', { class: 'muted' }, 'Busted = legs that lost on a ticket that lost. Every graded ticket lost, so each loss counts. Primetime = night kickoffs (TNF/SNF/MNF). Under 5 legs is flagged as a small sample.'))));
 
-    // who busted it, by week
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Who busted it'), h('span', { class: 'sub' }, 'Losing legs per ticket')),
       h('div', { class: 'card__body' }, data.parlays.map((p) => h('div', { class: 'field' },
         h('b', null, `${p.label} · ${p.legs.length} legs · `), p.result === 'pending' ? h('span', { class: 'pill' }, 'pending') : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : ''),
         p.toPay ? h('span', { class: 'muted' }, ` · would have paid $${p.toPay.toLocaleString()}`) : null,
-        h('div', null, p.legs.filter((l) => l.result === 'loss').map((l) => h('span', { class: 'chip' }, `${ident.nick(l.who)}: ${l.label}`))))))));
+        h('div', { class: 'pills' }, p.legs.filter((l) => l.result === 'loss').map((l) => h('span', { class: 'chip' }, `${whoLabel(l.who)}: ${l.label}`))))))));
 
-    // near misses
     const near = S.legs.filter((l) => l.missBy);
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Near misses'), h('span', { class: 'sub' }, 'Lost by a hair')),
       h('div', { class: 'card__body' }, h('div', { class: 'tablewrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, 'Wk'), h('th', null, 'Picker'), h('th', null, 'Leg'), h('th', null, 'Actual'), h('th', null, 'Missed by'))),
-        h('tbody', null, near.map((l) => h('tr', null, h('td', null, String(l.week)), h('td', null, ident.nick(l.who)), h('td', null, l.label), h('td', null, l.actual || ''), h('td', null, l.missBy)))))))));
+        h('tbody', null, near.map((l) => h('tr', null, h('td', null, String(l.week)), h('td', null, whoLabel(l.who)), h('td', null, l.label), h('td', null, l.actual || ''), h('td', null, l.missBy)))))))));
 
-    // bet types + favorites
     const tlab = { ml: 'Moneyline', spread: 'Spread', total: 'Game total', player: 'Player prop' };
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Bet-type performance'), h('span', { class: 'sub' }, 'All pickers')),
@@ -2131,10 +2615,9 @@
       h('div', { class: 'card__head' }, h('h2', null, 'Favorite teams & players'), h('span', { class: 'sub' }, 'Picked 2+ times')),
       h('div', { class: 'card__body' }, h('div', { class: 'tablewrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, 'Team / player'), h('th', { class: 'r' }, 'Picks'), h('th', { class: 'r' }, 'Hit'), h('th', null, 'By'))),
-        h('tbody', null, S.favs.map((t) => h('tr', null, h('td', null, t.key), h('td', { class: 'r num' }, String(t.n)), h('td', { class: 'r num' }, `${t.w}/${t.n}`), h('td', null, Object.keys(t.by).join(', ')))))))))); 
+        h('tbody', null, S.favs.map((t) => h('tr', null, h('td', null, t.key), h('td', { class: 'r num' }, String(t.n)), h('td', { class: 'r num' }, `${t.w}/${t.n}`), h('td', null, Object.keys(t.by).join(', '))))))))));
 
-    // rivalries
-    const recOf = (id) => { const p = ident.people.find((x) => x.id === id); const r = p && S.rows.find((x) => ident.person(x.name) === p); return { nick: p ? (p.nick || p.name) : id, r }; };
+    const recOf = (id) => { const p = ident.people.find((x) => x.id === id); const r = p && S.rows.find((x) => ident.person(x.name) === p); return { nick: p ? whoLabel(p.name) : id, r }; };
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Rivalry head-to-head: parlay edition'), h('span', { class: 'sub' }, 'League-lore rivalries, scored by leg hit rate')),
       h('div', { class: 'card__body' }, RIVALRIES.map((rv) => {
@@ -2146,7 +2629,6 @@
         return h('div', { class: 'field' }, h('b', null, rv.title + ' · '), `${a.nick} ${fa} vs ${b.nick} ${fb} · ${edge}`);
       }), h('p', { class: 'muted' }, 'No weekly fantasy matchup records exist in league-lore.json, so this compares parlay legs only. Small sample.'))));
 
-    // elo vs betting
     const elo = calcSeasonElo();
     const eloRank = {}; elo.now.forEach((r, i) => { eloRank[r.name] = i + 1; });
     const ebody = h('tbody');
@@ -2157,7 +2639,6 @@
       h('div', { class: 'card__body' }, h('div', { class: 'tablewrap' }, h('table', null,
         h('thead', null, h('tr', null, h('th', null, 'Manager'), h('th', { class: 'r' }, 'Season Elo'), h('th', { class: 'r' }, 'Elo rank'), h('th', { class: 'r' }, 'Pick rank'), h('th', { class: 'r' }, 'Hit'))), ebody)))));
 
-    // hypothetical + sources
     const dec110 = 1 + 100 / 110;
     view.appendChild(h('section', { class: 'card' },
       h('div', { class: 'card__head' }, h('h2', null, 'Hypothetical payouts'), h('span', { class: 'sub' }, 'What one cash would have meant')),
@@ -2184,6 +2665,14 @@
   async function refreshScores(force) {
     if (refreshing) return; refreshing = true;
     try {
+      const prevPick = state.pick.week;
+      await syncNflClock(force);
+      const nextPick = openPickWeek();
+      if (nextPick !== prevPick) {
+        state.pick.week = nextPick;
+        await loadPicks(nextPick);
+        await loadPickGames(nextPick);
+      }
       // grade the selected week first, then the rest (for standings)
       const order = state.weeks.slice().sort((a, b) => (a.week === state.selectedWeek ? -1 : b.week === state.selectedWeek ? 1 : b.week - a.week));
       for (const w of order) {
@@ -2193,16 +2682,19 @@
         state.graded[w.week] = await gradeWeek(w, { force: !!force });
         if (state.route !== 'admin' && state.route !== 'pick') render();
       }
+      if (state.route === 'pick' && nextPick !== prevPick) render();
     } finally { refreshing = false; }
     scheduleRefresh();
   }
 
   function scheduleRefresh() {
     clearTimeout(state.timer);
+    const clock = state.nfl;
     const g = state.selectedWeek != null ? state.graded[state.selectedWeek] : null;
-    const anyLive = g && g.summary && (g.summary.live > 0);
-    const soon = g && g.graded.some((x) => x.state === 'pending' && x.gameDate && new Date(x.gameDate).getTime() - Date.now() < 15 * 60 * 1000);
-    const ms = anyLive || soon ? 45000 : 5 * 60 * 1000;
+    const anyLive = (g && g.summary && (g.summary.live > 0)) || (clock && clock.snapshot && clock.snapshot.anyLive);
+    const soon = g && g.graded && g.graded.some((x) => x.state === 'pending' && x.gameDate && new Date(x.gameDate).getTime() - Date.now() < 15 * 60 * 1000);
+    const waitingFlip = clock && clock.snapshot && clock.snapshot.count && !clock.snapshot.allFinal && !clock.snapshot.anyLive;
+    const ms = anyLive || soon ? 45000 : waitingFlip ? 2 * 60 * 1000 : 5 * 60 * 1000;
     state.timer = setTimeout(() => refreshScores(false), ms);
   }
 
@@ -2216,18 +2708,21 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshScores(true); });
 
   (async function boot() {
+    try { Weeks = await import('/lib/weeks.mjs'); } catch (e) { $('#pageSub').textContent = 'Could not load week data'; return; }
     try { Ticket = await import('/lib/ticket.mjs'); } catch (e) { Ticket = null; }
     try {
       const lore = await fetch('/league-lore.json').then((r) => r.ok ? r.json() : null);
       if (lore) ident.load(lore);
     } catch (e) { /* lore is optional */ }
     try { await loadData(); } catch (e) { $('#pageSub').textContent = e.message; return; }
+    try { await syncNflClock(true); } catch (e) { /* NFL clock is optional; tickets still load */ }
     state.pick.week = openPickWeek();
-    await loadPicks(state.pick.week);
-    await loadPickGames(state.pick.week);
+    render();
+    try { await loadPicks(state.pick.week); } catch (e) { state.pick.setupError = e.message || 'Could not load picks'; }
+    try { await loadPickGames(state.pick.week); } catch (e) { state.pick.games = []; }
     render();
     refreshScores(true);
   })();
 
-  window.__hp = { state, ident, gradeLeg, playerStat, findEvent, gameState };
+  window.__hp = { state, ident, gradeLeg, playerStat, findEvent, gameState, resolveNflWeek, boardSnapshot, weekPayer, selectWeek };
 })();

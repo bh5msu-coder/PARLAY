@@ -1,0 +1,424 @@
+{
+  "howToAddAWeek": "Add one object to weeks. Set week to the NFL week number, dates, and one leg per manager (who, label, type, game). Record result as win or loss only when that result is known. Set the week's results to unknown when the slate is not graded yet, and leave any missing line blank. A leg with no result and results live (or omitted) can grade from ESPN. Do not invent a result. No component change.",
+  "config": {
+    "leagueName": "Our Holm League",
+    "roster": ["Ryan Hoffman", "Kevin Sack", "Joe Mckeon", "John Sachs", "Nick Curtis", "Chas Rossman", "Kyle McFadden", "Jace Clark", "Brad Holm", "Adam Meltser", "DJ Dangerous"],
+    "abstain": ["Kyle Heller"]
+  },
+  "weeks": [
+    {
+      "week": 5,
+      "dates": "Oct 8–12, 2026 · graded Oct 11",
+      "stake": 10,
+      "book": "DraftKings (MI)",
+      "note": "FINAL 5W–6L, BUSTED. Each result below is the one recorded for this ticket. Totals whose number was not recorded have no line.",
+      "legs": [
+        {
+          "id": "w5-brad",
+          "who": "Brad Holm",
+          "type": "player",
+          "label": "McBride O70 yds",
+          "player": "Trey McBride",
+          "stat": "recYds",
+          "side": "over",
+          "line": 70,
+          "game": ["DET", "ARI"],
+          "gameDate": "2026-10-11T20:25:00Z",
+          "result": "loss"
+        },
+        {
+          "id": "w5-kyle",
+          "who": "Kyle McFadden",
+          "type": "player",
+          "label": "Henry anytime TD",
+          "player": "Derrick Henry",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["BAL", "ATL"],
+          "gameDate": "2026-10-12T00:20:00Z",
+          "result": "win"
+        },
+        {
+          "id": "w5-kev",
+          "who": "Kevin Sack",
+          "type": "player",
+          "label": "Amon-Ra anytime TD",
+          "player": "Amon-Ra St. Brown",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["DET", "ARI"],
+          "gameDate": "2026-10-11T20:25:00Z",
+          "result": "loss"
+        },
+        {
+          "id": "w5-nick",
+          "who": "Nick Curtis",
+          "type": "spread",
+          "label": "Steelers -3",
+          "team": "PIT",
+          "line": -3,
+          "game": ["IND", "PIT"],
+          "gameDate": "2026-10-11T17:00:00Z",
+          "result": "win"
+        },
+        {
+          "id": "w5-jace",
+          "who": "Jace Clark",
+          "type": "spread",
+          "label": "Seahawks -3",
+          "team": "SEA",
+          "line": -3,
+          "game": ["SF", "SEA"],
+          "gameDate": "2026-10-11T20:25:00Z",
+          "result": "loss"
+        },
+        {
+          "id": "w5-jarn",
+          "who": "John Sachs",
+          "type": "ml",
+          "label": "Saints ML",
+          "team": "NO",
+          "game": ["MIN", "NO"],
+          "gameDate": "2026-10-11T17:00:00Z",
+          "result": "loss"
+        },
+        {
+          "id": "w5-joey",
+          "who": "Joe Mckeon",
+          "type": "total",
+          "label": "PIT/IND Over",
+          "side": "over",
+          "game": ["IND", "PIT"],
+          "gameDate": "2026-10-11T17:00:00Z",
+          "result": "win"
+        },
+        {
+          "id": "w5-hoss",
+          "who": "Ryan Hoffman",
+          "type": "spread",
+          "label": "Pats -3.5",
+          "team": "NE",
+          "line": -3.5,
+          "game": ["LV", "NE"],
+          "gameDate": "2026-10-11T17:00:00Z",
+          "result": "win"
+        },
+        {
+          "id": "w5-chas",
+          "who": "Chas Rossman",
+          "type": "player",
+          "label": "McBride TD",
+          "player": "Trey McBride",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["DET", "ARI"],
+          "gameDate": "2026-10-11T20:25:00Z",
+          "result": "win"
+        },
+        {
+          "id": "w5-dj",
+          "who": "DJ Dangerous",
+          "type": "total",
+          "label": "HOU/TEN Over",
+          "side": "over",
+          "game": ["HOU", "TEN"],
+          "gameDate": "2026-10-11T17:00:00Z",
+          "result": "loss"
+        },
+        {
+          "id": "w5-meltser",
+          "who": "Adam Meltser",
+          "type": "player",
+          "label": "JT anytime TD",
+          "player": "Jonathan Taylor",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["IND", "PIT"],
+          "gameDate": "2026-10-11T17:00:00Z",
+          "result": "loss"
+        }
+      ]
+    },
+    {
+      "week": 6,
+      "dates": "Oct 15–19, 2026",
+      "results": "unknown",
+      "stake": 10,
+      "book": "DraftKings (MI)",
+      "note": "Pool window was called Oct 14–16. These 11 legs are the NFL Week 6 slate (Thursday Oct 15 through Monday Oct 19). No result is recorded. Blank lines were not given.",
+      "legs": [
+        {
+          "id": "w6-hoss",
+          "who": "Ryan Hoffman",
+          "type": "ml",
+          "label": "Bills ML vs Raiders",
+          "team": "BUF",
+          "game": ["BUF", "LV"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-kyle",
+          "who": "Kyle McFadden",
+          "type": "player",
+          "label": "Derrick Henry anytime TD",
+          "player": "Derrick Henry",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["BAL", "CLE"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-jarn",
+          "who": "John Sachs",
+          "type": "ml",
+          "label": "Packers ML",
+          "team": "GB",
+          "game": ["DAL", "GB"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-jace",
+          "who": "Jace Clark",
+          "type": "total",
+          "label": "Over Bills/Raiders",
+          "side": "over",
+          "game": ["BUF", "LV"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-nick",
+          "who": "Nick Curtis",
+          "type": "spread",
+          "label": "Jags -2.5 vs Houston",
+          "team": "JAX",
+          "line": -2.5,
+          "game": ["HOU", "JAX"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-meltser",
+          "who": "Adam Meltser",
+          "type": "player",
+          "label": "Christian Watson anytime TD",
+          "player": "Christian Watson",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["DAL", "GB"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-brad",
+          "who": "Brad Holm",
+          "type": "player",
+          "label": "Love 2 TDs",
+          "player": "Jordan Love",
+          "stat": "passTD",
+          "side": "over",
+          "line": 1.5,
+          "game": ["DAL", "GB"],
+          "note": "Stored as over 1.5 passing TDs so 2+ would cash. Not graded.",
+          "result": "unknown"
+        },
+        {
+          "id": "w6-joey",
+          "who": "Joe Mckeon",
+          "type": "total",
+          "label": "Steelers/Bucs UNDER",
+          "side": "under",
+          "game": ["PIT", "TB"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-chas",
+          "who": "Chas Rossman",
+          "type": "spread",
+          "label": "Atlanta 1st half +0.5",
+          "team": "ATL",
+          "line": 0.5,
+          "period": "1H",
+          "game": ["CHI", "ATL"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-dj",
+          "who": "DJ Dangerous",
+          "type": "total",
+          "label": "Jets/Pats Under 43.5",
+          "side": "under",
+          "line": 43.5,
+          "game": ["NYJ", "NE"],
+          "result": "unknown"
+        },
+        {
+          "id": "w6-kev",
+          "who": "Kevin Sack",
+          "type": "player",
+          "label": "Josh Allen 40+ rush yds",
+          "player": "Josh Allen",
+          "stat": "rushYds",
+          "side": "over",
+          "line": 39.5,
+          "game": ["BUF", "LV"],
+          "result": "unknown"
+        }
+      ]
+    },
+    {
+      "week": 7,
+      "dates": "Oct 22–26, 2026",
+      "results": "unknown",
+      "stake": 10,
+      "odds": 22840,
+      "toPay": 2294.04,
+      "book": "",
+      "payer": "Chas Rossman",
+      "placedBy": "Jarn Sachs",
+      "note": "Stored ticket from the league database, dated with the Oct 22 kickoff. Results were not recorded, so every leg stays unknown. Chat lore that a leg killed the ticket is not a grade.",
+      "groups": {
+        "sgp1": { "odds": 525, "label": "3 pick SGP" },
+        "sgp2": { "odds": 460, "label": "4 pick SGP" }
+      },
+      "overrides": {},
+      "legs": [
+        {"id": "l1", "who": "Ryan Hoffman", "game": ["DEN", "ARI"], "odds": -238, "team": "DEN", "type": "ml", "label": "Broncos ML", "result": "unknown"},
+        {"id": "l2", "who": "Joseph McKeon", "game": ["MIA", "NYJ"], "line": 39.5, "odds": -112, "side": "under", "type": "total", "label": "Under 39.5", "result": "unknown"},
+        {"id": "l3", "who": "Kyle McFadden", "game": ["TB", "CAR"], "odds": -162, "team": "CAR", "type": "ml", "label": "Panthers ML", "result": "unknown"},
+        {"id": "l4", "who": "Chas Rossman", "game": ["NYG", "HOU"], "line": 0.5, "odds": -197, "side": "over", "stat": "passINT", "type": "player", "label": "J.J. McCarthy over 0.5 INT thrown", "player": "J.J. McCarthy", "result": "unknown"},
+        {"id": "l5", "who": "Jarn Sachs", "game": ["NE", "CHI"], "team": "CHI", "type": "ml", "group": "sgp1", "label": "Bears ML", "result": "unknown"},
+        {"id": "l6", "who": "Jace Clark", "game": ["NE", "CHI"], "line": 50.5, "side": "over", "type": "total", "group": "sgp1", "label": "Over 50.5", "result": "unknown"},
+        {"id": "l7", "who": "DJ Dangerous", "game": ["NE", "CHI"], "line": 0.5, "side": "over", "stat": "anyTD", "type": "player", "group": "sgp1", "label": "A.J. Brown anytime TD", "player": "A.J. Brown", "result": "unknown"},
+        {"id": "l8", "who": "Kevin Sack", "game": ["GB", "DET"], "team": "DET", "type": "ml", "group": "sgp2", "label": "Lions ML", "result": "unknown"},
+        {"id": "l9", "who": "Nick Curtis", "game": ["GB", "DET"], "line": 281.5, "side": "over", "stat": "passYds", "type": "player", "group": "sgp2", "label": "Jordan Love 282+ pass yds", "player": "Jordan Love", "result": "unknown"},
+        {"id": "l10", "who": "Brad Holm", "game": ["GB", "DET"], "line": 79.5, "side": "over", "stat": "recYds", "type": "player", "group": "sgp2", "label": "Christian Watson 80+ rec yds", "player": "Christian Watson", "result": "unknown"},
+        {"id": "l11", "who": "Adam Meltser", "game": ["GB", "DET"], "line": 0.5, "side": "over", "stat": "anyTD", "type": "player", "group": "sgp2", "label": "Jahmyr Gibbs anytime TD", "player": "Jahmyr Gibbs", "result": "unknown"}
+      ]
+    },
+    {
+      "week": 8,
+      "dates": "Oct 29–Nov 2, 2026",
+      "results": "unknown",
+      "stake": 10,
+      "book": "DraftKings (MI)",
+      "note": "Current week. The pool called the window Oct 27–29; NFL Week 8 runs Thursday Oct 29 through Monday Nov 2. Thursday night is Panthers at Packers. No result is recorded. Chas is TBD. Totals and the Ollie Gordon line were not given.",
+      "legs": [
+        {
+          "id": "w8-joey",
+          "who": "Joe Mckeon",
+          "type": "total",
+          "label": "Browns/Steelers UNDER",
+          "side": "under",
+          "game": ["CLE", "PIT"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-jace",
+          "who": "Jace Clark",
+          "type": "total",
+          "label": "Cowboys/Cardinals OVER",
+          "side": "over",
+          "game": ["ARI", "DAL"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-meltser",
+          "who": "Adam Meltser",
+          "type": "player",
+          "label": "Gibbs 30+ rec yds",
+          "player": "Jahmyr Gibbs",
+          "stat": "recYds",
+          "side": "over",
+          "line": 29.5,
+          "game": ["MIN", "DET"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-kyle",
+          "who": "Kyle McFadden",
+          "type": "player",
+          "label": "Justin Jefferson anytime TD",
+          "player": "Justin Jefferson",
+          "stat": "anyTD",
+          "side": "over",
+          "line": 0.5,
+          "game": ["MIN", "DET"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-hoss",
+          "who": "Ryan Hoffman",
+          "type": "spread",
+          "label": "Raiders +1.5",
+          "team": "LV",
+          "line": 1.5,
+          "game": ["LV", "NYJ"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-nick",
+          "who": "Nick Curtis",
+          "type": "spread",
+          "label": "Bills -2.5 vs Baltimore",
+          "team": "BUF",
+          "line": -2.5,
+          "game": ["BAL", "BUF"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-kev",
+          "who": "Kevin Sack",
+          "type": "ml",
+          "label": "Denver ML",
+          "team": "DEN",
+          "game": ["KC", "DEN"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-dj",
+          "who": "DJ Dangerous",
+          "type": "total",
+          "label": "Over Thursday night game",
+          "side": "over",
+          "game": ["CAR", "GB"],
+          "note": "Thursday night is Panthers at Packers. The total was not given.",
+          "result": "unknown"
+        },
+        {
+          "id": "w8-brad",
+          "who": "Brad Holm",
+          "type": "player",
+          "label": "Ollie Gordon over rush yds",
+          "player": "Ollie Gordon",
+          "stat": "rushYds",
+          "side": "over",
+          "game": ["NE", "MIA"],
+          "note": "Rushing line was not given.",
+          "result": "unknown"
+        },
+        {
+          "id": "w8-jarn",
+          "who": "John Sachs",
+          "type": "spread",
+          "label": "Dolphins +7.5",
+          "team": "MIA",
+          "line": 7.5,
+          "game": ["NE", "MIA"],
+          "result": "unknown"
+        },
+        {
+          "id": "w8-chas",
+          "who": "Chas Rossman",
+          "type": "tbd",
+          "label": "TBD",
+          "game": [],
+          "result": "unknown"
+        }
+      ]
+    }
+  ]
+}
