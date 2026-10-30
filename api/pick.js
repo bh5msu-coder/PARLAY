@@ -39,131 +39,122 @@ async function loadRoster() {
   return { roster, abstain, cfg };
 }
 
-// ---- Reconstructed below this line (original source truncated on recovery) ----
-
-function setupError(r) {
-  const d = r.data || {};
-  return r.status === 404 || d.code === '42P01' || d.code === 'PGRST205';
-}
-
 async function loadPicks(week) {
-  return sbGet(`/rest/v1/holm_parlay_picks?season=eq.${SEASON}&week=eq.${week}&select=who,leg,source,updated_at&order=updated_at.asc`);
-}
-
-async function upsertPicks(rows) {
-  const r = await fetch(SUPABASE_URL + '/rest/v1/holm_parlay_picks?on_conflict=season,week,who', {
-    method: 'POST',
-    headers: Object.assign({}, headers, { Prefer: 'resolution=merge-duplicates,return=representation' }),
-    body: JSON.stringify(rows),
-  });
-  const text = await r.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch (e) { data = { raw: text }; }
-  return { ok: r.ok, status: r.status, data };
-}
-
-async function loadWeek(week) {
-  const r = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data`);
-  return (r.ok && r.data && r.data[0] && r.data[0].data) || null;
-}
-
-// When all 11 picks are in and valid, write the ticket into holm_parlay_weeks so the Week tab shows it.
-// Never overwrites a locked week. Requires a key with write access to holm_parlay_weeks (or RLS allowing it).
-async function commitTicket(week, ticket) {
-  const existing = await loadWeek(week);
-  if (existing && existing.locked) return false;
-  const data = Object.assign({}, existing || {}, {
-    legs: ticket.legs,
-    groups: ticket.groups,
-    source: 'picks',
-    committedAt: new Date().toISOString(),
-  });
-  const r = await fetch(SUPABASE_URL + '/rest/v1/holm_parlay_weeks?on_conflict=season,week', {
-    method: 'POST',
-    headers: Object.assign({}, headers, { Prefer: 'resolution=merge-duplicates,return=minimal' }),
-    body: JSON.stringify([{ season: SEASON, week, data }]),
-  });
-  return r.ok;
-}
-
-async function state(week, roster) {
-  const r = await loadPicks(week);
-  if (!r.ok) return { error: r, picks: [] };
-  const picks = r.data || [];
-  const ticket = assembleTicket(picks, roster.length ? roster : PARLAY_11);
-  const wk = await loadWeek(week);
-  const committed = !!(wk && wk.source === 'picks' && ticket.complete);
-  return { picks, ticket, committed };
-}
-
-function readBody(req) {
-  if (req.body && typeof req.body === 'object') return req.body;
-  try { return JSON.parse(req.body || '{}'); } catch (e) { return {}; }
+  const r = await sbGet(`/rest/v1/holm_parlay_picks?season=eq.${SEASON}&week=eq.${week}&select=who,source,leg,updated_at`);
+  if (!r.ok) return { ok: false, status: r.status, data: r.data };
+  return { ok: true, data: r.data || [] };
 }
 
 export default async function handler(req, res) {
-  allowBrowser(res);
-  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (req.method === 'OPTIONS') {
+    allowBrowser(res);
+    res.status(204).end();
+    return;
+  }
+  const week = Number(req.query.week || req.body && req.body.week);
   try {
-    const { roster } = await loadRoster();
-    const list = roster.length ? roster.map((n) => canonicalWho(n, roster)) : PARLAY_11;
-
     if (req.method === 'GET') {
-      const week = req.query.week != null && req.query.week !== '' ? Number(req.query.week) : null;
-      if (week == null || isNaN(week)) {
-        json(res, 200, { week: null, picks: [], ticket: assembleTicket([], list) });
+      const picks = await loadPicks(week || 0);
+      if (!picks.ok) {
+        json(res, picks.status === 404 ? 412 : picks.status, {
+          error: 'Picks table is not set up yet. Run supabase/picks.sql in the Supabase SQL editor once.',
+          detail: picks.data,
+        });
         return;
       }
-      const s = await state(week, list);
-      if (s.error) {
-        if (setupError(s.error)) { json(res, 412, { error: 'Picks table is not set up yet. Run supabase/picks.sql in the Supabase SQL editor once.' }); return; }
-        json(res, 502, { error: 'Could not load picks' }); return;
+      json(res, 200, { week, picks: picks.data, ticket: assembleTicket(picks.data, PARLAY_11) });
+      return;
+    }
+    if (req.method !== 'POST') {
+      json(res, 405, { error: 'GET or POST' });
+      return;
+    }
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const wk = Number(body.week);
+    if (!wk) { json(res, 400, { error: 'week required' }); return; }
+
+    const roster = PARLAY_11;
+
+    if (body.import && Array.isArray(body.picks)) {
+      const saved = [];
+      for (const p of body.picks) {
+        const result = await upsertOne(wk, canonicalWho(p.who, roster), p.leg, p.source || 'whatsapp', roster);
+        if (!result.ok) { json(res, result.status, result); return; }
+        saved.push(result.row);
       }
-      json(res, 200, { week, picks: s.picks, ticket: s.ticket, committed: s.committed });
+      const committed = await maybeCommit(wk, roster);
+      json(res, 200, { saved, ...committed });
       return;
     }
 
-    if (req.method !== 'POST') { json(res, 405, { error: 'GET or POST only' }); return; }
+    const who = canonicalWho(String(body.who || '').trim(), roster);
+    const source = body.source || 'web';
+    const leg = body.leg || {};
+    const errors = validatePick(leg, who, roster.length ? roster : null);
+    if (errors.length) { json(res, 400, { error: errors.join('. ') }); return; }
 
-    const body = readBody(req);
-    const week = Number(body.week);
-    if (!week || isNaN(week) || week < 1 || week > 22) { json(res, 400, { error: 'Need a valid week' }); return; }
-
-    let rows = [];
-    if (body.import) {
-      const incoming = Array.isArray(body.picks) ? body.picks : [];
-      const errors = {};
-      for (const p of incoming) {
-        const who = canonicalWho(p && p.who, list);
-        const leg = Object.assign({}, (p && p.leg) || {}, { who });
-        const err = validatePick(leg, who, list);
-        if (err.length) { errors[who || '?'] = err; continue; }
-        rows.push({ season: SEASON, week, who, leg, source: p.source || 'whatsapp', updated_at: new Date().toISOString() });
-      }
-      if (!rows.length) { json(res, 400, { error: 'No valid picks to import', pickErrors: errors }); return; }
-    } else {
-      const who = canonicalWho(body.who, list);
-      const leg = Object.assign({}, body.leg || {}, { who });
-      const err = validatePick(leg, who, list);
-      if (err.length) { json(res, 400, { error: err.join('. '), pickErrors: { [who || '?']: err } }); return; }
-      rows = [{ season: SEASON, week, who, leg, source: body.source || 'web', updated_at: new Date().toISOString() }];
-    }
-
-    const existingWeek = await loadWeek(week);
-    if (existingWeek && existingWeek.locked) { json(res, 409, { error: `Week ${week} is locked` }); return; }
-
-    const up = await upsertPicks(rows);
-    if (!up.ok) {
-      if (setupError(up)) { json(res, 412, { error: 'Picks table is not set up yet. Run supabase/picks.sql in the Supabase SQL editor once.' }); return; }
-      json(res, 502, { error: (up.data && up.data.message) || 'Save failed' }); return;
-    }
-
-    const s = await state(week, list);
-    if (s.error) { json(res, 502, { error: 'Saved, but could not reload picks' }); return; }
-    let committed = s.committed;
-    if (s.ticket.complete && !committed) committed = await commitTicket(week, s.ticket);
-    json(res, 200, { week, saved: up.data || rows, picks: s.picks, ticket: s.ticket, committed });
+    const result = await upsertOne(wk, who, leg, source, roster);
+    if (!result.ok) { json(res, result.status, result); return; }
+    const committed = await maybeCommit(wk, roster);
+    json(res, 200, { row: result.row, ...committed });
   } catch (e) {
-    json(res, 500, { error: 'Pick API failed' });
+    json(res, 500, { error: e.message || 'pick failed' });
   }
+}
+
+async function upsertOne(week, who, leg, source, roster) {
+  who = canonicalWho(who, roster);
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/holm_parlay_picks?on_conflict=season,week,who`, {
+    method: 'POST',
+    headers: Object.assign({}, headers, { Prefer: 'resolution=merge-duplicates,return=representation' }),
+    body: JSON.stringify({ season: SEASON, week, who, source, leg, updated_at: new Date().toISOString() }),
+  });
+  const text = await r.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+  if (!r.ok) {
+    return {
+      ok: false,
+      status: r.status === 404 ? 412 : r.status,
+      error: r.status === 404
+        ? 'Picks table is not set up yet. Run supabase/picks.sql in the Supabase SQL editor once.'
+        : (data && data.message) || text,
+      detail: data,
+    };
+  }
+  return { ok: true, row: Array.isArray(data) ? data[0] : data };
+}
+
+async function maybeCommit(week, roster) {
+  const picks = await loadPicks(week);
+  if (!picks.ok) return { picks: [], ticket: null };
+  const ticket = assembleTicket(picks.data, roster);
+  let committed = false;
+  if (ticket.complete) {
+    const existing = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data`);
+    const prev = existing.data && existing.data[0] && existing.data[0].data || {};
+    if (prev.locked) return { picks: picks.data, ticket, committed: false, locked: true };
+    const payload = Object.assign({}, prev, {
+      week,
+      stake: prev.stake || 10,
+      book: prev.book || 'DraftKings (MI)',
+      placedBy: prev.placedBy || 'League picks',
+      note: prev.note || 'Auto-built from 11 unique manager picks. Same-game bets grouped as SGPs so one Michigan book ticket can take the whole parlay.',
+      legs: ticket.legs,
+      groups: ticket.groups,
+      submissions: Object.fromEntries((picks.data || []).map((p) => [canonicalWho(p.who, roster), { source: p.source, at: p.updated_at }])),
+    });
+    delete payload.week;
+    const rpc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/holm_parlay_upsert_week_open`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ p_season: SEASON, p_week: week, p_data: payload }),
+    });
+    committed = rpc.ok;
+    if (!rpc.ok) {
+      const t = await rpc.text();
+      ticket.commitError = t;
+    }
+  }
+  return { picks: picks.data, ticket, committed };
 }
