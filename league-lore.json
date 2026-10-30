@@ -1,0 +1,2638 @@
+{
+  "leagueName": "Our Holm League",
+  "espnLeagueId": 182263,
+  "span": "2010\u20132025",
+  "seasonCount": 16,
+  "people": [
+    {
+      "id": "brad",
+      "name": "Brad Holm",
+      "nick": "Brad",
+      "aliases": [
+        "Brad"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 16,
+        "titles": [
+          2023
+        ],
+        "avgFinish": 6.62,
+        "lastPlaceCount": 2,
+        "wins": 136,
+        "losses": 130,
+        "pf": 23114.8,
+        "history": [
+          {
+            "season": 2010,
+            "owner": "Brad Holm",
+            "team": "Stafford and Sons",
+            "rank": 11,
+            "wins": 3,
+            "losses": 10,
+            "pf": 1047.0,
+            "pa": 1370.0,
+            "champion": false
+          },
+          {
+            "season": 2011,
+            "owner": "Brad Holm",
+            "team": "Put Mike Vick in a Box",
+            "rank": 6,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1315.7,
+            "pa": 1347.3,
+            "champion": false
+          },
+          {
+            "season": 2012,
+            "owner": "Brad Holm",
+            "team": "Ghost's of  Seasons Past",
+            "rank": 12,
+            "wins": 4,
+            "losses": 9,
+            "pf": 1220.5,
+            "pa": 1304.4,
+            "champion": false
+          },
+          {
+            "season": 2013,
+            "owner": "Brad Holm",
+            "team": "My Jim Schwartz Are Dirty",
+            "rank": 12,
+            "wins": 3,
+            "losses": 10,
+            "pf": 1140.9,
+            "pa": 1270.5,
+            "champion": false
+          },
+          {
+            "season": 2014,
+            "owner": "Brad Holm",
+            "team": "Natrone Means Business",
+            "rank": 9,
+            "wins": 3,
+            "losses": 10,
+            "pf": 1074.8,
+            "pa": 1394.8,
+            "champion": false
+          },
+          {
+            "season": 2015,
+            "owner": "Brad Holm",
+            "team": "Switch Daddy",
+            "rank": 7,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1380.7,
+            "pa": 1264.9,
+            "champion": false
+          },
+          {
+            "season": 2016,
+            "owner": "Brad Holm",
+            "team": "80% Mental  40% Physical",
+            "rank": 7,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1259.5,
+            "pa": 1233.9,
+            "champion": false
+          },
+          {
+            "season": 2017,
+            "owner": "Brad Holm",
+            "team": "I Hate Fantasy Football",
+            "rank": 9,
+            "wins": 3,
+            "losses": 10,
+            "pf": 1551.0,
+            "pa": 1721.7,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "Brad Holm",
+            "team": "Game of Jones",
+            "rank": 11,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1667.4,
+            "pa": 1766.5,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Brad Holm",
+            "team": "Goff Balls!",
+            "rank": 3,
+            "wins": 8,
+            "losses": 4,
+            "pf": 1504.7,
+            "pa": 1492.2,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Brad Holm",
+            "team": "Playoffs Check Ship Next",
+            "rank": 6,
+            "wins": 5,
+            "losses": 8,
+            "pf": 1759.8,
+            "pa": 1738.2,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "Brad Holm",
+            "team": "Holm Field Advantage",
+            "rank": 3,
+            "wins": 9,
+            "losses": 5,
+            "pf": 1816.9,
+            "pa": 1727.3,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Brad Holm",
+            "team": "Holm Field Advantage",
+            "rank": 2,
+            "wins": 15,
+            "losses": 13,
+            "pf": 1553.2,
+            "pa": 1474.6,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Brad Holm",
+            "team": "Holm Field Advantage",
+            "rank": 1,
+            "wins": 18,
+            "losses": 8,
+            "pf": 1598.1,
+            "pa": 1306.8,
+            "champion": true
+          },
+          {
+            "season": 2024,
+            "owner": "Brad Holm",
+            "team": "Holm Field Advantage",
+            "rank": 4,
+            "wins": 19,
+            "losses": 9,
+            "pf": 1612.9,
+            "pa": 1514.4,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Brad Holm",
+            "team": "Holm Field Advantage",
+            "rank": 3,
+            "wins": 20,
+            "losses": 8,
+            "pf": 1611.7,
+            "pa": 1404.4,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "sachs",
+      "name": "John Sachs",
+      "nick": "Jarn",
+      "aliases": [
+        "Jarn",
+        "Jarn Sachs"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 16,
+        "titles": [
+          2014,
+          2016
+        ],
+        "avgFinish": 5.38,
+        "lastPlaceCount": 2,
+        "wins": 146,
+        "losses": 120,
+        "pf": 23971.9,
+        "history": [
+          {
+            "season": 2010,
+            "owner": "John Sachs",
+            "team": "Longwell Johnsons",
+            "rank": 2,
+            "wins": 10,
+            "losses": 3,
+            "pf": 1214.0,
+            "pa": 1125.0,
+            "champion": false
+          },
+          {
+            "season": 2011,
+            "owner": "John Sachs",
+            "team": "Tharrr Tebows",
+            "rank": 5,
+            "wins": 4,
+            "losses": 9,
+            "pf": 1319.8,
+            "pa": 1578.4,
+            "champion": false
+          },
+          {
+            "season": 2012,
+            "owner": "John Sachs",
+            "team": "Powderpuff Girls",
+            "rank": 4,
+            "wins": 10,
+            "losses": 3,
+            "pf": 1397.1,
+            "pa": 1240.7,
+            "champion": false
+          },
+          {
+            "season": 2013,
+            "owner": "John Sachs",
+            "team": "Action League",
+            "rank": 5,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1466.8,
+            "pa": 1343.8,
+            "champion": false
+          },
+          {
+            "season": 2014,
+            "owner": "John Sachs",
+            "team": "Hauschka = Championship",
+            "rank": 1,
+            "wins": 10,
+            "losses": 3,
+            "pf": 1579.0,
+            "pa": 1267.7,
+            "champion": true
+          },
+          {
+            "season": 2015,
+            "owner": "John Sachs",
+            "team": "Stayin' Alive",
+            "rank": 5,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1243.4,
+            "pa": 1287.5,
+            "champion": false
+          },
+          {
+            "season": 2016,
+            "owner": "John Sachs",
+            "team": "Dak Boi",
+            "rank": 1,
+            "wins": 10,
+            "losses": 3,
+            "pf": 1363.9,
+            "pa": 1179.5,
+            "champion": true
+          },
+          {
+            "season": 2017,
+            "owner": "John Sachs",
+            "team": "Russell Wilson Sucks",
+            "rank": 4,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1611.2,
+            "pa": 1439.9,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "John Sachs",
+            "team": "Prayers for Dalvin",
+            "rank": 6,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1765.4,
+            "pa": 1570.2,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "John Sachs",
+            "team": "Boyd at Running Back",
+            "rank": 6,
+            "wins": 6,
+            "losses": 6,
+            "pf": 1597.0,
+            "pa": 1570.6,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "John Sachs",
+            "team": "Boyd at Running Back",
+            "rank": 2,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1618.4,
+            "pa": 1588.9,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "John Sachs",
+            "team": "Jarn Jarnson",
+            "rank": 9,
+            "wins": 3,
+            "losses": 11,
+            "pf": 1673.7,
+            "pa": 1911.8,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "John Sachs",
+            "team": "Jarn Jarnson",
+            "rank": 10,
+            "wins": 13,
+            "losses": 15,
+            "pf": 1461.2,
+            "pa": 1530.5,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "John Sachs",
+            "team": "Jarn Jarnson",
+            "rank": 12,
+            "wins": 9,
+            "losses": 17,
+            "pf": 1385.7,
+            "pa": 1476.3,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "John Sachs",
+            "team": "Jarn Jarnson",
+            "rank": 12,
+            "wins": 10,
+            "losses": 18,
+            "pf": 1445.2,
+            "pa": 1509.0,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "John Sachs",
+            "team": "Jarn Jarnson",
+            "rank": 2,
+            "wins": 26,
+            "losses": 2,
+            "pf": 1830.1,
+            "pa": 1547.2,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "hoffman",
+      "name": "Ryan Hoffman",
+      "nick": "Hoss",
+      "aliases": [
+        "Hoss"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 8,
+        "titles": [
+          2024,
+          2025
+        ],
+        "avgFinish": 5.25,
+        "lastPlaceCount": 0,
+        "wins": 94,
+        "losses": 68,
+        "pf": 12421.7,
+        "history": [
+          {
+            "season": 2012,
+            "owner": "Ryan Hoffman",
+            "team": "The Plucks",
+            "rank": 7,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1268.1,
+            "pa": 1321.3,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 9,
+            "wins": 6,
+            "losses": 6,
+            "pf": 1492.2,
+            "pa": 1537.4,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 7,
+            "wins": 5,
+            "losses": 8,
+            "pf": 1667.4,
+            "pa": 1764.2,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 7,
+            "wins": 5,
+            "losses": 9,
+            "pf": 1649.7,
+            "pa": 1783.8,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 3,
+            "wins": 18,
+            "losses": 10,
+            "pf": 1639.7,
+            "pa": 1494.1,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 7,
+            "wins": 11,
+            "losses": 15,
+            "pf": 1373.4,
+            "pa": 1482.1,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 1,
+            "wins": 22,
+            "losses": 6,
+            "pf": 1702.4,
+            "pa": 1600.4,
+            "champion": true
+          },
+          {
+            "season": 2025,
+            "owner": "Ryan Hoffman",
+            "team": "- -",
+            "rank": 1,
+            "wins": 21,
+            "losses": 7,
+            "pf": 1628.8,
+            "pa": 1484.8,
+            "champion": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "sack",
+      "name": "Kevin Sack",
+      "nick": "Kev",
+      "aliases": [
+        "Kev"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 11,
+        "titles": [],
+        "avgFinish": 7.82,
+        "lastPlaceCount": 2,
+        "wins": 97,
+        "losses": 104,
+        "pf": 16463.4,
+        "history": [
+          {
+            "season": 2013,
+            "owner": "Kevin Sack",
+            "team": "ItsNotEasy BeingGreen",
+            "rank": 4,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1301.7,
+            "pa": 1263.6,
+            "champion": false
+          },
+          {
+            "season": 2015,
+            "owner": "Kevin Sack",
+            "team": "Detroit Shake n Bake",
+            "rank": 11,
+            "wins": 2,
+            "losses": 11,
+            "pf": 1180.4,
+            "pa": 1366.0,
+            "champion": false
+          },
+          {
+            "season": 2017,
+            "owner": "Kevin Sack",
+            "team": "Mr Sack's Squad",
+            "rank": 8,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1461.7,
+            "pa": 1517.2,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "Kevin Sack",
+            "team": "Kamara One Kamara Two",
+            "rank": 10,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1684.2,
+            "pa": 1757.1,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Kevin Sack",
+            "team": "Leslie Chow Druglords",
+            "rank": 12,
+            "wins": 1,
+            "losses": 11,
+            "pf": 1307.8,
+            "pa": 1587.8,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Kevin Sack",
+            "team": "Sack Lunch",
+            "rank": 12,
+            "wins": 4,
+            "losses": 9,
+            "pf": 1567.8,
+            "pa": 1645.9,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "Kevin Sack",
+            "team": "Kansas City Lamb Chops",
+            "rank": 6,
+            "wins": 8,
+            "losses": 6,
+            "pf": 1703.3,
+            "pa": 1650.2,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Kevin Sack",
+            "team": "Renfrow All Stars",
+            "rank": 8,
+            "wins": 14,
+            "losses": 14,
+            "pf": 1576.6,
+            "pa": 1533.3,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Kevin Sack",
+            "team": "DKSmash",
+            "rank": 4,
+            "wins": 16,
+            "losses": 10,
+            "pf": 1479.8,
+            "pa": 1291.7,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Kevin Sack",
+            "team": "Henry Hill All Stars",
+            "rank": 2,
+            "wins": 18,
+            "losses": 10,
+            "pf": 1714.7,
+            "pa": 1549.5,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Kevin Sack",
+            "team": "Squash the Beef",
+            "rank": 9,
+            "wins": 13,
+            "losses": 15,
+            "pf": 1485.4,
+            "pa": 1472.8,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "mckeon",
+      "name": "Joe Mckeon",
+      "nick": "Joey",
+      "aliases": [
+        "Joey",
+        "Joseph McKeon",
+        "Joe McKeon"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 3,
+        "titles": [],
+        "avgFinish": 7.67,
+        "lastPlaceCount": 0,
+        "wins": 17,
+        "losses": 37,
+        "pf": 3629.0,
+        "history": [
+          {
+            "season": 2010,
+            "owner": "Joe Mckeon",
+            "team": "AFC East 1/4 Stomachs",
+            "rank": 8,
+            "wins": 4,
+            "losses": 9,
+            "pf": 967.0,
+            "pa": 1132.0,
+            "champion": false
+          },
+          {
+            "season": 2011,
+            "owner": "Joe Mckeon",
+            "team": "Denarded Laces",
+            "rank": 7,
+            "wins": 4,
+            "losses": 9,
+            "pf": 1276.7,
+            "pa": 1458.2,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Joe Mckeon",
+            "team": "Joran Dingles",
+            "rank": 8,
+            "wins": 9,
+            "losses": 19,
+            "pf": 1385.3,
+            "pa": 1559.3,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "curtis",
+      "name": "Nick Curtis",
+      "nick": "Nick",
+      "aliases": [
+        "Nick"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 5,
+        "titles": [],
+        "avgFinish": 7.8,
+        "lastPlaceCount": 0,
+        "wins": 44,
+        "losses": 80,
+        "pf": 7435.9,
+        "history": [
+          {
+            "season": 2021,
+            "owner": "Nick Curtis",
+            "team": "Freaks and Zekes",
+            "rank": 2,
+            "wins": 9,
+            "losses": 5,
+            "pf": 1904.5,
+            "pa": 1828.6,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Nick Curtis",
+            "team": "Forgot about rhamonDRE",
+            "rank": 9,
+            "wins": 11,
+            "losses": 17,
+            "pf": 1507.5,
+            "pa": 1466.9,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Nick Curtis",
+            "team": "No RaGarretts",
+            "rank": 11,
+            "wins": 8,
+            "losses": 18,
+            "pf": 1266.1,
+            "pa": 1344.6,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Nick Curtis",
+            "team": "No RaGarretts",
+            "rank": 7,
+            "wins": 9,
+            "losses": 19,
+            "pf": 1375.2,
+            "pa": 1381.1,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Nick Curtis",
+            "team": "Pearsall Of The Lights",
+            "rank": 10,
+            "wins": 7,
+            "losses": 21,
+            "pf": 1382.6,
+            "pa": 1455.0,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "chas",
+      "name": "Chas Rossman",
+      "nick": "Chas",
+      "aliases": [
+        "Chas"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 16,
+        "titles": [
+          2012,
+          2020
+        ],
+        "avgFinish": 5.75,
+        "lastPlaceCount": 3,
+        "wins": 138,
+        "losses": 127,
+        "pf": 24224.1,
+        "history": [
+          {
+            "season": 2010,
+            "owner": "Chas Rossman",
+            "team": "Suh Hates Quarterbacks",
+            "rank": 6,
+            "wins": 4,
+            "losses": 8,
+            "pf": 1205.0,
+            "pa": 1295.0,
+            "champion": false
+          },
+          {
+            "season": 2011,
+            "owner": "Chas Rossman",
+            "team": "Lights CAM ra Action",
+            "rank": 4,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1473.8,
+            "pa": 1323.4,
+            "champion": false
+          },
+          {
+            "season": 2012,
+            "owner": "Chas Rossman",
+            "team": "AP's New Knee",
+            "rank": 1,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1466.9,
+            "pa": 1266.7,
+            "champion": true
+          },
+          {
+            "season": 2013,
+            "owner": "Chas Rossman",
+            "team": "Kitten Mittons",
+            "rank": 8,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1317.3,
+            "pa": 1302.0,
+            "champion": false
+          },
+          {
+            "season": 2014,
+            "owner": "Chas Rossman",
+            "team": "Antonio Brown's Face Kickers",
+            "rank": 6,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1479.4,
+            "pa": 1340.7,
+            "champion": false
+          },
+          {
+            "season": 2015,
+            "owner": "Chas Rossman",
+            "team": "We don't pay for underwear",
+            "rank": 3,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1403.0,
+            "pa": 1231.0,
+            "champion": false
+          },
+          {
+            "season": 2016,
+            "owner": "Chas Rossman",
+            "team": "Marvelous  Marvin Jones Jr",
+            "rank": 12,
+            "wins": 5,
+            "losses": 8,
+            "pf": 1317.6,
+            "pa": 1370.8,
+            "champion": false
+          },
+          {
+            "season": 2017,
+            "owner": "Chas Rossman",
+            "team": "Hear they added more Hopkins",
+            "rank": 6,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1693.0,
+            "pa": 1717.4,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "Chas Rossman",
+            "team": "Return of the Mack",
+            "rank": 2,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1764.2,
+            "pa": 1747.2,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Chas Rossman",
+            "team": "Keep Conn and Kerryon",
+            "rank": 8,
+            "wins": 6,
+            "losses": 6,
+            "pf": 1524.1,
+            "pa": 1442.4,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Chas Rossman",
+            "team": "Lockett Up",
+            "rank": 1,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1728.1,
+            "pa": 1616.4,
+            "champion": true
+          },
+          {
+            "season": 2021,
+            "owner": "Chas Rossman",
+            "team": "Chubby DK",
+            "rank": 5,
+            "wins": 7,
+            "losses": 7,
+            "pf": 1849.6,
+            "pa": 1799.7,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Chas Rossman",
+            "team": "Pierced Hock",
+            "rank": 12,
+            "wins": 12,
+            "losses": 16,
+            "pf": 1444.7,
+            "pa": 1519.2,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Chas Rossman",
+            "team": "Sun God in my Lockett",
+            "rank": 3,
+            "wins": 15,
+            "losses": 11,
+            "pf": 1471.1,
+            "pa": 1435.3,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Chas Rossman",
+            "team": "You sound like your from London",
+            "rank": 3,
+            "wins": 24,
+            "losses": 4,
+            "pf": 1699.3,
+            "pa": 1294.6,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Chas Rossman",
+            "team": "hot dog Downs the Hall-way",
+            "rank": 12,
+            "wins": 6,
+            "losses": 22,
+            "pf": 1387.0,
+            "pa": 1492.9,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "mcfadden",
+      "name": "Kyle McFadden",
+      "nick": "Kyle",
+      "aliases": [
+        "Kyle Mcfadden",
+        "Kyle"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 1,
+        "titles": [],
+        "avgFinish": 11.0,
+        "lastPlaceCount": 0,
+        "wins": 9,
+        "losses": 19,
+        "pf": 1447.2,
+        "history": [
+          {
+            "season": 2025,
+            "owner": "Kyle McFadden",
+            "team": "The One Eyed Bandidos",
+            "rank": 11,
+            "wins": 9,
+            "losses": 19,
+            "pf": 1447.2,
+            "pa": 1662.5,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "heller",
+      "name": "Kyle Heller",
+      "nick": "Heller",
+      "aliases": [
+        "Heller"
+      ],
+      "parlay": false,
+      "firstYear": false,
+      "abstain": true,
+      "career": {
+        "seasons": 16,
+        "titles": [
+          2011,
+          2021,
+          2022
+        ],
+        "avgFinish": 4.44,
+        "lastPlaceCount": 0,
+        "wins": 141,
+        "losses": 125,
+        "pf": 23423.3,
+        "history": [
+          {
+            "season": 2010,
+            "owner": "Kyle Heller",
+            "team": "Gay Teletubby Jimmy Clausen",
+            "rank": 7,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1259.0,
+            "pa": 1149.0,
+            "champion": false
+          },
+          {
+            "season": 2011,
+            "owner": "Kyle Heller",
+            "team": "A Bird? Plane? It's SuperCam",
+            "rank": 1,
+            "wins": 11,
+            "losses": 2,
+            "pf": 1460.7,
+            "pa": 1216.4,
+            "champion": true
+          },
+          {
+            "season": 2012,
+            "owner": "Kyle Heller",
+            "team": "BenJarvus Green Ellis Law Firm",
+            "rank": 2,
+            "wins": 9,
+            "losses": 4,
+            "pf": 1275.2,
+            "pa": 1189.5,
+            "champion": false
+          },
+          {
+            "season": 2013,
+            "owner": "Kyle Heller",
+            "team": "What Would Jones-Drew",
+            "rank": 9,
+            "wins": 4,
+            "losses": 9,
+            "pf": 1202.8,
+            "pa": 1423.7,
+            "champion": false
+          },
+          {
+            "season": 2014,
+            "owner": "Kyle Heller",
+            "team": "I am Groot",
+            "rank": 8,
+            "wins": 3,
+            "losses": 10,
+            "pf": 1050.2,
+            "pa": 1437.6,
+            "champion": false
+          },
+          {
+            "season": 2015,
+            "owner": "Kyle Heller",
+            "team": "A Bird? Plane? It's SuperCam",
+            "rank": 4,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1309.3,
+            "pa": 1220.7,
+            "champion": false
+          },
+          {
+            "season": 2016,
+            "owner": "Kyle Heller",
+            "team": "Bunches of Funchess",
+            "rank": 2,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1123.0,
+            "pa": 1218.9,
+            "champion": false
+          },
+          {
+            "season": 2017,
+            "owner": "Kyle Heller",
+            "team": "Run CMC",
+            "rank": 2,
+            "wins": 9,
+            "losses": 4,
+            "pf": 1711.0,
+            "pa": 1593.2,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "Kyle Heller",
+            "team": "3 Panthers No More Kupp",
+            "rank": 3,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1814.8,
+            "pa": 1777.3,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Kyle Heller",
+            "team": "SuperCam Needs To Be Rescued",
+            "rank": 7,
+            "wins": 4,
+            "losses": 8,
+            "pf": 1524.3,
+            "pa": 1586.1,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Kyle Heller",
+            "team": "The Fighting Faucis",
+            "rank": 3,
+            "wins": 9,
+            "losses": 4,
+            "pf": 1759.9,
+            "pa": 1698.4,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "Kyle Heller",
+            "team": "Fully DAKcinated",
+            "rank": 1,
+            "wins": 12,
+            "losses": 2,
+            "pf": 2109.9,
+            "pa": 1643.6,
+            "champion": true
+          },
+          {
+            "season": 2022,
+            "owner": "Kyle Heller",
+            "team": "Waddlin' With Waddle",
+            "rank": 1,
+            "wins": 16,
+            "losses": 12,
+            "pf": 1456.1,
+            "pa": 1530.1,
+            "champion": true
+          },
+          {
+            "season": 2023,
+            "owner": "Kyle Heller",
+            "team": "Waddle It Back",
+            "rank": 5,
+            "wins": 12,
+            "losses": 14,
+            "pf": 1404.1,
+            "pa": 1434.6,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Kyle Heller",
+            "team": "Revenge of the Waddle",
+            "rank": 11,
+            "wins": 6,
+            "losses": 22,
+            "pf": 1361.9,
+            "pa": 1618.2,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Kyle Heller",
+            "team": "Tetairoa McWaddle",
+            "rank": 5,
+            "wins": 14,
+            "losses": 14,
+            "pf": 1601.1,
+            "pa": 1535.1,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "jace",
+      "name": "Jace Clark",
+      "nick": "Jace",
+      "aliases": [
+        "Jace"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 10,
+        "titles": [],
+        "avgFinish": 7.8,
+        "lastPlaceCount": 0,
+        "wins": 91,
+        "losses": 97,
+        "pf": 15243.6,
+        "history": [
+          {
+            "season": 2016,
+            "owner": "Jace Clark",
+            "team": "Do you believe in Ameericals?",
+            "rank": 4,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1352.1,
+            "pa": 1187.0,
+            "champion": false
+          },
+          {
+            "season": 2017,
+            "owner": "Jace Clark",
+            "team": "Josh Gordon's Sponsors",
+            "rank": 11,
+            "wins": 5,
+            "losses": 8,
+            "pf": 1347.6,
+            "pa": 1600.6,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "Jace Clark",
+            "team": "Josh Gordon's Sponsors",
+            "rank": 8,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1692.0,
+            "pa": 1668.6,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Jace Clark",
+            "team": "Hock Sauce",
+            "rank": 11,
+            "wins": 5,
+            "losses": 7,
+            "pf": 1461.4,
+            "pa": 1505.3,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Jace Clark",
+            "team": "In Godwin We Trust",
+            "rank": 9,
+            "wins": 3,
+            "losses": 10,
+            "pf": 1676.4,
+            "pa": 1754.7,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "Jace Clark",
+            "team": "The Hill Of Victory",
+            "rank": 4,
+            "wins": 9,
+            "losses": 5,
+            "pf": 1827.6,
+            "pa": 1667.4,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Jace Clark",
+            "team": "Tiger King",
+            "rank": 6,
+            "wins": 14,
+            "losses": 14,
+            "pf": 1540.2,
+            "pa": 1508.0,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Jace Clark",
+            "team": "Jetta Late Than Never",
+            "rank": 10,
+            "wins": 13,
+            "losses": 13,
+            "pf": 1304.9,
+            "pa": 1520.9,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Jace Clark",
+            "team": "Rolling Brown Out",
+            "rank": 8,
+            "wins": 13,
+            "losses": 15,
+            "pf": 1494.4,
+            "pa": 1466.9,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Jace Clark",
+            "team": "MicroPenix",
+            "rank": 7,
+            "wins": 14,
+            "losses": 14,
+            "pf": 1547.0,
+            "pa": 1490.0,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "meltser",
+      "name": "Adam Meltser",
+      "nick": "Meltser",
+      "aliases": [
+        "Meltser"
+      ],
+      "parlay": true,
+      "firstYear": false,
+      "abstain": false,
+      "career": {
+        "seasons": 16,
+        "titles": [],
+        "avgFinish": 5.81,
+        "lastPlaceCount": 0,
+        "wins": 139,
+        "losses": 127,
+        "pf": 23696.0,
+        "history": [
+          {
+            "season": 2010,
+            "owner": "Adam Meltser",
+            "team": "Peyton's Peeska",
+            "rank": 5,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1204.0,
+            "pa": 1214.0,
+            "champion": false
+          },
+          {
+            "season": 2011,
+            "owner": "Adam Meltser",
+            "team": "The Michael Vick Show",
+            "rank": 8,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1308.8,
+            "pa": 1281.0,
+            "champion": false
+          },
+          {
+            "season": 2012,
+            "owner": "Adam Meltser",
+            "team": "Moneyyy Baaaags",
+            "rank": 3,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1315.7,
+            "pa": 1221.0,
+            "champion": false
+          },
+          {
+            "season": 2013,
+            "owner": "Adam Meltser",
+            "team": "San Fran Dope Man",
+            "rank": 6,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1301.7,
+            "pa": 1201.8,
+            "champion": false
+          },
+          {
+            "season": 2014,
+            "owner": "Adam Meltser",
+            "team": "Gronk's Fat Cock",
+            "rank": 5,
+            "wins": 5,
+            "losses": 8,
+            "pf": 1308.9,
+            "pa": 1244.0,
+            "champion": false
+          },
+          {
+            "season": 2015,
+            "owner": "Adam Meltser",
+            "team": "Beast Mode",
+            "rank": 6,
+            "wins": 6,
+            "losses": 7,
+            "pf": 1146.9,
+            "pa": 1196.2,
+            "champion": false
+          },
+          {
+            "season": 2016,
+            "owner": "Adam Meltser",
+            "team": "Beast Mode",
+            "rank": 3,
+            "wins": 12,
+            "losses": 1,
+            "pf": 1404.8,
+            "pa": 1199.3,
+            "champion": false
+          },
+          {
+            "season": 2017,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 3,
+            "wins": 8,
+            "losses": 5,
+            "pf": 1608.6,
+            "pa": 1489.5,
+            "champion": false
+          },
+          {
+            "season": 2018,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 4,
+            "wins": 10,
+            "losses": 3,
+            "pf": 1854.9,
+            "pa": 1649.6,
+            "champion": false
+          },
+          {
+            "season": 2019,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 10,
+            "wins": 3,
+            "losses": 9,
+            "pf": 1557.9,
+            "pa": 1714.2,
+            "champion": false
+          },
+          {
+            "season": 2020,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 5,
+            "wins": 7,
+            "losses": 6,
+            "pf": 1706.0,
+            "pa": 1668.2,
+            "champion": false
+          },
+          {
+            "season": 2021,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 8,
+            "wins": 8,
+            "losses": 6,
+            "pf": 1890.3,
+            "pa": 1804.4,
+            "champion": false
+          },
+          {
+            "season": 2022,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 7,
+            "wins": 12,
+            "losses": 16,
+            "pf": 1495.7,
+            "pa": 1646.5,
+            "champion": false
+          },
+          {
+            "season": 2023,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 8,
+            "wins": 14,
+            "losses": 12,
+            "pf": 1548.4,
+            "pa": 1513.3,
+            "champion": false
+          },
+          {
+            "season": 2024,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 6,
+            "wins": 11,
+            "losses": 17,
+            "pf": 1475.5,
+            "pa": 1624.9,
+            "champion": false
+          },
+          {
+            "season": 2025,
+            "owner": "Adam Meltser",
+            "team": "BEAST MODE",
+            "rank": 6,
+            "wins": 13,
+            "losses": 15,
+            "pf": 1567.9,
+            "pa": 1758.1,
+            "champion": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "dj",
+      "name": "DJ Dangerous",
+      "nick": "DJ",
+      "aliases": [
+        "DJ"
+      ],
+      "parlay": true,
+      "firstYear": true,
+      "abstain": false,
+      "career": {
+        "seasons": 0,
+        "titles": [],
+        "avgFinish": null,
+        "lastPlaceCount": 0,
+        "wins": 0,
+        "losses": 0,
+        "pf": 0,
+        "history": []
+      }
+    }
+  ],
+  "champions": [
+    {
+      "year": 2010,
+      "owner": "Mychal Cocke"
+    },
+    {
+      "year": 2011,
+      "owner": "Kyle Heller"
+    },
+    {
+      "year": 2012,
+      "owner": "Chas Rossman"
+    },
+    {
+      "year": 2013,
+      "owner": "Joe Adkisson"
+    },
+    {
+      "year": 2014,
+      "owner": "John Sachs"
+    },
+    {
+      "year": 2015,
+      "owner": "Muhamed Cunmuljaj"
+    },
+    {
+      "year": 2016,
+      "owner": "John Sachs"
+    },
+    {
+      "year": 2017,
+      "owner": "Andrew Mateer"
+    },
+    {
+      "year": 2018,
+      "owner": "Joe Adkisson"
+    },
+    {
+      "year": 2019,
+      "owner": "Aaron Imhoff"
+    },
+    {
+      "year": 2020,
+      "owner": "Chas Rossman"
+    },
+    {
+      "year": 2021,
+      "owner": "Kyle Heller"
+    },
+    {
+      "year": 2022,
+      "owner": "Kyle Heller"
+    },
+    {
+      "year": 2023,
+      "owner": "Brad Holm"
+    },
+    {
+      "year": 2024,
+      "owner": "Ryan Hoffman"
+    },
+    {
+      "year": 2025,
+      "owner": "Ryan Hoffman"
+    }
+  ],
+  "careers": [
+    {
+      "owner": "Aaron Imhoff",
+      "current": false,
+      "seasons": 4,
+      "first": 2012,
+      "last": 2020,
+      "wins": 25,
+      "losses": 26,
+      "pf": 5970.5,
+      "titles": [
+        2019
+      ],
+      "titleCount": 1,
+      "avgFinish": 6.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 1,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Adam Meltser",
+      "current": true,
+      "seasons": 16,
+      "first": 2010,
+      "last": 2025,
+      "wins": 139,
+      "losses": 127,
+      "pf": 23696.0,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 5.81,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 3,
+      "worstFinish": 10
+    },
+    {
+      "owner": "Ali Alsiamer",
+      "current": false,
+      "seasons": 1,
+      "first": 2012,
+      "last": 2012,
+      "wins": 6,
+      "losses": 7,
+      "pf": 1314.6,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 5.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 5,
+      "worstFinish": 5
+    },
+    {
+      "owner": "Andrew Mateer",
+      "current": false,
+      "seasons": 6,
+      "first": 2013,
+      "last": 2020,
+      "wins": 44,
+      "losses": 33,
+      "pf": 9011.8,
+      "titles": [
+        2017
+      ],
+      "titleCount": 1,
+      "avgFinish": 5.67,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 1,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Brad Holm",
+      "current": true,
+      "seasons": 16,
+      "first": 2010,
+      "last": 2025,
+      "wins": 136,
+      "losses": 130,
+      "pf": 23114.8,
+      "titles": [
+        2023
+      ],
+      "titleCount": 1,
+      "avgFinish": 6.62,
+      "lastPlaces": [
+        2012,
+        2013
+      ],
+      "lastPlaceCount": 2,
+      "bestFinish": 1,
+      "worstFinish": 12
+    },
+    {
+      "owner": "Brian Sachs",
+      "current": false,
+      "seasons": 1,
+      "first": 2013,
+      "last": 2013,
+      "wins": 6,
+      "losses": 7,
+      "pf": 1334.3,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 10.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 10,
+      "worstFinish": 10
+    },
+    {
+      "owner": "Chas Rossman",
+      "current": true,
+      "seasons": 16,
+      "first": 2010,
+      "last": 2025,
+      "wins": 138,
+      "losses": 127,
+      "pf": 24224.1,
+      "titles": [
+        2012,
+        2020
+      ],
+      "titleCount": 2,
+      "avgFinish": 5.75,
+      "lastPlaces": [
+        2016,
+        2022,
+        2025
+      ],
+      "lastPlaceCount": 3,
+      "bestFinish": 1,
+      "worstFinish": 12
+    },
+    {
+      "owner": "David Snyder",
+      "current": false,
+      "seasons": 1,
+      "first": 2011,
+      "last": 2011,
+      "wins": 2,
+      "losses": 11,
+      "pf": 1168.7,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 9.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 9,
+      "worstFinish": 9
+    },
+    {
+      "owner": "David Zintak",
+      "current": false,
+      "seasons": 5,
+      "first": 2021,
+      "last": 2025,
+      "wins": 52,
+      "losses": 72,
+      "pf": 7214.7,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.8,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 4,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Greg Holm",
+      "current": false,
+      "seasons": 1,
+      "first": 2012,
+      "last": 2012,
+      "wins": 7,
+      "losses": 6,
+      "pf": 1166.9,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 9.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 9,
+      "worstFinish": 9
+    },
+    {
+      "owner": "Jace Clark",
+      "current": true,
+      "seasons": 10,
+      "first": 2016,
+      "last": 2025,
+      "wins": 91,
+      "losses": 97,
+      "pf": 15243.6,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.8,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 4,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Jeff Lafave",
+      "current": false,
+      "seasons": 3,
+      "first": 2022,
+      "last": 2024,
+      "wins": 45,
+      "losses": 37,
+      "pf": 4609.8,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 5.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 2,
+      "worstFinish": 9
+    },
+    {
+      "owner": "Jerome Cada",
+      "current": false,
+      "seasons": 1,
+      "first": 2012,
+      "last": 2012,
+      "wins": 7,
+      "losses": 6,
+      "pf": 1252.7,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 8.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 8,
+      "worstFinish": 8
+    },
+    {
+      "owner": "Joe Adkisson",
+      "current": false,
+      "seasons": 13,
+      "first": 2010,
+      "last": 2024,
+      "wins": 105,
+      "losses": 107,
+      "pf": 19218.9,
+      "titles": [
+        2013,
+        2018
+      ],
+      "titleCount": 2,
+      "avgFinish": 6.85,
+      "lastPlaces": [
+        2010,
+        2015,
+        2021
+      ],
+      "lastPlaceCount": 3,
+      "bestFinish": 1,
+      "worstFinish": 12
+    },
+    {
+      "owner": "Joe Mckeon",
+      "current": true,
+      "seasons": 3,
+      "first": 2010,
+      "last": 2025,
+      "wins": 17,
+      "losses": 37,
+      "pf": 3629.0,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.67,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 7,
+      "worstFinish": 8
+    },
+    {
+      "owner": "John Sachs",
+      "current": true,
+      "seasons": 16,
+      "first": 2010,
+      "last": 2025,
+      "wins": 146,
+      "losses": 120,
+      "pf": 23971.9,
+      "titles": [
+        2014,
+        2016
+      ],
+      "titleCount": 2,
+      "avgFinish": 5.38,
+      "lastPlaces": [
+        2023,
+        2024
+      ],
+      "lastPlaceCount": 2,
+      "bestFinish": 1,
+      "worstFinish": 12
+    },
+    {
+      "owner": "Justin Berger",
+      "current": false,
+      "seasons": 1,
+      "first": 2018,
+      "last": 2018,
+      "wins": 4,
+      "losses": 9,
+      "pf": 1642.7,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 9.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 9,
+      "worstFinish": 9
+    },
+    {
+      "owner": "Kevin Micallef",
+      "current": false,
+      "seasons": 5,
+      "first": 2010,
+      "last": 2015,
+      "wins": 35,
+      "losses": 30,
+      "pf": 6320.3,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.4,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 2,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Kevin Sack",
+      "current": true,
+      "seasons": 11,
+      "first": 2013,
+      "last": 2025,
+      "wins": 97,
+      "losses": 104,
+      "pf": 16463.4,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.82,
+      "lastPlaces": [
+        2019,
+        2020
+      ],
+      "lastPlaceCount": 2,
+      "bestFinish": 2,
+      "worstFinish": 12
+    },
+    {
+      "owner": "Kyle Heller",
+      "current": true,
+      "seasons": 16,
+      "first": 2010,
+      "last": 2025,
+      "wins": 141,
+      "losses": 125,
+      "pf": 23423.3,
+      "titles": [
+        2011,
+        2021,
+        2022
+      ],
+      "titleCount": 3,
+      "avgFinish": 4.44,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 1,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Kyle McFadden",
+      "current": true,
+      "seasons": 1,
+      "first": 2025,
+      "last": 2025,
+      "wins": 9,
+      "losses": 19,
+      "pf": 1447.2,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 11.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 11,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Leetal Levran",
+      "current": false,
+      "seasons": 1,
+      "first": 2010,
+      "last": 2010,
+      "wins": 11,
+      "losses": 2,
+      "pf": 1378.0,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 4.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 4,
+      "worstFinish": 4
+    },
+    {
+      "owner": "Matt St Jean",
+      "current": false,
+      "seasons": 4,
+      "first": 2014,
+      "last": 2017,
+      "wins": 31,
+      "losses": 21,
+      "pf": 5574.5,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 4.25,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 2,
+      "worstFinish": 8
+    },
+    {
+      "owner": "Matthew Leach",
+      "current": false,
+      "seasons": 1,
+      "first": 2011,
+      "last": 2011,
+      "wins": 5,
+      "losses": 8,
+      "pf": 1349.7,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 10.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 10,
+      "worstFinish": 10
+    },
+    {
+      "owner": "Mike Muirhead",
+      "current": false,
+      "seasons": 7,
+      "first": 2015,
+      "last": 2021,
+      "wins": 40,
+      "losses": 51,
+      "pf": 10406.1,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 8.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 4,
+      "worstFinish": 10
+    },
+    {
+      "owner": "Mike Tran",
+      "current": false,
+      "seasons": 2,
+      "first": 2011,
+      "last": 2012,
+      "wins": 13,
+      "losses": 13,
+      "pf": 2608.7,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 3,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Muhamed Cunmuljaj",
+      "current": false,
+      "seasons": 5,
+      "first": 2014,
+      "last": 2018,
+      "wins": 32,
+      "losses": 33,
+      "pf": 7044.4,
+      "titles": [
+        2015
+      ],
+      "titleCount": 1,
+      "avgFinish": 7.0,
+      "lastPlaces": [
+        2017,
+        2018
+      ],
+      "lastPlaceCount": 2,
+      "bestFinish": 1,
+      "worstFinish": 12
+    },
+    {
+      "owner": "Mychal Cocke",
+      "current": false,
+      "seasons": 1,
+      "first": 2010,
+      "last": 2010,
+      "wins": 8,
+      "losses": 4,
+      "pf": 1406.0,
+      "titles": [
+        2010
+      ],
+      "titleCount": 1,
+      "avgFinish": 1.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 1,
+      "worstFinish": 1
+    },
+    {
+      "owner": "Nick Curtis",
+      "current": true,
+      "seasons": 5,
+      "first": 2021,
+      "last": 2025,
+      "wins": 44,
+      "losses": 80,
+      "pf": 7435.9,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.8,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 2,
+      "worstFinish": 11
+    },
+    {
+      "owner": "Ross Tashjian",
+      "current": false,
+      "seasons": 1,
+      "first": 2016,
+      "last": 2016,
+      "wins": 4,
+      "losses": 9,
+      "pf": 1308.0,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 9.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 9,
+      "worstFinish": 9
+    },
+    {
+      "owner": "Ryan Hoffman",
+      "current": true,
+      "seasons": 8,
+      "first": 2012,
+      "last": 2025,
+      "wins": 94,
+      "losses": 68,
+      "pf": 12421.7,
+      "titles": [
+        2024,
+        2025
+      ],
+      "titleCount": 2,
+      "avgFinish": 5.25,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 1,
+      "worstFinish": 9
+    },
+    {
+      "owner": "Sean Wenn",
+      "current": false,
+      "seasons": 2,
+      "first": 2013,
+      "last": 2014,
+      "wins": 12,
+      "losses": 14,
+      "pf": 2373.6,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 6.5,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 3,
+      "worstFinish": 10
+    },
+    {
+      "owner": "Steve Ott",
+      "current": false,
+      "seasons": 1,
+      "first": 2010,
+      "last": 2010,
+      "wins": 1,
+      "losses": 12,
+      "pf": 999.0,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 10.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 10,
+      "worstFinish": 10
+    },
+    {
+      "owner": "Vadim Chernyak",
+      "current": false,
+      "seasons": 1,
+      "first": 2014,
+      "last": 2014,
+      "wins": 7,
+      "losses": 6,
+      "pf": 1315.9,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 7.0,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 7,
+      "worstFinish": 7
+    },
+    {
+      "owner": "Zack  Davis",
+      "current": false,
+      "seasons": 2,
+      "first": 2010,
+      "last": 2015,
+      "wins": 15,
+      "losses": 11,
+      "pf": 2489.1,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": 5.5,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": 3,
+      "worstFinish": 8
+    },
+    {
+      "owner": "DJ Dangerous",
+      "current": true,
+      "seasons": 0,
+      "first": null,
+      "last": null,
+      "wins": 0,
+      "losses": 0,
+      "pf": 0,
+      "titles": [],
+      "titleCount": 0,
+      "avgFinish": null,
+      "lastPlaces": [],
+      "lastPlaceCount": 0,
+      "bestFinish": null,
+      "worstFinish": null
+    }
+  ],
+  "bestValues": [
+    {
+      "season": 2019,
+      "owner": "Adam Meltser",
+      "player": "Lamar Jackson",
+      "pos": "QB",
+      "price": 21,
+      "points": 415.7,
+      "ppd": 19.8
+    },
+    {
+      "season": 2021,
+      "owner": "Mike Muirhead",
+      "player": "Aaron Rodgers",
+      "pos": "QB",
+      "price": 20,
+      "points": 333.3,
+      "ppd": 16.66
+    },
+    {
+      "season": 2019,
+      "owner": "John Sachs",
+      "player": "Deshaun Watson",
+      "pos": "QB",
+      "price": 21,
+      "points": 321,
+      "ppd": 15.29
+    },
+    {
+      "season": 2019,
+      "owner": "Chas Rossman",
+      "player": "Jameis Winston",
+      "pos": "QB",
+      "price": 20,
+      "points": 305.4,
+      "ppd": 15.27
+    },
+    {
+      "season": 2023,
+      "owner": "Nick Curtis",
+      "player": "Lamar Jackson",
+      "pos": "QB",
+      "price": 22,
+      "points": 331.2,
+      "ppd": 15.05
+    },
+    {
+      "season": 2021,
+      "owner": "Kyle Heller",
+      "player": "Cooper Kupp",
+      "pos": "WR",
+      "price": 30,
+      "points": 439.5,
+      "ppd": 14.65
+    },
+    {
+      "season": 2024,
+      "owner": "Jeff Lafave",
+      "player": "Jalen Hurts",
+      "pos": "QB",
+      "price": 22,
+      "points": 315.1,
+      "ppd": 14.32
+    },
+    {
+      "season": 2018,
+      "owner": "Jace Clark",
+      "player": "Tom Brady",
+      "pos": "QB",
+      "price": 20,
+      "points": 281.3,
+      "ppd": 14.07
+    }
+  ],
+  "worstValues": [
+    {
+      "season": 2018,
+      "owner": "Jace Clark",
+      "player": "Le'Veon Bell",
+      "pos": "RB",
+      "price": 103,
+      "points": 0,
+      "ppd": 0.0
+    },
+    {
+      "season": 2021,
+      "owner": "Adam Meltser",
+      "player": "Gus Edwards",
+      "pos": "RB",
+      "price": 24,
+      "points": 0,
+      "ppd": 0.0
+    },
+    {
+      "season": 2017,
+      "owner": "John Sachs",
+      "player": "Allen Robinson",
+      "pos": "WR",
+      "price": 33,
+      "points": 2.7,
+      "ppd": 0.08
+    },
+    {
+      "season": 2017,
+      "owner": "Kevin Sack",
+      "player": "David Johnson",
+      "pos": "RB",
+      "price": 100,
+      "points": 13,
+      "ppd": 0.13
+    },
+    {
+      "season": 2020,
+      "owner": "John Sachs",
+      "player": "Saquon Barkley",
+      "pos": "RB",
+      "price": 123,
+      "points": 15.4,
+      "ppd": 0.13
+    },
+    {
+      "season": 2018,
+      "owner": "Kyle Heller",
+      "player": "Devonta Freeman",
+      "pos": "RB",
+      "price": 63,
+      "points": 14.1,
+      "ppd": 0.22
+    },
+    {
+      "season": 2020,
+      "owner": "Kevin Sack",
+      "player": "Courtland Sutton",
+      "pos": "WR",
+      "price": 39,
+      "points": 9.6,
+      "ppd": 0.25
+    },
+    {
+      "season": 2023,
+      "owner": "Chas Rossman",
+      "player": "Nick Chubb",
+      "pos": "RB",
+      "price": 74,
+      "points": 23.1,
+      "ppd": 0.31
+    }
+  ],
+  "outliers": [
+    {
+      "season": 2019,
+      "owner": "Aaron Imhoff",
+      "team": "A Golden Rolls Royce",
+      "pf": 1878,
+      "z": 2.67,
+      "rank": 1,
+      "champ": true
+    },
+    {
+      "season": 2025,
+      "owner": "John Sachs",
+      "team": "Jarn Jarnson",
+      "pf": 1830.1,
+      "z": 2.36,
+      "rank": 2,
+      "champ": false
+    },
+    {
+      "season": 2013,
+      "owner": "John Sachs",
+      "team": "Action League",
+      "pf": 1466.8,
+      "z": 2.32,
+      "rank": 5,
+      "champ": false
+    },
+    {
+      "season": 2018,
+      "owner": "Muhamed Cunmuljaj",
+      "team": "MoGotHis SachsRemoved",
+      "pf": 1503.5,
+      "z": -2.28,
+      "rank": 12,
+      "champ": false
+    },
+    {
+      "season": 2021,
+      "owner": "Kyle Heller",
+      "team": "Fully DAKcinated",
+      "pf": 2109.9,
+      "z": 2.19,
+      "rank": 1,
+      "champ": true
+    },
+    {
+      "season": 2012,
+      "owner": "Chas Rossman",
+      "team": "AP's New Knee",
+      "pf": 1466.9,
+      "z": 2.16,
+      "rank": 1,
+      "champ": true
+    },
+    {
+      "season": 2016,
+      "owner": "Kyle Heller",
+      "team": "Bunches of Funchess",
+      "pf": 1123,
+      "z": -2.16,
+      "rank": 2,
+      "champ": false
+    },
+    {
+      "season": 2015,
+      "owner": "Muhamed Cunmuljaj",
+      "team": "The Champenning",
+      "pf": 1487,
+      "z": 2.12,
+      "rank": 1,
+      "champ": true
+    },
+    {
+      "season": 2011,
+      "owner": "David Snyder",
+      "team": "Suhper Stohmp",
+      "pf": 1168.7,
+      "z": -2.05,
+      "rank": 9,
+      "champ": false
+    },
+    {
+      "season": 2013,
+      "owner": "Brad Holm",
+      "team": "My Jim Schwartz Are Dirty",
+      "pf": 1140.9,
+      "z": -1.89,
+      "rank": 12,
+      "champ": false
+    },
+    {
+      "season": 2020,
+      "owner": "Andrew Mateer",
+      "team": "Quick Johnsons",
+      "pf": 1528,
+      "z": -1.87,
+      "rank": 8,
+      "champ": false
+    },
+    {
+      "season": 2022,
+      "owner": "Ryan Hoffman",
+      "team": "- -",
+      "pf": 1639.7,
+      "z": 1.86,
+      "rank": 3,
+      "champ": false
+    },
+    {
+      "season": 2017,
+      "owner": "Jace Clark",
+      "team": "Josh Gordon's Sponsors",
+      "pf": 1347.6,
+      "z": -1.85,
+      "rank": 11,
+      "champ": false
+    },
+    {
+      "season": 2019,
+      "owner": "Kevin Sack",
+      "team": "Leslie Chow Druglords",
+      "pf": 1307.8,
+      "z": -1.8,
+      "rank": 12,
+      "champ": false
+    },
+    {
+      "season": 2020,
+      "owner": "Joe Adkisson",
+      "team": "crop topzzzz",
+      "pf": 1819.1,
+      "z": 1.77,
+      "rank": 4,
+      "champ": false
+    }
+  ],
+  "kpis": {
+    "mostTitles": {
+      "owner": "Kyle Heller",
+      "count": 3,
+      "years": [
+        2011,
+        2021,
+        2022
+      ]
+    },
+    "longestDrought": {
+      "owner": "Adam Meltser",
+      "seasons": 16
+    },
+    "reigningChamp": {
+      "year": 2025,
+      "owner": "Ryan Hoffman"
+    },
+    "mostLastPlaces": {
+      "owner": "Chas Rossman",
+      "count": 3,
+      "years": [
+        2016,
+        2022,
+        2025
+      ]
+    },
+    "pfMonster2025": {
+      "owner": "John Sachs",
+      "pf": 1830.1,
+      "team": "Jarn Jarnson"
+    }
+  },
+  "rules": {
+    "pickers": 11,
+    "abstain": "Kyle Heller",
+    "stake": 10,
+    "note": "Each of 11 managers picks one leg. Heller sits this one out. Whoever scored lowest in fantasy the week before funds the $10 ticket. Winnings split among the 11. Long shot on purpose."
+  }
+}
