@@ -72,6 +72,24 @@ test('ffl refuses another league and does not call ESPN with the session', async
   assert.equal(res.body.error, 'Invalid fantasy league or season');
 });
 
+test('ffl refuses every season except the server year', async () => {
+  withCreds();
+  for (const season of ['2019', '2025', '2027', '0000', '9999']) {
+    const { res, calls } = await call({ path: 'ffl', league: '182263', season, week: '1' });
+    assert.equal(res.statusCode, 400, season);
+    assert.equal(calls.length, 0, season);
+  }
+});
+
+test('ffl refuses a scoring period that is not one NFL week', async () => {
+  withCreds();
+  for (const week of ['0', '19', '100', '1\n', ['1', '2']]) {
+    const { res, calls } = await call({ path: 'ffl', league: '182263', season: '2026', week });
+    assert.equal(res.statusCode, 400, JSON.stringify(week));
+    assert.equal(calls.length, 0, JSON.stringify(week));
+  }
+});
+
 test('ffl refuses season path injection that would select another league', async () => {
   withCreds();
   const attacks = [
