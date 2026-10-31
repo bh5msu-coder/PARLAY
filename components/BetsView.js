@@ -15,6 +15,7 @@ import { fmtMoney } from '../lib/format.mjs';
 import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
 import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
+import SeasonGlance from './SeasonGlance';
 
 // parlay-history.json is static and read-only: lib/history.mjs loads it with one GET and deep-freezes it.
 // This page never writes anything — no Supabase call, no POST, no change to data/bets.json.
@@ -103,6 +104,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
         <KpiCard label="Stakes listed" value={fmtMoney(stake)} note={`Graded tickets · ${paidGraded ? fmtMoney(paidGraded) + ' of it recorded paid' : 'no payments recorded yet'} · $0 recorded back`} />
       </section>
 
+      <SeasonGlance data={data} rows={S.rows} selectedOwner={selectedOwner} />
       <IouCard ledger={iouLedger(ledgerTickets(data, weeks, store), payments)} />
       <DiscrepancyCard result={reconcile({ weeks }, data)} />
       <TicketSection tickets={historyTickets(data)} sourceNote="parlay-history.json (read-only)" />

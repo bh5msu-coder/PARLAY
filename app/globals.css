@@ -349,3 +349,20 @@ table td.rank:not(.num){white-space:nowrap;min-width:40px}
 .thisweek__head{font:700 34px/38px var(--font-display);letter-spacing:.01em;margin:6px 0 2px}
 .thisweek .btn{margin-top:8px}
 @media (max-width:719px){.thisweek{padding:16px}.thisweek__head{font-size:28px;line-height:32px}.thisweek .btn{width:100%;justify-content:center}}
+
+/* Season at a glance (Bets tab) */
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-6)}
+.glance .h3{margin:0 0 var(--space-2)}
+.glance__row{display:grid;grid-template-columns:minmax(110px,170px) 1fr 88px;align-items:center;gap:var(--space-2);margin:6px 0;font-size:14px}
+.glance__row.me .glance__name{font-weight:700;color:var(--brand)}
+.glance__name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.glance__val{text-align:right;white-space:nowrap;font-family:var(--font-mono);font-size:13px}
+.glance__track{display:flex;height:12px;border-radius:var(--radius-sm);overflow:hidden;background:var(--surface-200)}
+.glance__track--empty{background:repeating-linear-gradient(45deg,var(--surface-200) 0 6px,transparent 6px 12px);border:1px dashed var(--line)}
+.glance__seg{display:inline-block;height:100%}
+.glance__seg--win{background:var(--win)}
+.glance__seg--loss{background:var(--loss)}
+.glance__seg--unknown{background:var(--ink-muted)}
+.glance__seg--pending{background:var(--pending)}
+.glance__legend{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:var(--space-4);font-size:13px;color:var(--ink-muted)}
+.glance__legend .glance__seg{width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
