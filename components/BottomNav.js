@@ -1,17 +1,22 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ROUTES, routeFor } from './LeagueProvider';
-import MoreMenu from './MoreMenu';
+import { HOME_PATH, ROUTES, routeFor } from './LeagueProvider';
+import { GearIcon, ParlayMenu } from './NavMenus';
 
+/** Phone tab bar: League, Parlay (menu opens upward), Chat, Commissioner gear. */
 export default function BottomNav() {
-  const current = routeFor(usePathname() || '/week');
+  const current = routeFor(usePathname() || HOME_PATH);
+  const link = (route, body, label) => {
+    const r = ROUTES.find((x) => x.route === route);
+    return <Link href={r.path} aria-label={label} aria-current={r.route === current ? 'page' : undefined}>{body}</Link>;
+  };
   return (
     <nav className="bottomnav" aria-label="Sections">
-      {ROUTES.filter((r) => r.primary).map((r) => (
-        <Link key={r.path} href={r.path} aria-current={r.route === current ? 'page' : undefined}>{r.short || r.label}</Link>
-      ))}
-      <MoreMenu current={current} className="more--up" />
+      {link('league', 'League')}
+      <ParlayMenu current={current} className="more--up" />
+      {link('chat', 'Chat')}
+      {link('admin', <GearIcon />, 'Commissioner')}
     </nav>
   );
 }

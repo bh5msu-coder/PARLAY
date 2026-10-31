@@ -1,11 +1,11 @@
 {
-  "name": "Holm League Parlay",
-  "short_name": "Holm Parlay",
-  "description": "Our Holm League weekly parlay tracker",
-  "start_url": "/",
+  "name": "Our Holm League",
+  "short_name": "Holm League",
+  "description": "Our Holm League: league history, the chat, and the weekly parlay",
+  "start_url": "/league",
   "display": "standalone",
-  "background_color": "#0b0f14",
-  "theme_color": "#0b0f14",
+  "background_color": "#070d14",
+  "theme_color": "#070d14",
   "icons": [
     {
       "src": "/icon-192.png",

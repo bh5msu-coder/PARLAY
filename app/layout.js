@@ -4,11 +4,11 @@ import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 
 export const metadata = {
-  title: 'Holm League Parlay',
-  description: 'Live weekly parlay tracker for Our Holm League',
+  title: 'Our Holm League',
+  description: 'Our Holm League: 16 seasons of league history, the chat, and the weekly parlay',
   manifest: '/manifest.webmanifest',
   icons: { icon: [{ url: '/favicon-48.png', sizes: '48x48', type: 'image/png' }, { url: '/icon-192.png', sizes: '192x192', type: 'image/png' }], shortcut: '/favicon.ico', apple: '/apple-touch-icon.png' },
-  appleWebApp: { capable: true, title: 'Holm Parlay', statusBarStyle: 'black-translucent' },
+  appleWebApp: { capable: true, title: 'Holm League', statusBarStyle: 'black-translucent' },
   other: { 'mobile-web-app-capable': 'yes' },
 };
 
@@ -16,7 +16,7 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0b0f14',
+  themeColor: '#070d14',
 };
 
 const sans = Barlow({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--f-sans', display: 'swap' });
