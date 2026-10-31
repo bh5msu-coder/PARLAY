@@ -3,9 +3,36 @@ import Link from 'next/link';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { ident } from '../lib/ident.mjs';
-import { assembleTicket, parseWhatsApp, slipText, validatePick } from '../lib/ticket.mjs';
+import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
 import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
 import { PICK_API, toast } from '../lib/clients.mjs';
+
+const POLICY_TEXT = {
+  flag: 'Conflicting picks are flagged and nothing is overwritten (the commissioner has not set a rule).',
+  'keep-saved': 'Saved picks are kept; conflicting imports are reported.',
+  latest: 'The newest message replaces a saved pick.',
+};
+
+/** Result of a WhatsApp import: what was saved, skipped as duplicate, flagged as conflict, or unreadable. */
+function ImportReport({ report }) {
+  if (!report) return null;
+  if (report.error) return <p className="rules rules--error">{report.error}</p>;
+  const rows = (list, cls) => list.map((x, i) => (
+    <tr key={i}><td className="num">{x.line || '–'}</td><td>{x.who || '–'}</td><td>{x.label || x.text || ''}</td><td className={cls}>{x.reason || ''}</td></tr>));
+  const saved = report.saved || [], dup = report.duplicates || [], conf = report.conflicts || [], errs = report.errors || [], failed = report.failed || [];
+  return (
+    <div className="import-report">
+      <p className="muted">{`Saved ${saved.length} · duplicates ${dup.length} · conflicts ${conf.length} · could not read ${errs.length} · chat lines skipped ${report.skipped || 0}. ` + (POLICY_TEXT[report.policy] || '')}</p>
+      {saved.length ? <p className="rules rules--info">{'Saved: ' + saved.map((x) => `${x.who} (${x.label}${x.source && x.source.lineNo ? ', line ' + x.source.lineNo : ''})`).join('; ') + '. Saved picks are not a placed bet.'}</p> : null}
+      {conf.length || errs.length || dup.length || failed.length ? (
+        <div className="tablewrap"><table>
+          <thead><tr><th>Line</th><th>Manager</th><th>Pick</th><th>What happened</th></tr></thead>
+          <tbody>{rows(conf, 'neg')}{rows(errs, 'neg')}{rows(failed, 'neg')}{rows(dup, 'muted')}</tbody>
+        </table></div>) : null}
+      {report.importLog === 'table-missing' ? <p className="muted">Import log table is not set up (run supabase/migrations/002_expanded_model.sql); picks were still saved.</p> : null}
+    </div>
+  );
+}
 
 export default function PickView() {
   const store = useLeague();
@@ -48,13 +75,20 @@ export default function PickView() {
   };
 
   const importPaste = async () => {
-    const parsed = parseWhatsApp(state.pick.waText, roster);
-    if (!parsed.length) { toast('No picks found in that paste'); return; }
-    const r = await fetch(PICK_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ week, import: true, picks: parsed }) });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) { toast(data.error || 'Import failed'); return; }
-    toast(`Imported ${(data.saved || parsed).length} pick(s)` + (data.committed ? ' — ticket saved' : ''));
-    state.pick.rows = data.picks || state.pick.rows;
+    const text = state.pick.waText || '';
+    if (!text.trim()) { toast('Paste the chat first'); return; }
+    let data = {};
+    let ok = false;
+    try {
+      const r = await fetch(PICK_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ week, import: true, text }) });
+      data = await r.json().catch(() => ({}));
+      ok = r.ok;
+    } catch (e) { data = { error: 'Import failed: ' + e.message }; }
+    if (!ok) { toast(data.error || 'Import failed'); state.pick.importReport = { error: data.error || 'Import failed' }; store.emit(); return; }
+    state.pick.importReport = data;
+    const n = (data.saved || []).length;
+    toast(n ? `Saved ${n} pick${n === 1 ? '' : 's'}` + (data.committed ? ' — ticket proposed' : '') : 'No new picks saved');
+    if (data.picks) state.pick.rows = data.picks;
     state.pick.committed = !!data.committed;
     if (data.committed) await store.loadData();
     store.emit();
@@ -158,9 +192,10 @@ export default function PickView() {
       <section className="card">
         <div className="card__head"><h2>From WhatsApp</h2><span className="sub">No bot required — paste the thread, we parse the 11</span></div>
         <div className="card__body form">
-          <p className="muted">{'Best format (copy from the Share button): HOLM PICK W' + week + ' / Who / Game / Type / Pick. One-liners like “Brad | Chiefs ML | KC at LV | -130” also work.'}</p>
+          <p className="muted">{'Paste a WhatsApp export (Export chat → Without media) or a few lines. Best format (copy from the Share button): HOLM PICK W' + week + ' / Who / Game / Type / Pick. One-liners like “Brad | Chiefs ML | KC at LV | -130” and “Brad: Chiefs ML KC at LV” also work. Picks marked for another week, unknown names and unreadable lines are listed below, not saved.'}</p>
           <div className="field"><label>Paste</label><textarea placeholder="Paste the group chat (or a HOLM PICK block)…" value={state.pick.waText || ''} onChange={(e) => { state.pick.waText = e.target.value; store.emit(); }} /></div>
           <button className="btn btn--primary" type="button" onClick={importPaste}>Import picks</button>
+          <ImportReport report={state.pick.importReport} />
         </div>
       </section>
     </Page>

@@ -237,3 +237,4 @@ tr[onclick]{cursor:pointer}
   th:last-child,td:last-child{padding-right:14px}
   .tabs .tab{min-height:36px;padding:6px 14px}
 }
+.import-report{display:flex;flex-direction:column;gap:8px;margin-top:8px}
