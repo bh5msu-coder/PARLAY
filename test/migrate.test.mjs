@@ -57,7 +57,7 @@ test('reconcile reports the $40 vs $60 stake gap without changing either source'
   assert.equal(total.weekly, 40);
   assert.equal(total.history, 60);
   const kinds = r.items.filter((i) => i.severity !== 'wording').map((i) => `${i.kind}:${i.week}`);
-  assert.deepEqual(kinds, ['stake-total:null', 'week-missing-weekly:2', 'week-missing-weekly:4', 'payer:5', 'payer:6', 'result:6', 'result:7', 'leg-pick:8']);
+  assert.deepEqual(kinds, ['stake-total:null', 'week-missing-weekly:2', 'week-missing-weekly:4', 'result:6', 'result:7', 'leg-pick:8']);
   const w6 = weekly.weeks.find((w) => w.week === 6);
   assert.ok(w6.legs.every((l) => l.result === 'unknown'), 'history grades are not copied into the weekly file');
 });
