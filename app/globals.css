@@ -27,7 +27,7 @@ button{font:inherit;color:inherit}
 .titles h1{font:700 clamp(22px,3.2vw,32px)/1.05 var(--font-display);letter-spacing:-.01em}
 .titles .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lockup:hover{color:inherit}
-.lockup__mark{flex-shrink:0;width:36px;height:36px;display:block}
+.lockup__mark{flex-shrink:0;width:40px;height:40px;display:block;border-radius:8px}
 .mark__ticket{fill:var(--surface-200);stroke:var(--line-strong);stroke-width:1.5}
 .mark__stub{fill:var(--brand)}
 .mark__perf{fill:var(--surface-0)}

@@ -6,7 +6,7 @@ export const metadata = {
   title: 'Holm League Parlay',
   description: 'Live weekly parlay tracker for Our Holm League',
   manifest: '/manifest.webmanifest',
-  icons: { icon: [{ url: '/icon.svg', type: 'image/svg+xml' }], apple: '/icon-192.png' },
+  icons: { icon: [{ url: '/favicon-48.png', sizes: '48x48', type: 'image/png' }, { url: '/icon-192.png', sizes: '192x192', type: 'image/png' }], shortcut: '/favicon.ico', apple: '/apple-touch-icon.png' },
   appleWebApp: { capable: true, title: 'Holm Parlay', statusBarStyle: 'black-translucent' },
   other: { 'mobile-web-app-capable': 'yes' },
 };
