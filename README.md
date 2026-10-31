@@ -136,25 +136,39 @@ These are built only from recorded results, with no new rules:
 - **Unmatched or ambiguous legs** are listed, never guessed.
 - **Placement evidence:** only a slip where every leg and every pick matched counts. For weeks stored in data/bets.json, the tool prints the `ticket` JSON to add to the file.
 
-## Open rule questions for the commissioner
+## House rules
 
-The site has not been told these rules, so each one is a placeholder in `lib/rules.mjs`. Undecided rules show as "Commissioner hasn't decided" and are never hardcoded. Answer these before the site handles real money:
+These were decided by the league (commissioner answers, 2026-10-31) and recorded in `lib/rules.mjs`. The commissioner can override any of them by setting `rules.<key>` in the league config (week 0).
 
-1. **payoutSplit**: How is a cashed payout split: evenly among the 11 pickers, all to the payer, or something else?
-2. **lastPlaceTie**: Who pays if two managers tie for last place in the prior fantasy week?
-3. **splitStake**: Can a week's stake be split between payers (Week 4 shows "Joseph McKeon + Kyle Heller")? If so, how is it recorded?
-4. **rollover**: When a ticket is not placed, does the stake roll over (Week 3 → Week 4 at $20)? Always, or only by vote?
-5. **pickDeadline**: When are picks due: first kickoff of the week, first kickoff of the picked game, or a fixed time?
-6. **editsAndLocks**: Can a manager change a pick after saving it? Until when? Who can unlock?
-7. **pushHandling**: If a leg pushes, does it drop from the parlay (odds recalculated) or count as a loss for attribution?
-8. **voidHandling**: If a leg is voided (player inactive, game postponed), is it dropped, replaced, or does the manager owe a new pick?
-9. **missingPicks**: If fewer than 11 picks are in by the deadline, is the ticket placed short, held, or does someone pick for the missing manager?
-10. **eligibility**: Who may opt out of a week or the season, and does opting out change who pays?
-11. **disputes**: How is a disputed grade or pick settled, and who has the final say?
-12. **placementProof**: Who places the ticket, and what counts as proof it was placed (slip photo, book screenshot)?
-13. **books**: Which books are allowed, who chooses, and do boosts or promos count toward the payout?
-14. **contributionTiming**: When is the stake due from the payer, and how is it marked as paid?
-15. **importConflict**: When an imported pick conflicts with a saved one, which wins: the saved pick, the newest message, or neither until the commissioner decides?
+| Rule | Decision |
+|---|---|
+| `payoutSplit` | Winnings are split and settled among the group in cash or in person. The site does not compute shares. |
+| `lastPlaceTie` | Tied last-place managers split the stake. |
+| `splitStake` | Yes, a stake can be split between payers. |
+| `rollover` | A stake that is not placed rolls over to the next week. |
+| `pickDeadline` | No hard deadline. Push to have picks in by Thursday. |
+| `editsAndLocks` | A pick can be changed until its game kicks off; then it is locked. |
+| `pushHandling` | The House decides. |
+| `voidHandling` | The House decides, including postponed games (TBD by the House). |
+| `missingPicks` | Go with what is in: the ticket is placed with the picks submitted. |
+| `eligibility` | No one opts out. |
+| `disputes` | Ridicule, verbal abuse and arguments. |
+| `placementProof` | Placed by someone in Michigan or Ohio (mostly Chas, John, Ryan or Joe); a screenshot of the slip is the proof. |
+| `books` | Any book is allowed; boosts are encouraged. |
+| `contributionTiming` | The $10 stake is due by kickoff. Just send it; a payment checkmark is optional. |
+| `importConflict` | The pick that is on the placed sportsbook ticket wins. Until a slip settles it, conflicting imports are flagged, not overwritten. |
+
+**Rules the site enforces:**
+- **Pick lock** (`lib/pick-lock.mjs`). `/api/pick` refuses to save or change a pick once its game has kicked off, or once the manager's saved pick's game has. The Pick tab also greys out games that have started. If ESPN can't be reached, the check is skipped and the response says so.
+- **Going with what's in.** The Pick tab shows the slip so far before all 11 picks are in. Auto-save still waits for 11.
+- **Import conflicts.** These are flagged and never overwritten. The pick on the placed slip decides.
+- **Payouts.** Winnings are settled in person, so the site shows no per-person share.
+
+**Recorded, but not automated yet:**
+- Split payers and tied last places: the payer field still holds one name.
+- Rollovers.
+- A paid checkmark for the stake: Venmo has no public payments API for this. The planned path is the commissioner-only `holm_parlay_record_payment` in migration 002.
+- The no-opt-outs rule conflicts with the current config, where Kyle Heller sits. The roster is unchanged until the commissioner decides.
 
 ## Weekly tape (`data/bets.json`)
 

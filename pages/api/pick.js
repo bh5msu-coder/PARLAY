@@ -3,6 +3,7 @@ import { parseWhatsAppExport } from '../../lib/import/whatsapp.mjs';
 import { dedupePicks } from '../../lib/import/dedupe.mjs';
 import { rawHash } from '../../lib/import/hash.mjs';
 import { rule } from '../../lib/rules.mjs';
+import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
@@ -91,10 +92,16 @@ export default async function handler(req, res) {
     const errors = validatePick(leg, who, roster.length ? roster : null);
     if (errors.length) { json(res, 400, { error: errors.join('. ') }); return; }
 
+    const board = await loadScoreboard(SEASON, wk);
+    const current = await loadPicks(wk);
+    const mine = current.ok ? current.data.find((r) => canonicalWho(r.who, roster) === who) : null;
+    const lock = checkPickLock(board, leg, mine);
+    if (!lock.ok) { json(res, 409, { error: lock.reason, locked: true }); return; }
+
     const result = await upsertOne(wk, who, Object.assign({}, leg, { source: { kind: source === 'whatsapp' ? 'whatsapp' : 'web', savedAt: new Date().toISOString() } }), source, roster);
     if (!result.ok) { json(res, result.status, result); return; }
     const committed = await maybeCommit(wk, roster);
-    json(res, 200, { row: result.row, ...committed });
+    json(res, 200, { row: result.row, lockChecked: lock.checked, ...committed });
   } catch (e) {
     json(res, 500, { error: e.message || 'pick failed' });
   }
@@ -190,9 +197,13 @@ async function importPicks(week, body, roster) {
   }
   const { accepted, duplicates, conflicts } = dedupePicks(parsed.picks, existing.data.map((r) => Object.assign({ season: SEASON, week }, r)), { policy, season: SEASON, week });
 
+  const board = accepted.length ? await loadScoreboard(SEASON, week) : null;
+  const savedByWho = new Map(existing.data.map((r) => [canonicalWho(r.who, roster), r]));
   const saved = [];
   const failed = [];
   for (const p of accepted) {
+    const lock = checkPickLock(board, p.leg, savedByWho.get(p.who));
+    if (!lock.ok) { parsed.errors.push({ line: p.source && p.source.lineNo, text: p.leg.label, reason: lock.reason, who: p.who, leg: p.leg }); continue; }
     const leg = Object.assign({}, p.leg, { source: p.source });
     const r = await upsertOne(week, p.who, leg, 'whatsapp', roster);
     if (r.ok) saved.push({ who: p.who, label: leg.label, source: p.source, row: r.row });
@@ -223,6 +234,7 @@ async function importPicks(week, body, roster) {
       errors: parsed.errors.map((e) => ({ line: e.line, text: e.text, reason: e.reason })),
       skipped: (parsed.skipped || []).length,
       importLog,
+      lockChecked: !!board,
       ...committed,
     },
   };
