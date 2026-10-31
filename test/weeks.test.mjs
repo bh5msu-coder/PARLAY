@@ -81,10 +81,10 @@ test('stored week 7 matches the database ticket', () => {
   const remote = {
     legs: [
       { who: 'Ryan Hoffman', label: 'Broncos ML', type: 'ml', team: 'DEN', game: ['DEN', 'ARI'] },
-      { who: 'Joseph McKeon', label: 'Under 39.5', type: 'total', line: 39.5, game: ['MIA', 'NYJ'] },
+      { who: 'Joe Mckeon', label: 'Under 39.5', type: 'total', line: 39.5, game: ['MIA', 'NYJ'] },
       { who: 'Kyle McFadden', label: 'Panthers ML', type: 'ml', team: 'CAR', game: ['TB', 'CAR'] },
       { who: 'Chas Rossman', label: 'J.J. McCarthy over 0.5 INT thrown', type: 'player', player: 'J.J. McCarthy', line: 0.5, game: ['NYG', 'HOU'] },
-      { who: 'Jarn Sachs', label: 'Bears ML', type: 'ml', team: 'CHI', game: ['NE', 'CHI'] },
+      { who: 'John Sachs', label: 'Bears ML', type: 'ml', team: 'CHI', game: ['NE', 'CHI'] },
       { who: 'Jace Clark', label: 'Over 50.5', type: 'total', line: 50.5, game: ['NE', 'CHI'] },
       { who: 'DJ Dangerous', label: 'A.J. Brown anytime TD', type: 'player', player: 'A.J. Brown', line: 0.5, game: ['NE', 'CHI'] },
       { who: 'Kevin Sack', label: 'Lions ML', type: 'ml', team: 'DET', game: ['GB', 'DET'] },
@@ -93,7 +93,7 @@ test('stored week 7 matches the database ticket', () => {
       { who: 'Adam Meltser', label: 'Jahmyr Gibbs anytime TD', type: 'player', player: 'Jahmyr Gibbs', line: 0.5, game: ['GB', 'DET'] },
     ],
   };
-  assert.equal(diffWeek(byWeek[7], remote), null);
+  assert.equal(diffWeek(byWeek[7], remote), null, 'Joseph McKeon / Jarn Sachs are not drift vs Joe Mckeon / John Sachs');
   const drifted = { legs: remote.legs.slice() };
   drifted.legs[0] = Object.assign({}, drifted.legs[0], { label: 'Broncos -3' });
   assert.equal(diffWeek(byWeek[7], drifted).week, 7);

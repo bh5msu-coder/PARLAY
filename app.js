@@ -872,6 +872,12 @@
     return { who, type: 'ml', gameAway: '', gameHome: '', team: '', side: 'over', line: '', player: '', stat: 'anyTD', odds: '', label: '' };
   }
 
+  function resetPickForm() {
+    const who = (state.pick.form && state.pick.form.who) || '';
+    state.pick.form = blankPickForm();
+    if (who) state.pick.form.who = who;
+  }
+
   const state = {
     config: { leagueName: 'Our Holm League', chat: '', roster: [], abstain: [], you: '' },
     weeks: [], // [{week, data}]
@@ -2095,7 +2101,7 @@
       return;
     }
     // week picker + new week
-    const defaultNew = (state.nfl && state.nfl.active) || (state.weeks.length ? Math.max(...state.weeks.map((w) => w.week)) + 1 : 1);
+    const defaultNew = nextUnusedWeek();
     const fillAutoPayer = (ticket) => {
       const lp = lastPlaceFor(Number(ticket.week) - 1);
       if (lp && lp.who && !ticket.payer) {
@@ -2258,6 +2264,13 @@
   }
 
   function newWeek(n) { return { week: n, payer: '', placedBy: '', stake: 10, odds: '', toPay: '', book: '', note: '', legs: [], groups: {}, overrides: {} }; }
+
+  function nextUnusedWeek() {
+    const used = state.weeks.map((w) => Number(w.week)).filter((n) => n > 0);
+    const nflWeek = state.nfl && Number(state.nfl.active);
+    if (nflWeek && !used.includes(nflWeek)) return nflWeek;
+    return used.length ? Math.max(...used) + 1 : 1;
+  }
 
   function openPickWeek() {
     if (state.nfl && state.nfl.active) return state.nfl.active;
@@ -2670,8 +2683,13 @@
       const nextPick = openPickWeek();
       if (nextPick !== prevPick) {
         state.pick.week = nextPick;
+        resetPickForm();
         await loadPicks(nextPick);
         await loadPickGames(nextPick);
+        if (state.route === 'pick') {
+          toast(`Week ${nextPick} is open — last week’s slip was cleared`);
+          render();
+        }
       }
       // grade the selected week first, then the rest (for standings)
       const order = state.weeks.slice().sort((a, b) => (a.week === state.selectedWeek ? -1 : b.week === state.selectedWeek ? 1 : b.week - a.week));
@@ -2682,7 +2700,6 @@
         state.graded[w.week] = await gradeWeek(w, { force: !!force });
         if (state.route !== 'admin' && state.route !== 'pick') render();
       }
-      if (state.route === 'pick' && nextPick !== prevPick) render();
     } finally { refreshing = false; }
     scheduleRefresh();
   }
