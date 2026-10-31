@@ -23,7 +23,7 @@ Live weekly parlay tracker for Our Holm League.
 
 **Health check.** `GET /api/health` returns which of the variables above are set, as booleans only, never their values. It also returns the deployed commit and a list of problems. `"ok": true` means ESPN is configured.
 
-**Supabase.** `supabase/picks.sql` documents the two tables and the auto-commit RPC used by `pages/api/pick.js`. It was rebuilt from the code and checked against the live tables. Read its header before running it. The commissioner RPCs (`holm_parlay_check_pass`, `holm_parlay_save_week`, `holm_parlay_delete_week`) exist only in the live database.
+**Supabase.** `supabase/picks.sql` documents the picks and weeks tables, the commissioner passphrase table, the policies and all four `holm_parlay_*` functions. It was exported from the live database on 2026-10-31 and matches it, apart from the `p_week <= 0` guard that was added to live the same day.
 
 **Local dev.**
 1. Run `npm install`.
@@ -113,7 +113,7 @@ These are built only from recorded results, with no new rules:
 - `settled` means placed and every leg decided.
 - Graded legs alone never mark a ticket placed. That's why Week 5 is `proposed`: its results are recorded, but there's no slip data.
 
-**Migration.** Run `node scripts/migrate-bets-v2.mjs` (or `--check` in CI). It's idempotent and only adds fields: `schemaVersion`, `ticket`, and empty `contributions` and `payouts` arrays. It never changes a leg, result, stake or payer, and it never reads `parlay-history.json`. For Supabase, run `supabase/picks.sql` and then `supabase/migrations/002_expanded_model.sql`. Nothing has been applied to the live database.
+**Migration.** Run `node scripts/migrate-bets-v2.mjs` (or `--check` in CI). It's idempotent and only adds fields: `schemaVersion`, `ticket`, and empty `contributions` and `payouts` arrays. It never changes a leg, result, stake or payer, and it never reads `parlay-history.json`. For Supabase, run `supabase/picks.sql` and then `supabase/migrations/002_expanded_model.sql`. Both files were applied to the live database on 2026-10-31 (002 as written; `picks.sql` as the guard fix only, since the rest already existed).
 
 **Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
 
