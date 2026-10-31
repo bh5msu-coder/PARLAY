@@ -47,7 +47,7 @@ test('weekly tickets separate stake listed, recorded money and hypothetical payo
   assert.equal(t.stakeListed, 70);
   assert.equal(t.contributions, 0);
   assert.equal(t.payouts, 0);
-  assert.equal(t.hypothetical, 2294.04 + 4349 + 7093);
+  assert.equal(t.hypothetical, 2294.04 + 4349 + 7093 + 7967.8);
   const w7 = tickets.find((x) => x.week === 7);
   assert.deepEqual([w7.ticketState, w7.result, w7.payoutRecorded], ['placed', 'unknown', null]);
   assert.equal(tickets.find((x) => x.week === 5).result, 'busted');
@@ -59,7 +59,7 @@ test('history tickets claim placement only where the history cites a slip', () =
   const byWeek = Object.fromEntries(historyTickets(history).map((t) => [t.week, t]));
   assert.equal(byWeek[2].ticketState, 'settled');
   assert.equal(byWeek[5].ticketState, 'unknown');
-  assert.equal(byWeek[8].ticketState, 'unknown');
+  assert.equal(byWeek[8].ticketState, 'placed', 'week 8 cites the DraftKings receipt');
   assert.equal(byWeek[2].hypotheticalToPay, 4349);
   assert.equal(byWeek[2].contributions, null, 'history does not track who paid');
 });
