@@ -70,3 +70,18 @@ test('every metric has a plain-language explanation', () => {
   }
   assert.match(METRIC_HELP.hypothetical, /no book paid/i);
 });
+
+test('season glance: one row per week, Week 3 shown as never placed, totals match the history', async () => {
+  const { seasonGlance } = await import('../lib/history-stats.mjs');
+  const g = seasonGlance(history);
+  assert.deepEqual(g.weeks.map((w) => w.week), [2, 3, 4, 5, 6, 7, 8]);
+  const w3 = g.weeks.find((w) => w.week === 3);
+  assert.equal(w3.notPlaced, true);
+  assert.equal(w3.win + w3.loss + w3.unknown + w3.pending, 0);
+  const w4 = g.weeks.find((w) => w.week === 4);
+  assert.deepEqual([w4.win, w4.loss, w4.unknown], [8, 3, 1]);
+  assert.equal(g.weeks.find((w) => w.week === 8).pending, 11);
+  assert.deepEqual(g.tickets, { settled: 5, cashed: 0, staked: 60 });
+  const legs = g.weeks.reduce((s, w) => s + w.win + w.loss, 0);
+  assert.equal(legs, 56);
+});
