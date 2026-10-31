@@ -66,7 +66,7 @@ test('smack feed items come from settled results and carry a source', () => {
   const items = smackFeed({ legs, tickets, source: 'parlay-history.json' });
   assert.ok(items.length > 5);
   assert.ok(items.every((i) => i.source === 'parlay-history.json' && i.text));
-  assert.ok(!items.some((i) => i.week === 8), 'pending Week 8 has no recap or bust item');
+  assert.ok(items.filter((i) => i.week === 8).every((i) => !/pending/i.test(i.text)), 'Week 8 items come only from its graded leg');
 });
 
 test('generated text never assumes anyone\'s pronouns', () => {

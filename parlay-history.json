@@ -1096,10 +1096,13 @@
       "GB"
      ],
      "kickoff": "2026-10-30T00:15Z",
-     "result": "pending",
+     "result": "loss",
      "side": "over",
      "note": "Line not in chat. 46.5 from the DraftKings receipt.",
-     "line": 46.5
+     "line": 46.5,
+     "actual": "46 total (CAR 19, GB 27)",
+     "confidence": "espn-final",
+     "missBy": "0.5 pts"
     },
     {
      "who": "Brad Holm",
@@ -1147,14 +1150,14 @@
    ],
    "stake": 10,
    "source": "Parent brief (final 11/11 list); chat L958-962 partial; DraftKings receipt screenshot 10/29 7:03 PM (11 Pick Parlay SGPx, $10 wager, total payout $7,967.80)",
-   "notes": "Results pending. Lines and Chas's Seahawks ML from the DraftKings receipt.",
+   "notes": "Busted Thursday: Panthers/Packers went under 46.5 (46 total). The other 10 legs are pending. Lines and Chas's Seahawks ML from the DraftKings receipt.",
    "record": {
     "win": 0,
-    "loss": 0,
+    "loss": 1,
     "unknown": 0,
-    "pending": 11
+    "pending": 10
    },
-   "result": "pending",
+   "result": "loss",
    "odds": 79578,
    "toPay": 7967.8,
    "boost": "+10% parlay boost (+72,342 and $7,244.28 before the boost)",

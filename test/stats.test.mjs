@@ -29,14 +29,14 @@ test('selection stats on the history match the Bets table (decided legs only)', 
   for (const r of rows) assert.equal(r.hit.won + r.hit.lost, r.hit.n);
 });
 
-test('hit rate over time and by type use decided legs; pending Week 8 has none', () => {
+test('hit rate over time and by type use decided legs; Week 8 has only DJ\'s graded loss', () => {
   const pts = hitRateOverTime(historyLegs(history));
   const w8 = pts.find((p) => p.week === 8);
-  assert.equal(w8.week_.n, 0);
-  assert.equal(w8.week_.open, 11);
+  assert.equal(w8.week_.n, 1);
+  assert.equal(w8.week_.open, 10);
   assert.equal(pts.find((p) => p.week === 2).week_.n, 12);
   const types = typePerformance(historyLegs(history));
-  assert.equal(types.reduce((a, t) => a + t.n, 0), 56);
+  assert.equal(types.reduce((a, t) => a + t.n, 0), 57);
 });
 
 test('weekly tickets separate stake listed, recorded money and hypothetical payout', async () => {
@@ -59,7 +59,7 @@ test('history tickets claim placement only where the history cites a slip', () =
   const byWeek = Object.fromEntries(historyTickets(history).map((t) => [t.week, t]));
   assert.equal(byWeek[2].ticketState, 'settled');
   assert.equal(byWeek[5].ticketState, 'unknown');
-  assert.equal(byWeek[8].ticketState, 'placed', 'week 8 cites the DraftKings receipt');
+  assert.equal(byWeek[8].ticketState, 'settled', 'week 8 cites the DraftKings receipt and has busted');
   assert.equal(byWeek[2].hypotheticalToPay, 4349);
   assert.equal(byWeek[2].contributions, null, 'history does not track who paid');
 });
@@ -80,8 +80,9 @@ test('season glance: one row per week, Week 3 shown as never placed, totals matc
   assert.equal(w3.win + w3.loss + w3.unknown + w3.pending, 0);
   const w4 = g.weeks.find((w) => w.week === 4);
   assert.deepEqual([w4.win, w4.loss, w4.unknown], [8, 3, 1]);
-  assert.equal(g.weeks.find((w) => w.week === 8).pending, 11);
-  assert.deepEqual(g.tickets, { settled: 5, cashed: 0, staked: 60 });
+  const w8 = g.weeks.find((w) => w.week === 8);
+  assert.deepEqual([w8.loss, w8.pending], [1, 10]);
+  assert.deepEqual(g.tickets, { settled: 6, cashed: 0, staked: 70 });
   const legs = g.weeks.reduce((s, w) => s + w.win + w.loss, 0);
-  assert.equal(legs, 56);
+  assert.equal(legs, 57);
 });
