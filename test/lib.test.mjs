@@ -65,8 +65,8 @@ test('Bets stats keep unknown legs out of the hit rate', () => {
   const S = calcParlayStats(history, (n) => n);
   const decidedWins = S.decided.filter((l) => l.result === 'win').length;
   assert.ok(S.decided.every((l) => l.result === 'win' || l.result === 'loss'));
-  const unknown = S.legs.filter((l) => l.result === 'unknown').length;
-  assert.equal(S.legs.length, S.decided.length + unknown);
+  const open = S.legs.filter((l) => l.result === 'unknown' || l.result === 'pending').length;
+  assert.equal(S.legs.length, S.decided.length + open);
   assert.equal(S.rows.reduce((a, r) => a + r.w, 0), decidedWins);
 });
 
