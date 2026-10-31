@@ -330,3 +330,15 @@ tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
 
 /* Tied ranks (T-1) never break at the hyphen, even where phone tables wrap cells. */
 table td.rank:not(.num){white-space:nowrap;min-width:40px}
+
+/* This week command card: one glance answers what week, am I in, what next */
+.thisweek{padding:20px;display:flex;flex-direction:column;gap:6px;border-left:4px solid var(--brand)}
+.thisweek--locked{border-left-color:var(--accent2)}
+.thisweek--settled{border-left-color:var(--line-strong)}
+.thisweek__top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.thisweek__pill{font:600 12px/16px var(--font-sans);letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:var(--radius-pill);background:var(--brand);color:var(--on-brand)}
+.thisweek__pill--locked{background:var(--accent2);color:var(--on-brand)}
+.thisweek__pill--settled{background:transparent;color:var(--ink);border:1px solid var(--line-strong)}
+.thisweek__head{font:700 34px/38px var(--font-display);letter-spacing:.01em;margin:6px 0 2px}
+.thisweek .btn{margin-top:8px}
+@media (max-width:719px){.thisweek{padding:16px}.thisweek__head{font-size:28px;line-height:32px}.thisweek .btn{width:100%;justify-content:center}}
