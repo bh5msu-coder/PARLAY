@@ -77,3 +77,13 @@ test('generated text never assumes anyone\'s pronouns', () => {
   ];
   for (const t of texts) assert.doesNotMatch(t, /\b(he|him|his|she|her|hers)\b/i, t);
 });
+
+test('Week 3 is listed as never placed and stays out of every stat', () => {
+  const w3 = (history.unplaced || []).find((p) => p.week === 3);
+  assert.ok(w3, 'Week 3 is in unplaced');
+  assert.equal(w3.legs.length, 12);
+  assert.ok(w3.legs.every((l) => l.result === undefined), 'no Week 3 leg is graded');
+  assert.ok(!history.parlays.some((p) => p.week === 3), 'Week 3 is not a parlay');
+  assert.ok(!historyLegs(history).some((l) => l.week === 3));
+  assert.ok(!historyTickets(history).some((t) => t.week === 3));
+});
