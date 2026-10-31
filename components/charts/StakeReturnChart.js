@@ -5,7 +5,7 @@ import { useId } from 'react';
  *  contributions recorded, payouts recorded). The hatched bar is the hypothetical payout — what the
  *  slip would have paid — and is labeled as such. Money that was never recorded is listed as text,
  *  not drawn as a zero bar. */
-const fmt = (n) => '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const fmt = (n) => '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 
 const SERIES = [
   { key: 'stake', label: 'stake listed', cls: 'chart__bar--stake', get: (t) => t.stake },

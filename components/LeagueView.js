@@ -197,7 +197,6 @@ export default function LeagueView() {
   if (!state.ready) return <Page title={title} />;
   if (!lore) return <Page title={title} sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
   const k = lore.kpis || {};
-  const nickOf = (owner) => { const p = ident.person(owner); return p ? (p.nick || p.name) : (owner || '–'); };
   const selected = state.selectedOwner || ident.people[0].name;
   const select = (n) => { state.selectedOwner = n; store.emit(); };
   const table = ident.people.slice().sort((a, b) => (a.career && a.career.avgFinish || 99) - (b.career && b.career.avgFinish || 99) || a.name.localeCompare(b.name));
@@ -207,11 +206,11 @@ export default function LeagueView() {
   return (
     <Page title={title} sub={sub}>
       <section className="stats stats--lore">
-        <KpiCard label="Most titles" value={k.mostTitles ? nickOf(k.mostTitles.owner) : '–'} note={k.mostTitles ? `${k.mostTitles.count} championships` : ''} />
-        <KpiCard label="Reigning champ" value={k.reigningChamp ? nickOf(k.reigningChamp.owner) : '–'} note={k.reigningChamp ? String(k.reigningChamp.year) : ''} />
-        <KpiCard label="Longest drought" value={k.longestDrought ? nickOf(k.longestDrought.owner) : '–'} note={k.longestDrought ? `${k.longestDrought.seasons} seasons, 0 rings` : ''} />
-        <KpiCard label="Most last places" value={k.mostLastPlaces ? nickOf(k.mostLastPlaces.owner) : '–'} note={k.mostLastPlaces ? `${k.mostLastPlaces.count} toilet bowls` : ''} />
-        <KpiCard label="2025 PF monster" value={k.pfMonster2025 ? nickOf(k.pfMonster2025.owner) : '–'} note={k.pfMonster2025 ? `${k.pfMonster2025.pf} pts` : ''} />
+        <KpiCard label="Most titles" value={k.mostTitles ? whoLabel(k.mostTitles.owner) : '–'} note={k.mostTitles ? `${k.mostTitles.count} championships` : ''} />
+        <KpiCard label="Reigning champ" value={k.reigningChamp ? whoLabel(k.reigningChamp.owner) : '–'} note={k.reigningChamp ? String(k.reigningChamp.year) : ''} />
+        <KpiCard label="Longest drought" value={k.longestDrought ? whoLabel(k.longestDrought.owner) : '–'} note={k.longestDrought ? `${k.longestDrought.seasons} seasons, 0 rings` : ''} />
+        <KpiCard label="Most last places" value={k.mostLastPlaces ? whoLabel(k.mostLastPlaces.owner) : '–'} note={k.mostLastPlaces ? `${k.mostLastPlaces.count} toilet bowls` : ''} />
+        <KpiCard label="2025 PF monster" value={k.pfMonster2025 ? whoLabel(k.pfMonster2025.owner) : '–'} note={k.pfMonster2025 ? `${k.pfMonster2025.pf} pts` : ''} />
       </section>
 
       <section className="card">
