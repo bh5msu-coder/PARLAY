@@ -79,7 +79,7 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
           </tr></thead>
           <tbody>{tickets.map((x) => (
             <tr key={x.week}>
-              <td className="num">{x.label}</td>
+              <td className="num">{String(x.label).replace(/^Week (\d+)/, 'Week\u00a0$1')}</td>
               <td><StatusBadge state={RESULT_BADGE[x.result] || 'unknown'} />{x.record ? <span className="muted">{` ${x.record.win}–${x.record.loss}`}</span> : null}</td>
               <td className="hide-m" title={x.evidence}>{STATE_TEXT[x.ticketState] || x.ticketState}</td>
               {showPayer ? <td className="hide-m">{x.payer ? whoLabel(x.payer) : '–'}</td> : null}
