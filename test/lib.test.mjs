@@ -53,11 +53,12 @@ test('standings hit rate counts decided legs only', async () => {
   const rows = computeStandings(weeks, graded, file.config);
   const hit = rows.reduce((a, r) => a + r.hit, 0);
   const miss = rows.reduce((a, r) => a + r.miss, 0);
-  assert.equal(hit + miss, 11, 'only week 5 is graded');
-  assert.equal(hit, 5);
+  // Weeks 2, 4 and 5 are graded; Heller abstains from standings, so his two legs are left out.
+  assert.equal(hit + miss, 32, 'only weeks 2, 4 and 5 are graded');
+  assert.equal(hit, 16);
   assert.ok(rows.every((r) => r.open >= 0));
   const extras = parlayExtras(weeks, graded);
-  assert.deepEqual(extras.killList.map(([who]) => who).sort(), ['Adam Meltser', 'DJ Dangerous', 'John Sachs']);
+  assert.deepEqual(extras.killList.map(([who]) => who).sort(), ['Adam Meltser', 'Brad Holm', 'Chas Rossman', 'DJ Dangerous', 'John Sachs', 'Ryan Hoffman']);
 });
 
 test('Bets stats keep unknown legs out of the hit rate', () => {

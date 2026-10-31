@@ -9,7 +9,7 @@ import { calcSeasonElo } from '../lib/elo.mjs';
 import { calcParlayStats, hitPct, SMALL_N } from '../lib/history-stats.mjs';
 
 import InfoTip, { SmallSample } from './InfoTip';
-import { paymentsByWeek, paymentTotal } from '../lib/payments.mjs';
+import { paymentTotal } from '../lib/payments.mjs';
 import { iouLedger, splitPayers } from '../lib/iou.mjs';
 import { fmtMoney } from '../lib/format.mjs';
 import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
@@ -44,7 +44,7 @@ function shareChip(s) {
   return bits;
 }
 
-function IouCard({ ledger, byWeek }) {
+function IouCard({ ledger }) {
   const { weeks, people, totals } = ledger;
   return (
     <section className="card" id="iou">
@@ -65,7 +65,7 @@ function IouCard({ ledger, byWeek }) {
           </table></div>
         ) : null}
         {weeks.map((w) => (
-          <div key={w.week} className="payrow" title={(byWeek[w.week] || []).map((p) => p.note).filter(Boolean).join(' ')}>
+          <div key={w.week} className="payrow">
             <span className="label">{`Week ${w.week} · ${fmtMoney(w.stake)}`}</span>
             <span className="paychips">{w.shares.flatMap(shareChip)}{w.extra.map((x) => <span key={'x' + x.who} className="pill pill--paid">{`${whoLabel(x.who)} · ${fmtMoney(x.amount)} extra`}</span>)}</span>
           </div>
@@ -103,7 +103,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
         <KpiCard label="Stakes listed" value={fmtMoney(stake)} note={`Graded tickets · ${paidGraded ? fmtMoney(paidGraded) + ' of it recorded paid' : 'no payments recorded yet'} · $0 recorded back`} />
       </section>
 
-      <IouCard ledger={iouLedger(ledgerTickets(data, weeks, store), payments)} byWeek={paymentsByWeek(payments)} />
+      <IouCard ledger={iouLedger(ledgerTickets(data, weeks, store), payments)} />
       <DiscrepancyCard result={reconcile({ weeks }, data)} />
       <TicketSection tickets={historyTickets(data)} sourceNote="parlay-history.json (read-only)" />
       <SelectionCharts legs={historyLegs(data)} sourceNote="parlay-history.json (read-only) · decided picks only" />

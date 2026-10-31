@@ -44,15 +44,15 @@ test('weekly tickets separate stake listed, recorded money and hypothetical payo
   for (const w of weeks) graded[w.week] = await gradeWeek(w, { espn });
   const tickets = weeklyTickets(weeks, graded);
   const t = ticketTotals(tickets);
-  assert.equal(t.stakeListed, 40);
+  assert.equal(t.stakeListed, 70);
   assert.equal(t.contributions, 0);
   assert.equal(t.payouts, 0);
-  assert.equal(t.hypothetical, 2294.04);
+  assert.equal(t.hypothetical, 2294.04 + 4349 + 7093);
   const w7 = tickets.find((x) => x.week === 7);
   assert.deepEqual([w7.ticketState, w7.result, w7.payoutRecorded], ['placed', 'unknown', null]);
   assert.equal(tickets.find((x) => x.week === 5).result, 'busted');
   const legs = weeklyLegs(weeks, graded);
-  assert.equal(legs.filter((l) => l.status === 'won' || l.status === 'lost').length, 11);
+  assert.equal(legs.filter((l) => l.status === 'won' || l.status === 'lost').length, 34);
 });
 
 test('history tickets claim placement only where the history cites a slip', () => {

@@ -87,3 +87,20 @@ test('Week 3 is listed as never placed and stays out of every stat', () => {
   assert.ok(!historyLegs(history).some((l) => l.week === 3));
   assert.ok(!historyTickets(history).some((t) => t.week === 3));
 });
+
+test('Weeks 2 and 4 are their own graded weeks, and Week 4 keeps its recorded split', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { gradeStoredWeek, summarizeParlay } = await import('../lib/weeks.mjs');
+  const { reconcile } = await import('../lib/reconcile.mjs');
+  const bets = JSON.parse(readFileSync(new URL('../data/bets.json', import.meta.url)));
+  const w2 = bets.weeks.find((w) => w.week === 2);
+  const w4 = bets.weeks.find((w) => w.week === 4);
+  const s2 = summarizeParlay(gradeStoredWeek(w2).graded);
+  const s4 = summarizeParlay(gradeStoredWeek(w4).graded);
+  assert.deepEqual([s2.state, s2.won, s2.lost], ['busted', 4, 8]);
+  assert.deepEqual([s4.state, s4.won, s4.lost, s4.pending], ['busted', 8, 3, 1]);
+  assert.deepEqual(w4.payers, ['Joe Mckeon', 'Kyle Heller']);
+  assert.equal(w4.stake, 20);
+  const disc = reconcile({ weeks: bets.weeks }, history).items.filter((i) => i.week === 2 || i.week === 4);
+  assert.deepEqual(disc.filter((i) => i.severity === 'money' || i.severity === 'result'), []);
+});
