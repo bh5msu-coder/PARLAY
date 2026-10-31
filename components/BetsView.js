@@ -44,9 +44,6 @@ function shareChip(s) {
   return bits;
 }
 
-/** Whole dollars without cents, so the ledger fits a phone. */
-const cash = (n) => (Number(n) % 1 ? fmtMoney(n) : '$' + Number(n));
-
 function IouCard({ ledger, byWeek }) {
   const { weeks, people, totals } = ledger;
   return (
@@ -59,11 +56,11 @@ function IouCard({ ledger, byWeek }) {
             <tbody>{people.map((r) => (
               <tr key={r.who}>
                 <td>{whoLabel(r.who)}</td>
-                <td className="r num">{cash(r.owed)}</td>
-                <td className="r num">{r.paid ? cash(r.paid) : '–'}</td>
-                <td className="r num">{r.coveredByOthers ? cash(r.coveredByOthers) : '–'}</td>
-                <td className="r num hide-m">{r.coveredForOthers ? cash(r.coveredForOthers) : '–'}</td>
-                <td className={'r num' + (r.open ? ' iou--open' : '')}>{r.open ? cash(r.open) : '–'}</td>
+                <td className="r num">{fmtMoney(r.owed)}</td>
+                <td className="r num">{r.paid ? fmtMoney(r.paid) : '–'}</td>
+                <td className="r num">{r.coveredByOthers ? fmtMoney(r.coveredByOthers) : '–'}</td>
+                <td className="r num hide-m">{r.coveredForOthers ? fmtMoney(r.coveredForOthers) : '–'}</td>
+                <td className={'r num' + (r.open ? ' iou--open' : '')}>{r.open ? fmtMoney(r.open) : '–'}</td>
               </tr>))}</tbody>
           </table></div>
         ) : null}
@@ -147,7 +144,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
           <div key={p.label} className="field">
             <b>{`${p.label} · ${p.legs.length} legs · `}</b>
             {p.result === 'pending' ? <span className="pill">pending</span> : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : '')}
-            {p.toPay ? <span className="muted">{` · hypothetical payout $${p.toPay.toLocaleString()} (not paid)`}</span> : null}
+            {p.toPay ? <span className="muted">{` · hypothetical payout ${fmtMoney(p.toPay)} (not paid)`}</span> : null}
             <div className="pills">{p.legs.filter((l) => l.result === 'loss').map((l, i) => <span key={i} className="chip">{`${whoLabel(l.who)}: ${l.label}`}</span>)}</div>
           </div>))}</div>
       </section>
@@ -203,7 +200,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
       <section className="card">
         <div className="card__head"><h2>Hypothetical payouts</h2><span className="sub">What one cash would have meant</span></div>
         <div className="card__body">
-          <p>{data.parlays.filter((p) => p.toPay).map((p) => `${p.label}: hypothetical $${p.toPay.toLocaleString()} on $${p.stake}. `).join('')}</p>
+          <p>{data.parlays.filter((p) => p.toPay).map((p) => `${p.label}: hypothetical ${fmtMoney(p.toPay)} on $${p.stake}. `).join('')}</p>
           <p>{`A straight 11-leg ticket at -110 every leg pays about $${Math.round(10 * Math.pow(dec110, 11)).toLocaleString()} on $10. 12 legs pays about $${Math.round(10 * Math.pow(dec110, 12)).toLocaleString()}. Those are assumed prices, not slip odds.`}</p>
           <p className="muted">{'Sources: ' + Object.values(data.sources).join(' · ')}</p>
           <p className="muted">{'Excluded: ' + data.excluded.map((x) => `${x.what} (${x.why})`).join('; ')}</p>

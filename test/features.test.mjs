@@ -30,12 +30,12 @@ test('recap never reports unknown legs as wins or losses', () => {
 
 test('recap labels payouts hypothetical unless recorded, and flags unplaced tickets', () => {
   const cashed = buildRecap({ week: 9, result: 'cashed', hypotheticalToPay: 2294.04, ticketState: 'proposed', legs: [L(9, 'Brad Holm', 'won')] }, 'test');
-  assert.match(cashed.text, /Slip said \$2,294\.04 — hypothetical until a payout is recorded/);
+  assert.match(cashed.text, /Slip said \$2,294 — hypothetical until a payout is recorded/);
   assert.match(cashed.text, /nothing recorded shows this ticket was placed/);
   const paid = buildRecap({ week: 9, result: 'cashed', hypotheticalToPay: 2294.04, payoutRecorded: 2294.04, ticketState: 'settled', legs: [L(9, 'Brad Holm', 'won')] }, 'test');
-  assert.match(paid.text, /Payout recorded: \$2,294\.04/);
+  assert.match(paid.text, /Payout recorded: \$2,294/);
   const busted = buildRecap(Object.assign({}, tickets.find((t) => t.week === 2), { legs: legs.filter((l) => l.week === 2) }), 'parlay-history.json');
-  assert.match(busted.text, /would have paid \$4,349\.00 \(hypothetical\)/);
+  assert.match(busted.text, /would have paid \$4,349 \(hypothetical\)/);
 });
 
 test('achievements use decided picks only and name their source', () => {
