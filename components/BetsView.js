@@ -8,18 +8,18 @@ import { ident, RIVALRIES, whoLabel } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
 import { calcParlayStats, hitPct, SMALL_N } from '../lib/history-stats.mjs';
 
-// parlay-history.json is static and read-only. It is fetched with GET and never written anywhere.
-let historyCache = null;
-async function loadParlayHistory() {
-  if (historyCache) return historyCache;
-  try { historyCache = await fetch('/parlay-history.json').then((r) => r.ok ? r.json() : null); } catch (e) { historyCache = null; }
-  return historyCache;
-}
+import InfoTip, { SmallSample } from './InfoTip';
+import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
+import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
+import { reconcile } from '../lib/reconcile.mjs';
 
-const SampleTag = ({ n }) => (n < SMALL_N ? <span className="pill">small sample</span> : null);
+// parlay-history.json is static and read-only: lib/history.mjs loads it with one GET and deep-freezes it.
+// This page never writes anything — no Supabase call, no POST, no change to data/bets.json.
+
+const SampleTag = ({ n }) => <SmallSample n={n} threshold={SMALL_N} />;
 const TYPE_LAB = { ml: 'Moneyline', spread: 'Spread', total: 'Game total', player: 'Player prop' };
 
-function History({ data, selectedOwner }) {
+function History({ data, selectedOwner, weeks }) {
   const S = calcParlayStats(data, whoLabel);
   const wins = S.decided.filter((l) => l.result === 'win').length;
   const closest = S.graded.slice().sort((a, b) => a.record.loss - b.record.loss)[0];
@@ -41,8 +41,12 @@ function History({ data, selectedOwner }) {
         <KpiCard label="Tickets graded" value={String(S.graded.length)} note={`2026 · ${S.graded.filter((p) => p.result === 'win').length} cashed`} />
         <KpiCard label="Leg hit rate" value={hitPct(wins, S.decided.length)} note={`${wins}–${S.decided.length - wins} on decided legs`} />
         <KpiCard label="Closest call" value={closest ? closest.label : '–'} note={closest ? `${closest.record.loss} legs from cashing` : ''} />
-        <KpiCard label="Money in" value={'$' + stake} note="Stakes on graded tickets · $0 back" />
+        <KpiCard label="Stakes listed" value={'$' + stake} note="Graded tickets · the history does not record who paid · $0 recorded back" />
       </section>
+
+      <DiscrepancyCard result={reconcile({ weeks }, data)} />
+      <TicketSection tickets={historyTickets(data)} sourceNote="parlay-history.json (read-only)" />
+      <SelectionCharts legs={historyLegs(data)} sourceNote="parlay-history.json (read-only) · decided picks only" />
 
       <section className="card">
         <div className="card__head"><h2>Awards</h2><span className="sub">{`${S.graded.length} graded tickets · everything here is a small sample`}</span></div>
@@ -55,7 +59,7 @@ function History({ data, selectedOwner }) {
       </section>
 
       <section className="card">
-        <div className="card__head"><h2>Leg hit rate</h2><span className="sub">Graded legs only · unknown in ( )</span></div>
+        <div className="card__head"><h2>Leg hit rate <InfoTip k="hitRate" label="hit rate" /></h2><span className="sub">Graded legs only · unknown in ( )</span></div>
         <div className="card__body">
           <div className="tablewrap"><table>
             <thead><tr><th>#</th><th>Picker</th><th className="r">W–L</th><th className="r">Hit</th><th className="r">Now</th><th className="r hide-m">Hot</th><th className="r hide-m">Cold</th><th className="r hide-m">Busted</th><th className="r hide-m">Primetime</th></tr></thead>
@@ -82,7 +86,7 @@ function History({ data, selectedOwner }) {
           <div key={p.label} className="field">
             <b>{`${p.label} · ${p.legs.length} legs · `}</b>
             {p.result === 'pending' ? <span className="pill">pending</span> : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : '')}
-            {p.toPay ? <span className="muted">{` · would have paid $${p.toPay.toLocaleString()}`}</span> : null}
+            {p.toPay ? <span className="muted">{` · hypothetical payout $${p.toPay.toLocaleString()} (not paid)`}</span> : null}
             <div className="pills">{p.legs.filter((l) => l.result === 'loss').map((l, i) => <span key={i} className="chip">{`${whoLabel(l.who)}: ${l.label}`}</span>)}</div>
           </div>))}</div>
       </section>
@@ -138,7 +142,7 @@ function History({ data, selectedOwner }) {
       <section className="card">
         <div className="card__head"><h2>Hypothetical payouts</h2><span className="sub">What one cash would have meant</span></div>
         <div className="card__body">
-          <p>{data.parlays.filter((p) => p.toPay).map((p) => `${p.label}: $${p.toPay.toLocaleString()} on $${p.stake}. `).join('')}</p>
+          <p>{data.parlays.filter((p) => p.toPay).map((p) => `${p.label}: hypothetical $${p.toPay.toLocaleString()} on $${p.stake}. `).join('')}</p>
           <p>{`A straight 11-leg ticket at -110 every leg pays about $${Math.round(10 * Math.pow(dec110, 11)).toLocaleString()} on $10. 12 legs pays about $${Math.round(10 * Math.pow(dec110, 12)).toLocaleString()}. Those are assumed prices, not slip odds.`}</p>
           <p className="muted">{'Sources: ' + Object.values(data.sources).join(' · ')}</p>
           <p className="muted">{'Excluded: ' + data.excluded.map((x) => `${x.what} (${x.why})`).join('; ')}</p>
@@ -150,18 +154,18 @@ function History({ data, selectedOwner }) {
 
 export default function BetsView() {
   const { state } = useLeague();
-  const [data, setData] = useState(historyCache);
-  const [loaded, setLoaded] = useState(!!historyCache);
+  const [data, setData] = useState(cachedHistory());
+  const [loaded, setLoaded] = useState(!!cachedHistory());
   useEffect(() => {
     let live = true;
-    loadParlayHistory().then((d) => { if (live) { setData(d); setLoaded(true); } });
+    loadHistory().then((d) => { if (live) { setData(d); setLoaded(true); } });
     return () => { live = false; };
   }, []);
   return (
     <Page title="Parlay history" sub="Weekly $10 group parlay · 11–12 leg tickets only">
       {!loaded ? null : !data
         ? <div className="card"><div className="empty">Parlay history did not load.</div></div>
-        : <History data={data} selectedOwner={state.selectedOwner} />}
+        : <History data={data} selectedOwner={state.selectedOwner} weeks={state.weeks} />}
     </Page>
   );
 }
