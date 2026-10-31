@@ -386,7 +386,7 @@ table td.rank:not(.num){white-space:nowrap;min-width:40px}
 .glance__legend .glance__seg{width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 
 /* League page: the weekly parlay as one compact card. */
-.glance{padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;border-left:4px solid var(--teal-deep)}
+.parlay-glance{padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;border-left:4px solid var(--teal-deep)}
 .glance__main{display:flex;flex-direction:column;gap:2px;min-width:0}
 .glance__state{font:700 24px/28px var(--font-display);text-transform:uppercase;color:var(--cream)}
 .glance__side{display:flex;flex-wrap:wrap;align-items:center;gap:8px}

@@ -35,7 +35,7 @@ function ParlayGlance({ store }) {
     ? `${s.won} of ${s.total} hit` + (killers.length ? ` · killed by ${killers.map((k) => whoLabel(k)).join(', ')}` : s.pending ? ` · ${s.pending} to play` : '')
     : 'Picks are in';
   return (
-    <section className="card glance">
+    <section className="card parlay-glance">
       <div className="glance__main">
         <span className="label">{`Week ${week.week} parlay`}</span>
         <span className="glance__state">{s ? PARLAY_STATE[s.state] || s.state : 'To play'}</span>
