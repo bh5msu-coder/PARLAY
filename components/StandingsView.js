@@ -4,7 +4,7 @@ import { Page } from './Topbar';
 import { StatusBadge } from './ui';
 import { fmtMoney, fmtOdds, pct } from '../lib/format.mjs';
 import { sitHandle, whoLabel } from '../lib/ident.mjs';
-import { computeBettingStyles, computeStandings, rankLabels, parlayExtras, streakText, styleNick, tallyRate, TYPE_LABELS } from '../lib/standings.mjs';
+import { computeBettingStyles, computeStandings, leagueLegTally, rankLabels, parlayExtras, streakText, styleNick, tallyRate, TYPE_LABELS } from '../lib/standings.mjs';
 import { useEffect, useState } from 'react';
 import InfoTip, { SmallSample } from './InfoTip';
 import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
@@ -72,7 +72,7 @@ export default function StandingsView() {
   const killersByWeek = Object.fromEntries(weeks.map((w) => [w.week, (graded[w.week] && graded[w.week].summary.killers) || []]));
   const current = weeks.length ? weeks[weeks.length - 1] : null;
   const owing = current ? store.weekPayers(current) : [];
-  const totLegs = rows.reduce((a, r) => a + r.hit + r.miss, 0), totHit = rows.reduce((a, r) => a + r.hit, 0);
+  const { legs: totLegs, hit: totHit } = leagueLegTally(weeks, graded);
   const payers = {};
   for (const w of weeks) if (w.payer) payers[w.payer] = (payers[w.payer] || 0) + 1;
   const topPayer = Object.entries(payers).sort((a, b) => b[1] - a[1])[0];

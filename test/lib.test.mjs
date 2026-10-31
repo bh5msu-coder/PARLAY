@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import { gradeLeg, gradeWeek } from '../lib/grade.mjs';
 import { resolveNflWeek } from '../lib/nfl-clock.mjs';
-import { computeStandings, parlayExtras } from '../lib/standings.mjs';
+import { computeStandings, leagueLegTally, parlayExtras } from '../lib/standings.mjs';
 import { calcParlayStats } from '../lib/history-stats.mjs';
 import { nextUnusedWeek, openPickWeek } from '../lib/pick-form.mjs';
 import { normalizeFile } from '../lib/weeks.mjs';
@@ -57,6 +57,12 @@ test('standings hit rate counts decided legs only', async () => {
   assert.equal(hit + miss, 55, 'weeks 2 and 4 to 7 are graded');
   assert.equal(hit, 23);
   assert.ok(rows.every((r) => r.open >= 0));
+  // The league total counts every graded leg, Heller's included, so Standings and Money agree.
+  const tally = leagueLegTally(weeks, graded);
+  assert.deepEqual(tally, { hit: 24, miss: 33, legs: 57 });
+  const settled = history.parlays.filter((p) => p.week <= 7).flatMap((p) => p.legs).filter((l) => l.result === 'win' || l.result === 'loss');
+  assert.equal(tally.legs, settled.length);
+  assert.equal(tally.hit, settled.filter((l) => l.result === 'win').length);
   const extras = parlayExtras(weeks, graded);
   assert.deepEqual(extras.killList.map(([who]) => who).sort(), ['Adam Meltser', 'Brad Holm', 'Chas Rossman', 'DJ Dangerous', 'Joe Mckeon', 'John Sachs', 'Kevin Sack', 'Kyle McFadden', 'Nick Curtis', 'Ryan Hoffman']);
 });
