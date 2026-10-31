@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { KpiCard } from './ui';
-import { fmtElo, fmtFinish } from '../lib/format.mjs';
+import { fmtElo, fmtFinish, fmtMoney } from '../lib/format.mjs';
+import { payerShare } from '../lib/league-store.mjs';
 import { ident, RIVALRIES, seasonRows, whoLabel } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
 import { drawSeasonElo } from '../lib/tape.mjs';
@@ -16,6 +17,36 @@ import { allRules } from '../lib/rules.mjs';
 import { allTimeCareers, loreHeadlines, pfOutliers } from '../lib/lore-summary.mjs';
 
 function fmtPct(p) { return p == null ? '–' : (p * 100).toFixed(1) + '%'; }
+
+const PARLAY_STATE = { cashed: 'Cashed', busted: 'Busted', live: 'Live', open: 'To play' };
+
+/** The weekly parlay as one card on the League page: where the ticket stands and who owes, with a way in. */
+function ParlayGlance({ store }) {
+  const { state } = store;
+  const n = state.nfl && state.nfl.active;
+  const week = (n && store.weekRecord(n)) || (state.weeks.length ? state.weeks[state.weeks.length - 1] : null);
+  if (!week) return null;
+  const g = state.graded[week.week];
+  const s = g && g.summary;
+  const payers = store.weekPayers(week);
+  const killers = s && s.killers ? s.killers : [];
+  const line = s
+    ? `${s.won} of ${s.total} hit` + (killers.length ? ` · killed by ${killers.map((k) => whoLabel(k)).join(', ')}` : s.pending ? ` · ${s.pending} to play` : '')
+    : 'Picks are in';
+  return (
+    <section className="card glance">
+      <div className="glance__main">
+        <span className="label">{`Week ${week.week} parlay`}</span>
+        <span className="glance__state">{s ? PARLAY_STATE[s.state] || s.state : 'To play'}</span>
+        <span className="small muted">{line}</span>
+      </div>
+      <div className="glance__side">
+        <span className="paychips">{payers.map((p) => <span key={p} className="pill pill--open">{`${whoLabel(p)} owes ${fmtMoney(payerShare(week.stake || 10, payers.length))}`}</span>)}</span>
+        <Link className="btn btn--secondary btn--sm" href="/week">Open this week</Link>
+      </div>
+    </section>
+  );
+}
 
 function finClass(s) {
   return s.champion ? 'fin fin--gold' : s.rank <= 4 ? 'fin fin--good' : s.rank >= 11 ? 'fin fin--bad' : 'fin';
@@ -221,6 +252,8 @@ export default function LeagueView() {
         <KpiCard label="Best season PF" value={h.bestSeason ? whoLabel(h.bestSeason.owner) : '–'} note={h.bestSeason ? `${h.bestSeason.pf} pts in ${h.bestSeason.season} · ${h.bestSeason.rank === 1 ? 'won the title' : 'finished ' + h.bestSeason.rank}` : ''} />
         <KpiCard label="Back to back" value={h.backToBack.length ? `${h.backToBack.length} repeat${h.backToBack.length === 1 ? '' : 's'}` : 'Nobody'} note={h.backToBack.length ? h.backToBack.map((x) => `${whoLabel(x.owner)} ${x.years[0]}–${String(x.years[1]).slice(2)}`).join(' · ') : 'No repeat champion yet'} />
       </section>
+
+      <ParlayGlance store={store} />
 
       <section className="card">
         <div className="card__head"><h2>Championship lineage</h2><span className="sub">Who actually finished the job</span></div>
