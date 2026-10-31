@@ -44,8 +44,9 @@ const TICKET_TEXT = {
 };
 
 /** The three separate facts about a week. None implies another. */
-function StateChips({ week, savedRows, need }) {
+function StateChips({ week, savedRows, need, config }) {
   const st = weekStates(week, savedRows);
+  const proof = 'Proof of placement: ' + rule(config, 'placementProof').text.charAt(0).toLowerCase() + rule(config, 'placementProof').text.slice(1);
   const t = st.ticket;
   const placed = t.state !== 'proposed';
   return (
@@ -58,12 +59,12 @@ function StateChips({ week, savedRows, need }) {
       <div className={'statechip' + (st.contributionsRecorded.count ? '' : ' statechip--no')}>
         <span className="label">Contributions recorded <InfoTip k="contributions" label="contributions recorded" /></span>
         <span className="statechip__v">{st.contributionsRecorded.count ? fmtMoney(st.contributionsRecorded.amount) : 'None recorded'}</span>
-        <span className="small muted">{`Stake listed ${fmtMoney(week.stake || 10)}`}</span>
+        <span className="small muted">{`Stake listed ${fmtMoney(week.stake || 10)} · due by kickoff`}</span>
       </div>
       <div className={'statechip' + (placed ? '' : ' statechip--no')}>
         <span className="label">Ticket <InfoTip k="ticketState" label="ticket state" /></span>
         <span className="statechip__v">{TICKET_TEXT[t.state] || t.state}</span>
-        <span className="small muted">{t.evidence}</span>
+        <span className="small muted">{t.evidence}{placed ? '' : ' ' + proof}</span>
       </div>
     </section>
   );
@@ -176,7 +177,7 @@ export default function WeekView() {
         ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
         : null}
 
-      <StateChips week={week} savedRows={savedRows} need={participants} />
+      <StateChips week={week} savedRows={savedRows} need={participants} config={state.config} />
 
       <section className="card banner">
         <div>
@@ -198,7 +199,7 @@ export default function WeekView() {
 
       <section className="stats" aria-label="Week stats">
         <div className="card stat"><span className="label">Parlay odds</span><span className="stat__value">{pending ? '—' : fmtOdds(week.odds)}</span><span className="stat__delta">{`${fmtMoney(week.stake || 10)} stake`}</span></div>
-        <div className="card stat"><span className="label">Hypothetical payout <InfoTip k="hypothetical" label="hypothetical payout" /></span><span className="stat__value">{pending ? '—' : fmtMoney(week.toPay)}</span><span className="stat__delta">{pending || week.toPay === '' || week.toPay == null ? '' : split.decided ? `If every leg hits · split ${split.value}` : 'If every leg hits · split not decided'}</span></div>
+        <div className="card stat"><span className="label">Hypothetical payout <InfoTip k="hypothetical" label="hypothetical payout" /></span><span className="stat__value">{pending ? '—' : fmtMoney(week.toPay)}</span><span className="stat__delta">{pending || week.toPay === '' || week.toPay == null ? '' : split.decided ? `If every leg hits · ${split.value === 'in-person' ? 'split in person' : 'split ' + split.value}` : 'If every leg hits · split not decided'}</span></div>
         <div className="card stat"><span className="label">Legs settled</span><span className="stat__value">{s ? `${s.won + s.lost + s.pushes} / ${s.total}` : '–'}</span><span className="stat__delta">{s ? `${s.live} live · ${s.pending} to play` : (pending ? 'Ticket not in yet' : '')}</span></div>
         <div className="card stat"><span className="label">Season parlays</span><span className="stat__value">{seasonRecord(state.weeks, state.graded)}</span><span className="stat__delta">cashed – busted</span></div>
       </section>

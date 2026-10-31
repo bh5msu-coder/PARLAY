@@ -12,6 +12,7 @@ import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
 import Achievements from './Achievements';
 import { cachedHistory, historyLegs, loadHistory } from '../lib/history.mjs';
 import { weeklyLegs } from '../lib/stats.mjs';
+import { allRules } from '../lib/rules.mjs';
 
 function finClass(s) {
   return s.champion ? 'fin fin--gold' : s.rank <= 4 ? 'fin fin--good' : s.rank >= 11 ? 'fin fin--bad' : 'fin';
@@ -42,6 +43,25 @@ function OwnerCard({ name }) {
           <div className="finrow">{c.history.map((s) => <div key={s.season} className={finClass(s)}><div className="fin__y">{String(s.season)}</div><div className="fin__r">{String(s.rank)}</div></div>)}</div>
         </div>) : <p className="muted">No prior seasons on file.</p>}
     </div>
+  );
+}
+
+const RULE_NAMES = {
+  payoutSplit: 'Winnings', lastPlaceTie: 'Tie for last', splitStake: 'Split stake', rollover: 'Unplaced week',
+  pickDeadline: 'Deadline', editsAndLocks: 'Edits', pushHandling: 'Pushes', voidHandling: 'Voids & postponements',
+  missingPicks: 'Missing picks', eligibility: 'Opting out', disputes: 'Disputes', placementProof: 'Who places it',
+  books: 'Books', contributionTiming: 'Paying in', importConflict: 'Conflicting picks',
+};
+
+function RulesCard({ config }) {
+  return (
+    <section className="card">
+      <div className="card__head"><h2>House rules</h2><span className="sub">As decided by the league · the commissioner can change any of these</span></div>
+      <div className="tablewrap"><table>
+        <tbody>{allRules(config).map((r) => (
+          <tr key={r.key}><td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{RULE_NAMES[r.key] || r.key}</td><td>{r.text}</td></tr>))}</tbody>
+      </table></div>
+    </section>
   );
 }
 
@@ -205,6 +225,7 @@ export default function LeagueView() {
         { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
       ]} />
 
+      <RulesCard config={state.config} />
       <RivalriesCard />
       <LeagueTape />
       <SeasonElo selected={selected} onSelect={select} />
