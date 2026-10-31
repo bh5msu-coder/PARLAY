@@ -90,11 +90,11 @@ const RULE_NAMES = {
 
 function RulesCard({ config }) {
   return (
-    <section className="card">
+    <section className="card half">
       <div className="card__head"><h2>House rules</h2><span className="sub">As decided by the league · the commissioner can change any of these</span></div>
       <div className="tablewrap"><table>
         <tbody>{allRules(config).map((r) => (
-          <tr key={r.key}><td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{RULE_NAMES[r.key] || r.key}</td><td>{r.text}</td></tr>))}</tbody>
+          <tr key={r.key}><td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{RULE_NAMES[r.key] || r.key}</td><td className="wraptext">{r.text}</td></tr>))}</tbody>
       </table></div>
     </section>
   );
@@ -102,7 +102,7 @@ function RulesCard({ config }) {
 
 function RivalriesCard() {
   return (
-    <section className="card">
+    <section className="card half">
       <div className="card__head"><h2>Rivalries</h2><span className="sub">Public 2010–2025 tape · overlap ranks, not weekly H2H</span></div>
       {RIVALRIES.map((r) => (
         <article key={r.title} className="rivalry">
@@ -166,7 +166,7 @@ function SeasonElo({ selected, onSelect }) {
   if (!elo.now.length) return <section className="card"><div className="empty">No seasons on file to rate.</div></section>;
   const noSeason = ident.people.filter((p) => !seasonRows(p).length);
   return (
-    <section className="card">
+    <section className="card half">
       <div className="card__head"><h2>Season Elo</h2><span className="sub">Final place among current managers · start 1500</span></div>
       <div className="card__body">
         <div className="elo-now">{elo.now.map((r, i) => (
@@ -203,7 +203,7 @@ function KpiIdeas() {
     setIdeas(next); setName(''); setDef('');
   };
   return (
-    <section className="card">
+    <section className="card half">
       <div className="card__head"><h2>Propose a KPI</h2><span className="sub">Saved on this phone · localStorage</span></div>
       <div className="card__body form">
         <p className="muted">Name it and write the formula. Values stay blank until someone can actually count them from public lore. No 2026 auction intel.</p>
@@ -277,7 +277,7 @@ export default function LeagueView() {
       <SeasonElo selected={selected} onSelect={select} />
       <KpiIdeas />
 
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>The table</h2><span className="sub">Current 12 · avg finish is all-time. Tap a name.</span></div>
         <div className="tablewrap"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Yrs</th><th className="r">Titles</th><th className="r">Avg finish</th><th className="r hide-m">Last place</th><th className="r hide-m">W–L</th></tr></thead>
@@ -298,6 +298,15 @@ export default function LeagueView() {
               </tr>);
           })}</tbody>
         </table></div>
+      </section>
+
+      <section className="card half">
+        <div className="card__head"><h2>Owner card</h2></div>
+        <div className="card__body">
+          <div className="picker">{ident.people.map((p) => (
+            <button key={p.id} className={'chip' + (p.name === selected ? ' on' : '')} type="button" onClick={() => select(p.name)}>{p.nick || p.name.split(' ')[0]}</button>))}</div>
+          <OwnerCard name={selected} />
+        </div>
       </section>
 
       <section className="card">
@@ -338,14 +347,6 @@ export default function LeagueView() {
 
       {k.mostLastPlaces ? <p className="rules">{`Toilet-bowl energy: ${k.mostLastPlaces.owner} has finished last ${k.mostLastPlaces.count} times (${(k.mostLastPlaces.years || []).join(', ')}). Weekly 2026 payer is still last place the week before — entered on the ticket.`}</p> : null}
 
-      <section className="card">
-        <div className="card__head"><h2>Owner card</h2></div>
-        <div className="card__body">
-          <div className="picker">{ident.people.map((p) => (
-            <button key={p.id} className={'chip' + (p.name === selected ? ' on' : '')} type="button" onClick={() => select(p.name)}>{p.nick || p.name.split(' ')[0]}</button>))}</div>
-          <OwnerCard name={selected} />
-        </div>
-      </section>
 
       <div className="two">
         <section className="card">

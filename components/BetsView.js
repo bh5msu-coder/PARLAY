@@ -86,17 +86,6 @@ function History({ data, selectedOwner, weeks, payments, store }) {
         </div>
       </section>
 
-      <section className="card">
-        <div className="card__head"><h2>Who busted it</h2><span className="sub">Losing legs per ticket</span></div>
-        <div className="card__body">{data.parlays.map((p) => (
-          <div key={p.label} className="field">
-            <b>{`${p.label} · ${p.legs.length} legs · `}</b>
-            {p.result === 'pending' ? <span className="pill">pending</span> : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : '')}
-            {p.toPay ? <span className="muted">{` · hypothetical payout ${fmtMoney(p.toPay)} (not paid)`}</span> : null}
-            <div className="pills">{p.legs.filter((l) => l.result === 'loss').map((l, i) => <span key={i} className="chip">{`${whoLabel(l.who)}: ${l.label}`}</span>)}</div>
-          </div>))}</div>
-      </section>
-
       {(data.unplaced || []).map((p) => (
         <section key={p.label} className="card" id={`unplaced-${p.week}`}>
           <div className="card__head"><h2>{`${p.label}: never placed`}</h2><span className="pill pill--open">Not placed</span></div>
@@ -111,29 +100,41 @@ function History({ data, selectedOwner, weeks, payments, store }) {
           </div>
         </section>))}
 
-      <section className="card">
+      <section className="card half">
+        <div className="card__head"><h2>Who busted it</h2><span className="sub">Losing legs per ticket</span></div>
+        <div className="card__body">{data.parlays.map((p) => (
+          <div key={p.label} className="field">
+            <b>{`${p.label} · ${p.legs.length} legs · `}</b>
+            {p.result === 'pending' ? <span className="pill">pending</span> : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : '')}
+            {p.toPay ? <span className="muted">{` · hypothetical payout ${fmtMoney(p.toPay)} (not paid)`}</span> : null}
+            <div className="pills">{p.legs.filter((l) => l.result === 'loss').map((l, i) => <span key={i} className="chip">{`${whoLabel(l.who)}: ${l.label}`}</span>)}</div>
+          </div>))}</div>
+      </section>
+
+
+      <section className="card half">
         <div className="card__head"><h2>Near misses</h2><span className="sub">Lost by a hair</span></div>
         <div className="card__body"><div className="tablewrap"><table>
           <thead><tr><th>Wk</th><th>Picker</th><th>Leg</th><th>Actual</th><th>Missed by</th></tr></thead>
-          <tbody>{near.map((l, i) => <tr key={i}><td>{String(l.week)}</td><td>{whoLabel(l.who)}</td><td>{l.label}</td><td>{l.actual || ''}</td><td>{l.missBy}</td></tr>)}</tbody>
+          <tbody>{near.map((l, i) => <tr key={i}><td>{String(l.week)}</td><td>{whoLabel(l.who)}</td><td className="wraptext">{l.label}</td><td className="wraptext">{l.actual || ''}</td><td>{l.missBy}</td></tr>)}</tbody>
         </table></div></div>
       </section>
 
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>Bet-type performance</h2><span className="sub">All pickers</span></div>
         <div className="card__body stats">{Object.keys(S.types).map((k) => (
           <KpiCard key={k} label={TYPE_LAB[k] || k} value={hitPct(S.types[k].w, S.types[k].n)} note={`${S.types[k].w}–${S.types[k].n - S.types[k].w}` + (S.types[k].n < SMALL_N ? ' · small sample' : '')} />))}</div>
       </section>
 
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>Favorite teams &amp; players</h2><span className="sub">Picked 2+ times</span></div>
         <div className="card__body"><div className="tablewrap"><table>
           <thead><tr><th>Team / player</th><th className="r">Picks</th><th className="r">Hit</th><th>By</th></tr></thead>
-          <tbody>{S.favs.map((t) => <tr key={t.key}><td>{t.key}</td><td className="r num">{String(t.n)}</td><td className="r num">{`${t.w}/${t.n}`}</td><td>{Object.keys(t.by).join(', ')}</td></tr>)}</tbody>
+          <tbody>{S.favs.map((t) => <tr key={t.key}><td>{t.key}</td><td className="r num">{String(t.n)}</td><td className="r num">{`${t.w}/${t.n}`}</td><td className="wraptext">{Object.keys(t.by).join(', ')}</td></tr>)}</tbody>
         </table></div></div>
       </section>
 
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>Rivalry head-to-head: parlay edition</h2><span className="sub">League-lore rivalries, scored by leg hit rate</span></div>
         <div className="card__body">
           {RIVALRIES.map((rv) => {
@@ -148,7 +149,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
         </div>
       </section>
 
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>Elo vs betting accuracy</h2><span className="sub">Good at fantasy ≠ good at picking</span></div>
         <div className="card__body"><div className="tablewrap"><table>
           <thead><tr><th>Manager</th><th className="r">Season Elo</th><th className="r">Elo rank</th><th className="r">Pick rank</th><th className="r">Hit</th></tr></thead>

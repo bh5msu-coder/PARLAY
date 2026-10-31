@@ -20,7 +20,7 @@ function ParlayExtras({ weeks, graded }) {
   };
   return (
     <div className="two">
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>By bet type</h2></div>
         <div className="tablewrap"><table>
           <thead><tr><th>Market</th><th className="r">Settled</th><th className="r">Hit</th><th className="r">Miss</th><th className="r">Hit %</th></tr></thead>
@@ -37,7 +37,7 @@ function ParlayExtras({ weeks, graded }) {
           })}</tbody>
         </table></div>
       </section>
-      <section className="card">
+      <section className="card half">
         <div className="card__head"><h2>Style &amp; damage</h2></div>
         <div className="tablewrap"><table>
           <thead><tr><th>Favorites vs dogs</th><th className="r">N</th><th className="r">Hit %</th></tr></thead>

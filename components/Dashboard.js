@@ -80,12 +80,12 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
             <tr key={x.week}>
               <td className="num">{String(x.label).replace(/^Week (\d+)/, 'Week\u00a0$1')}</td>
               <td><StatusBadge state={RESULT_BADGE[x.result] || 'unknown'} />{x.record ? <span className="muted">{` ${x.record.win}–${x.record.loss}`}</span> : null}</td>
-              <td className="hide-m" title={x.evidence}>{STATE_TEXT[x.ticketState] || x.ticketState}</td>
+              <td className="hide-m wraptext" title={x.evidence}>{STATE_TEXT[x.ticketState] || x.ticketState}</td>
               {showPayer ? <td className="hide-m">{x.payer ? whoLabel(x.payer) : '–'}</td> : null}
               <td className="r num">{fmtMoney(x.stake)}</td>
               <td className="r num">{x.payoutRecorded ? fmtMoney(x.payoutRecorded) : '$0'}</td>
               <td className="r num hide-m">{x.hypotheticalToPay == null ? '–' : <span className="hypo">{fmtMoney(x.hypotheticalToPay)} <small>hypothetical</small></span>}</td>
-              {killers ? <td className="hide-m">{(killers[x.week] || []).map((k) => whoLabel(k)).join(', ') || '–'}</td> : null}
+              {killers ? <td className="hide-m wraptext">{(killers[x.week] || []).map((k) => whoLabel(k)).join(', ') || '–'}</td> : null}
             </tr>))}</tbody>
           <tfoot><tr>
             <td>Total</td>
