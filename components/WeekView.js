@@ -11,6 +11,7 @@ import { weekStates, weekMoney } from '../lib/model.mjs';
 import { rule } from '../lib/rules.mjs';
 import InfoTip from './InfoTip';
 import PaymentChips from './PaymentChips';
+import { payerShare } from '../lib/league-store.mjs';
 import { buildRecap } from '../lib/recap.mjs';
 import { weeklyLegs, weeklyTickets } from '../lib/stats.mjs';
 import { toast } from '../lib/clients.mjs';
@@ -132,6 +133,7 @@ export default function WeekView() {
   const ticketState = weekStates(week).ticket.state;
   const savedRows = state.pick.week === week.week ? state.pick.rows : null;
   const payer = store.weekPayer(week);
+  const payers = store.weekPayers(week);
   const kick = store.weekKickNote(week.week);
   const s = gr ? gr.summary : null;
   const hold = week.results === 'unknown' || week.results === 'pending';
@@ -184,7 +186,7 @@ export default function WeekView() {
       <section className="card banner">
         <div>
           <span className="label">Payer</span>
-          <span className="big">{payer ? `${whoLabel(payer)} pays ${fmtMoney(week.stake || 10)}` : `Stake ${fmtMoney(week.stake || 10)} · payer not recorded`}</span>
+          <span className="big">{payers.length > 1 ? `${payers.map((x) => whoLabel(x)).join(' and ')} pay ${fmtMoney(payerShare(week.stake || 10, payers.length))} each` : payer ? `${whoLabel(payer)} pays ${fmtMoney(week.stake || 10)}` : `Stake ${fmtMoney(week.stake || 10)} · payer not recorded`}</span>
           <span className="small">{store.weekPayerNote(week)}</span>
         </div>
         <div>
