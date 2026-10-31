@@ -285,3 +285,11 @@ tr[onclick]{cursor:pointer}
 .statechip--no{border-style:dashed}
 tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
 .chart--wide{max-width:720px}
+.badges-group{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.badge{border:1px solid var(--line);border-radius:var(--radius-md);padding:10px 12px;background:var(--surface-200);display:flex;flex-direction:column;gap:3px}
+.badge__name{font:700 13px/16px var(--font-sans);letter-spacing:.06em;text-transform:uppercase;color:var(--pending)}
+.badge__who{font:600 18px/22px var(--font-display)}
+.badge__detail{font-size:14px}
+.badge__what{font-size:12px;line-height:16px}
+.recap{white-space:pre-wrap}
