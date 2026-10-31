@@ -78,7 +78,7 @@ function ThisWeekCard({ store, week, pending, s, payers, need, hold }) {
     head = s.state === 'cashed' ? 'IT CASHED.' : 'BUSTED.';
     line = clock ? `${payLine} · next week opens when the last game is final` : payLine;
     cta = { href: '#legs', text: 'See the legs' };
-  } else if (!pending && hold && !(s && s.live)) {
+  } else if (!pending && hold && !(s && s.live) && !(clock && clock.snapshot && !clock.snapshot.allFinal)) {
     phase = 'settled';
     pill = 'Not recorded';
     sub = 'No result was entered for this ticket';
@@ -88,7 +88,7 @@ function ThisWeekCard({ store, week, pending, s, payers, need, hold }) {
   } else if (!pending) {
     phase = 'locked';
     pill = s && s.live ? 'Live' : 'Locked';
-    sub = s ? `${s.won} of ${s.total} hit · ${s.live} live · ${s.pending} to play` : 'Loading scores';
+    sub = s && !hold ? `${s.won} of ${s.total} hit · ${s.live} live · ${s.pending} to play` : hold ? 'Games still to play · results not graded yet' : 'Loading scores';
     head = s && s.lost ? 'STILL SWEATING.' : 'TICKET IS IN.';
     line = `${payLine} · ${(week.legs || []).length} legs`;
     cta = { href: '#legs', text: 'Watch the legs' };

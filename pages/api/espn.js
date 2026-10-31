@@ -115,8 +115,13 @@ export default async function handler(req, res) {
   let url;
   let cache = 's-maxage=20, stale-while-revalidate=40';
   if (path === 'scoreboard') {
-    const params = new URLSearchParams({ seasontype: '2', dates: String(season) });
-    if (week && /^[0-9]+$/.test(String(week))) params.set('week', String(week));
+    // The year goes only with a week. With no week, `dates=2026` makes ESPN answer with calendar
+    // January 2026 (last season's Week 18), which put the board on Week 17 in October.
+    const params = new URLSearchParams({ seasontype: '2' });
+    if (week && /^[0-9]+$/.test(String(week))) {
+      params.set('dates', String(season));
+      params.set('week', String(week));
+    }
     url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?' + params;
   } else if (path === 'summary' && event) {
     url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=' + encodeURIComponent(event);

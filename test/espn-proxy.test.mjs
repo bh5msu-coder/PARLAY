@@ -186,3 +186,14 @@ test('ffl does not follow a redirect with the ESPN session', async () => {
   assert.equal(res.statusCode, 502);
   assert.equal(res.body.settings, undefined);
 });
+
+test('current scoreboard sends no year, so ESPN answers with this week, not last January', async () => {
+  const now = await call({ path: 'scoreboard', season: '2026' });
+  const u = new URL(now.calls[0].url);
+  assert.equal(u.searchParams.get('dates'), null);
+  assert.equal(u.searchParams.get('week'), null);
+  const wk = await call({ path: 'scoreboard', season: '2026', week: '8' });
+  const w = new URL(wk.calls[0].url);
+  assert.equal(w.searchParams.get('dates'), '2026');
+  assert.equal(w.searchParams.get('week'), '8');
+});
