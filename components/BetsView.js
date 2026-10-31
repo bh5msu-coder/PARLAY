@@ -151,6 +151,20 @@ function History({ data, selectedOwner, weeks, payments, store }) {
           </div>))}</div>
       </section>
 
+      {(data.unplaced || []).map((p) => (
+        <section key={p.label} className="card" id={`unplaced-${p.week}`}>
+          <div className="card__head"><h2>{`${p.label}: never placed`}</h2><span className="pill pill--open">Not placed</span></div>
+          <div className="card__body">
+            <p>{p.notes}</p>
+            <div className="tablewrap"><table>
+              <thead><tr><th>Manager</th><th>Pick</th></tr></thead>
+              <tbody>{p.legs.map((l) => (
+                <tr key={l.who}><td>{whoLabel(l.who)}</td><td>{l.label}{l.note ? <span className="muted">{' · ' + l.note}</span> : null}</td></tr>))}</tbody>
+            </table></div>
+            <p className="muted">{'Not graded and not counted in any stat, stake or IOU. Source: ' + p.source}</p>
+          </div>
+        </section>))}
+
       <section className="card">
         <div className="card__head"><h2>Near misses</h2><span className="sub">Lost by a hair</span></div>
         <div className="card__body"><div className="tablewrap"><table>

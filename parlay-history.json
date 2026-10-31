@@ -1152,7 +1152,7 @@
  "excluded": [
   {
    "what": "Week 3 picks (11 posted)",
-   "why": "Ticket never placed (Joey forgot, L383-424). Stake rolled into Week 4 at $20.",
+   "why": "Ticket never placed (Joey forgot, L383-424). Stake rolled into Week 4 at $20. Picks are listed under unplaced, kept out of every stat.",
    "ref": "L383-424"
   },
   {
@@ -1184,6 +1184,69 @@
    "what": "2025 and earlier seasons",
    "why": "No data in the export. Never invented.",
    "ref": null
+  }
+ ],
+ "unplaced": [
+  {
+   "season": 2026,
+   "week": 3,
+   "label": "Week 3",
+   "payer": "Joseph McKeon",
+   "legs": [
+    {
+     "who": "Brad Holm",
+     "label": "Lions/Jets under",
+     "note": "Asked for Goff 2+ TDs on 9/26."
+    },
+    {
+     "who": "Chas Rossman",
+     "label": "Bucs +1.5",
+     "note": "Swapped to a Jusyzyck TD."
+    },
+    {
+     "who": "Jace Clark",
+     "label": "Cowboys/Ravens over",
+     "note": "Swapped to Bengals -3.5."
+    },
+    {
+     "who": "Jarn Sachs",
+     "label": "Panthers -2.5"
+    },
+    {
+     "who": "DJ Dangerous",
+     "label": "Colts ML"
+    },
+    {
+     "who": "Ryan Hoffman",
+     "label": "Packers ML"
+    },
+    {
+     "who": "Joseph McKeon",
+     "label": "Bears/Eagles under"
+    },
+    {
+     "who": "Nick Curtis",
+     "label": "No pick found in the chat"
+    },
+    {
+     "who": "Kyle Heller",
+     "label": "Titans +3"
+    },
+    {
+     "who": "Adam Meltser",
+     "label": "Derrick Henry anytime TD"
+    },
+    {
+     "who": "Kyle McFadden",
+     "label": "Winston interception"
+    },
+    {
+     "who": "Kevin Sack",
+     "label": "Bills -7"
+    }
+   ],
+   "source": "Auction House Parlays 2026 spreadsheet (Picks sheet, parlay 2); chat L383-424",
+   "notes": "Picks collected 9/22 to 9/26. Joey never placed the ticket, so no results are graded and it counts in no stats. Its $10 rolled into the Week 4 ticket at $20."
   }
  ]
 }
