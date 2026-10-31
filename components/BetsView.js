@@ -60,7 +60,7 @@ function History({ data, selectedOwner, weeks, payments }) {
         <KpiCard label="Tickets graded" value={String(S.graded.length)} note={`2026 · ${S.graded.filter((p) => p.result === 'win').length} cashed`} />
         <KpiCard label="Leg hit rate" value={hitPct(wins, S.decided.length)} note={`${wins}–${S.decided.length - wins} on decided legs`} />
         <KpiCard label="Closest call" value={closest ? closest.label : '–'} note={closest ? `${closest.record.loss} legs from cashing` : ''} />
-        <KpiCard label="Stakes listed" value={'$' + stake} note="Graded tickets · the history does not record who paid · $0 recorded back" />
+        <KpiCard label="Stakes listed" value={'$' + stake} note={`Graded tickets · ${paymentTotal(payments) ? fmtMoney(paymentTotal(payments)) + ' recorded paid (see Payments recorded below)' : 'no payments recorded yet'} · $0 recorded back`} />
       </section>
 
       <PaymentsCard payments={payments} />
