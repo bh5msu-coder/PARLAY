@@ -8,11 +8,11 @@ let singleton = null;
 
 /** Path → legacy route name. The store's refresh logic keys off these names. */
 export const ROUTES = [
-  { path: '/week', route: 'week', label: 'Week' },
-  { path: '/pick', route: 'pick', label: 'Pick' },
-  { path: '/standings', route: 'standings', label: 'Standings' },
+  { path: '/week', route: 'week', label: 'This Week', short: 'Week', primary: true },
+  { path: '/pick', route: 'pick', label: 'Pick', primary: true },
+  { path: '/standings', route: 'standings', label: 'Standings', primary: true },
+  { path: '/bets', route: 'history', label: 'Money', primary: true },
   { path: '/league', route: 'league', label: 'League' },
-  { path: '/bets', route: 'history', label: 'Bets' },
   { path: '/chat', route: 'chat', label: 'Chat' },
   { path: '/commissioner', route: 'admin', label: 'Commissioner', short: 'Admin' },
 ];

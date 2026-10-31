@@ -5,7 +5,7 @@ import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { KpiCard } from './ui';
 import { fmtElo, fmtFinish } from '../lib/format.mjs';
-import { ident, RIVALRIES, seasonRows } from '../lib/ident.mjs';
+import { ident, RIVALRIES, seasonRows, whoLabel } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
 import { drawSeasonElo } from '../lib/tape.mjs';
 import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
@@ -29,7 +29,7 @@ function OwnerCard({ name }) {
   if (!p.abstain && !p.firstYear && c.seasons) bits.push(`${c.seasons} seasons · ${c.wins}–${c.losses} · ${c.titles && c.titles.length ? c.titles.length + ' title' + (c.titles.length === 1 ? '' : 's') : 'still hunting a ring'}.`);
   return (
     <div className="ocard">
-      <div className="ohead"><h3 className="ohead__n">{p.name}</h3><span className="pill">{titles}</span></div>
+      <div className="ohead"><h3 className="ohead__n">{whoLabel(p.name)}</h3><span className="pill">{titles}</span></div>
       {bits.length ? <p className="oread">{bits.join(' ')}</p> : null}
       {c.seasons ? (
         <div className="stats" style={{ margin: '12px 0' }}>
@@ -202,7 +202,7 @@ export default function LeagueView() {
   const select = (n) => { state.selectedOwner = n; store.emit(); };
   const table = ident.people.slice().sort((a, b) => (a.career && a.career.avgFinish || 99) - (b.career && b.career.avgFinish || 99) || a.name.localeCompare(b.name));
   const valueRows = (list, cls) => (list || []).slice(0, 6).map((v, i) => (
-    <tr key={i}><td className="num">{String(v.season)}</td><td>{v.owner}</td><td>{v.player}</td><td className="r num">{'$' + v.price}</td><td className={'r num ' + cls}>{String(v.ppd)}</td></tr>));
+    <tr key={i}><td className="num">{String(v.season)}</td><td>{whoLabel(v.owner)}</td><td>{v.player}</td><td className="r num">{'$' + v.price}</td><td className={'r num ' + cls}>{String(v.ppd)}</td></tr>));
 
   return (
     <Page title={title} sub={sub}>
@@ -217,7 +217,7 @@ export default function LeagueView() {
       <section className="card">
         <div className="card__head"><h2>Championship lineage</h2><span className="sub">Who actually finished the job</span></div>
         <div className="ribbonwrap"><div className="ribbon">{(lore.champions || []).map((c) => (
-          <div key={c.year} className="champ"><div className="champ__y">{String(c.year)}</div><div className="champ__n">{c.owner}</div></div>))}</div></div>
+          <div key={c.year} className="champ"><div className="champ__y">{String(c.year)}</div><div className="champ__n">{whoLabel(c.owner)}</div></div>))}</div></div>
       </section>
 
       <Achievements groups={[
@@ -243,7 +243,7 @@ export default function LeagueView() {
             return (
               <tr key={p.id} className={p.name === state.config.you ? 'me' : ''} onClick={() => select(p.name)}>
                 <td className="rank">{String(i + 1)}</td>
-                <td><div className="who-cell"><span style={{ fontWeight: 600 }}>{p.name}</span>{badges.length ? <span className="pills">{badges}</span> : null}</div></td>
+                <td><div className="who-cell"><span style={{ fontWeight: 600 }}>{whoLabel(p.name)}</span>{badges.length ? <span className="pills">{badges}</span> : null}</div></td>
                 <td className="r num hide-m">{String(c.seasons || 0)}</td>
                 <td className="r num">{String(c.titles ? c.titles.length : 0)}</td>
                 <td className="r num">{fmtFinish(c.avgFinish)}</td>

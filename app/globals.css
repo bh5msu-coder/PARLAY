@@ -1,7 +1,7 @@
-/* Sunday Ledger tokens, dark primary, light mirror */
+/* Gridiron Deco tokens (from the Our Holm League emblem): navy ground, teal primary, amber second. Dark primary, light mirror. */
 :root{
   --surface-0:#0b0f14;--surface-100:#131a22;--surface-200:#1b2430;--line:#263241;--line-strong:#5b6b7f;
-  --ink:#e8edf2;--ink-muted:#8b99a8;--brand:#4d8bff;--on-brand:#06101f;--focus:var(--brand);
+  --ink:#e8edf2;--ink-muted:#8b99a8;--brand:#34d8b0;--on-brand:#06101f;--accent2:#f5c542;--focus:var(--accent2);
   --win:#34d8b0;--win-tint:#0f2e29;--loss:#e5484d;--loss-tint:#2e1416;--pending:#6ea8ff;--push:var(--ink-muted);
   --font-display:var(--f-display),"Barlow Condensed","Arial Narrow",sans-serif;--font-sans:var(--f-sans),"Barlow",system-ui,sans-serif;--font-mono:var(--f-mono),"IBM Plex Mono",ui-monospace,monospace;
   --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;
@@ -9,7 +9,7 @@
 }
 :root[data-theme="light"]{
   --surface-0:#f4f6f8;--surface-100:#ffffff;--surface-200:#eaeef2;--line:#d5dce3;--line-strong:#7c8896;
-  --ink:#0f1720;--ink-muted:#526070;--brand:#1f5fe0;--on-brand:#ffffff;
+  --ink:#0f1720;--ink-muted:#526070;--brand:#0b7262;--on-brand:#ffffff;--accent2:#8a6100;--focus:#8a6100;
   --win:#087a4d;--win-tint:#e2f5ec;--loss:#c8322d;--loss-tint:#fbe5e4;--pending:#2b6cd9;
 }
 *{box-sizing:border-box}
@@ -117,14 +117,14 @@ table{width:100%;border-collapse:collapse}
 th{font:600 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);text-align:left;padding:8px 12px;background:var(--surface-200);white-space:nowrap}
 td{padding:10px 12px;border-top:1px solid var(--line);white-space:nowrap}
 .r{text-align:right}
-.rank{font:600 18px/24px var(--font-display);color:var(--ink-muted);width:28px}
+.rank{font:600 18px/24px var(--font-display);color:var(--ink-muted);min-width:36px;white-space:nowrap}
 tr.me td{background:var(--surface-200)}
 tr.me .rank{color:var(--brand)}
 
 .empty{padding:24px 16px;color:var(--ink-muted)}
 .notice{padding:10px 16px;font-size:13px;line-height:18px;color:var(--ink-muted);border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}
 
-.bottomnav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(7,1fr);background:var(--surface-100);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface-100);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:10}
 .bottomnav a{text-decoration:none;text-align:center;padding:10px 2px;font:600 10px/13px var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-muted);border-radius:var(--radius-sm);min-height:44px;display:flex;align-items:center;justify-content:center}
 .bottomnav a[aria-current="page"]{color:var(--brand)}
 @media (min-width:720px){.bottomnav{display:none}body{padding-bottom:0}.desknav{display:flex!important}}
@@ -306,3 +306,24 @@ tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
 .pill--paid{border-color:var(--win);color:var(--win);text-transform:none;letter-spacing:0}
 .payrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
 .payrow:first-child{border-top:0}
+
+/* Gridiron Deco chrome: an amber hairline under the header, the emblem's second color. */
+.topbar{box-shadow:inset 0 -2px 0 color-mix(in srgb,var(--accent2) 55%,transparent)}
+/* More menu: secondary pages behind one button (bottom bar on phones, header on desktop). */
+.more{position:relative}
+.more>summary{list-style:none;cursor:pointer}
+.more>summary::-webkit-details-marker{display:none}
+.more__list{position:absolute;z-index:30;display:flex;flex-direction:column;min-width:170px;padding:6px;background:var(--surface-100);border:1px solid var(--line-strong);border-radius:var(--radius-md)}
+.more__list a{padding:10px 12px;border-radius:var(--radius-sm);text-decoration:none;color:var(--ink);font:600 14px/18px var(--font-sans)}
+.more__list a:hover,.more__list a[aria-current="page"]{background:var(--surface-200);color:var(--brand)}
+.more--down>summary{padding:6px 10px;font:600 13px/18px var(--font-sans);color:var(--ink-muted);border-radius:var(--radius-pill)}
+.more--down>summary[aria-current="page"]{color:var(--ink)}
+.more--down .more__list{right:0;top:calc(100% + 6px)}
+.bottomnav .more>summary{display:block;text-align:center;padding:10px 2px;font:600 10px/13px var(--font-sans);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-muted)}
+.bottomnav .more>summary[aria-current="page"]{color:var(--brand)}
+.more--up .more__list{right:6px;bottom:calc(100% + 8px)}
+.bottomnav .more{display:flex;align-items:stretch;justify-content:center}
+.bottomnav .more>summary{display:flex;align-items:center;justify-content:center;width:100%}
+
+/* Tied ranks (T-1) never break at the hyphen, even where phone tables wrap cells. */
+table td.rank:not(.num){white-space:nowrap;min-width:40px}
