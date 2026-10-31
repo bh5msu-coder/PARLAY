@@ -9,6 +9,9 @@ import { calcSeasonElo } from '../lib/elo.mjs';
 import { calcParlayStats, hitPct, SMALL_N } from '../lib/history-stats.mjs';
 
 import InfoTip, { SmallSample } from './InfoTip';
+import PaymentChips from './PaymentChips';
+import { paymentsByWeek, paymentTotal } from '../lib/payments.mjs';
+import { fmtMoney } from '../lib/format.mjs';
 import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
 import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
@@ -19,7 +22,23 @@ import { reconcile } from '../lib/reconcile.mjs';
 const SampleTag = ({ n }) => <SmallSample n={n} threshold={SMALL_N} />;
 const TYPE_LAB = { ml: 'Moneyline', spread: 'Spread', total: 'Game total', player: 'Player prop' };
 
-function History({ data, selectedOwner, weeks }) {
+/** Money recorded as paid in, by week. Weeks that are only in the history (like Week 4) show here too. */
+function PaymentsCard({ payments }) {
+  const byWeek = paymentsByWeek(payments);
+  const nums = Object.keys(byWeek).map(Number).sort((a, b) => a - b);
+  return (
+    <section className="card">
+      <div className="card__head"><h2>Payments recorded</h2><span className="sub">{nums.length ? `${fmtMoney(paymentTotal(payments))} across ${nums.length} ${nums.length === 1 ? 'week' : 'weeks'}` : 'none yet'}</span></div>
+      <div className="card__body">
+        {nums.length ? nums.map((n) => (
+          <div key={n} className="payrow"><span className="label">{`Week ${n}`}</span><PaymentChips payments={byWeek[n]} /><span className="small muted">{fmtMoney(paymentTotal(byWeek[n]))}</span></div>
+        )) : <div className="empty">No payments are recorded yet.</div>}
+      </div>
+    </section>
+  );
+}
+
+function History({ data, selectedOwner, weeks, payments }) {
   const S = calcParlayStats(data, whoLabel);
   const wins = S.decided.filter((l) => l.result === 'win').length;
   const closest = S.graded.slice().sort((a, b) => a.record.loss - b.record.loss)[0];
@@ -44,6 +63,7 @@ function History({ data, selectedOwner, weeks }) {
         <KpiCard label="Stakes listed" value={'$' + stake} note="Graded tickets · the history does not record who paid · $0 recorded back" />
       </section>
 
+      <PaymentsCard payments={payments} />
       <DiscrepancyCard result={reconcile({ weeks }, data)} />
       <TicketSection tickets={historyTickets(data)} sourceNote="parlay-history.json (read-only)" />
       <SelectionCharts legs={historyLegs(data)} sourceNote="parlay-history.json (read-only) · decided picks only" />
@@ -165,7 +185,7 @@ export default function BetsView() {
     <Page title="Parlay history" sub="Weekly $10 group parlay · 11–12 leg tickets only">
       {!loaded ? null : !data
         ? <div className="card"><div className="empty">Parlay history did not load.</div></div>
-        : <History data={data} selectedOwner={state.selectedOwner} weeks={state.weeks} />}
+        : <History data={data} selectedOwner={state.selectedOwner} weeks={state.weeks} payments={state.payments} />}
     </Page>
   );
 }

@@ -295,3 +295,8 @@ tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
 .badge__detail{font-size:14px}
 .badge__what{font-size:12px;line-height:16px}
 .recap{white-space:pre-wrap}
+
+.paychips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill--paid{border-color:var(--win);color:var(--win);text-transform:none;letter-spacing:0}
+.payrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.payrow:first-child{border-top:0}
