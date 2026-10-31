@@ -10,6 +10,32 @@ import { seasonRecord } from '../lib/standings.mjs';
 import { weekStates, weekMoney } from '../lib/model.mjs';
 import { rule } from '../lib/rules.mjs';
 import InfoTip from './InfoTip';
+import { buildRecap } from '../lib/recap.mjs';
+import { weeklyLegs, weeklyTickets } from '../lib/stats.mjs';
+import { toast } from '../lib/clients.mjs';
+import { DEFAULT_CHAT_URL } from '../lib/pick-form.mjs';
+
+/** Recap of a settled week (busted or cashed). Open or unrecorded weeks get no recap. */
+function RecapCard({ week, state }) {
+  const t = weeklyTickets([week], state.graded)[0];
+  const legs = weeklyLegs([week], state.graded);
+  const r = buildRecap(Object.assign({}, t, { legs }), 'data/bets.json');
+  if (!r.settled) return null;
+  const share = () => window.open('https://wa.me/?text=' + encodeURIComponent(r.text + '\n\nHolm chat: ' + (state.config.chat || DEFAULT_CHAT_URL)), '_blank');
+  const copy = async () => { try { await navigator.clipboard.writeText(r.text); toast('Recap copied'); } catch (e) { toast('Copy failed'); } };
+  return (
+    <section className="card">
+      <div className="card__head"><h2>{r.title}</h2><span className="sub">From recorded results · data/bets.json</span></div>
+      <div className="card__body">
+        <p className="recap">{r.text}</p>
+        <div className="inline">
+          <button className="btn btn--secondary btn--sm" type="button" onClick={share}>Share to WhatsApp</button>
+          <button className="btn btn--ghost btn--sm" type="button" onClick={copy}>Copy</button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 const TICKET_TEXT = {
   proposed: 'Proposed — not placed at a sportsbook',
@@ -183,11 +209,14 @@ export default function WeekView() {
           <div className="notice"><Link href="/pick">Open the pick board</Link></div>
         </section>
       ) : (
+        <>
+        <RecapCard week={week} state={state} />
         <section className="card">
           <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable; showing what we have.' : 'Scores refresh every 45 seconds during games.'}</span></div>
           <ol className="legs">{rows}</ol>
           <div className="notice"><span>{week.note || ''}</span><span>{week.book ? `Book: ${week.book}` : ''}</span></div>
         </section>
+        </>
       )}
     </Page>
   );
