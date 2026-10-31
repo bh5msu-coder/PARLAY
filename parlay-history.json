@@ -228,6 +228,7 @@
    "season": 2026,
    "week": 4,
    "label": "Week 4 (double stake)",
+   "toPay": 7093,
    "legs": [
     {
      "who": "Brad Holm",
@@ -418,7 +419,7 @@
    "placedBy": "Joseph McKeon",
    "payer": "Joseph McKeon + Kyle Heller",
    "source": "chat L489-519 (pick list, two slip photos), L562-586 (in-game)",
-   "notes": "$20 stake because Week 3 was never placed (Joey forgot, L383-424).",
+   "notes": "$20 stake because Week 3 was never placed (Joey forgot, L383-424). Slip shows to pay $7,093 (Auction House Parlays 2026 spreadsheet).",
    "record": {
     "win": 8,
     "loss": 3,
