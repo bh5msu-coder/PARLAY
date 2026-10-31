@@ -24,7 +24,7 @@ test('recap never reports unknown legs as wins or losses', () => {
   const r = buildRecap({ week: 4, result: 'busted', stake: 20, legs: [L(4, 'Brad Holm', 'lost'), L(4, 'Joe Mckeon', 'won'), L(4, 'Kyle McFadden', 'unknown')] }, 'test');
   assert.equal(r.settled, true);
   assert.match(r.text, /busted, 1–1\./);
-  assert.match(r.text, /1 pick with no recorded result: Worst Team Kyle — left out of the count/);
+  assert.match(r.text, /1 pick with no recorded result: One-Eyed Bandit — left out of the count/);
   assert.doesNotMatch(r.text.split('Came through:')[1].split('.')[0], /Kyle/);
 });
 

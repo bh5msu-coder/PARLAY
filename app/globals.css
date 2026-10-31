@@ -304,6 +304,9 @@ tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
 
 .paychips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .pill--paid{border-color:var(--win);color:var(--win);text-transform:none;letter-spacing:0}
+.pill--open{border-style:dashed;border-color:var(--accent2);color:var(--ink);text-transform:none;letter-spacing:0}
+.iou--open{color:var(--accent2);font-weight:600}
+@media (max-width:719px){.iou-table th,.iou-table td{padding:8px 6px}.iou-table td:first-child{white-space:normal}}
 .payrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
 .payrow:first-child{border-top:0}
 
