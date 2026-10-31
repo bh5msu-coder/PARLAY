@@ -1,7 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "regions": ["cle1"],
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "outputDirectory": ".next",
+  "regions": [
+    "cle1"
+  ],
   "headers": [
     {
       "source": "/league-lore.json",
@@ -19,12 +23,6 @@
           "key": "Cache-Control",
           "value": "public, max-age=86400, stale-while-revalidate=604800"
         }
-      ]
-    },
-    {
-      "source": "/lib/(.*).mjs",
-      "headers": [
-        { "key": "Content-Type", "value": "text/javascript; charset=utf-8" }
       ]
     }
   ]

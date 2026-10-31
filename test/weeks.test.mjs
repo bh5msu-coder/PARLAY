@@ -112,11 +112,11 @@ test('a live leg with no recorded result is not invented here', () => {
 });
 
 test('season Elo does not read weekly legs', () => {
-  const src = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
-  const start = src.indexOf('function calcSeasonElo');
-  const end = src.indexOf('function fmtElo');
-  assert.ok(start > 0 && end > start);
-  const fn = src.slice(start, end);
+  const src = fs.readFileSync(new URL('../lib/elo.mjs', import.meta.url), 'utf8');
+  const start = src.indexOf('export function calcSeasonElo');
+  assert.ok(start > 0);
+  const fn = src.slice(start);
   assert.match(fn, /const K = 8, START = 1500/);
-  assert.doesNotMatch(fn, /state\.weeks|leg\.result|gradeStoredWeek/);
+  assert.match(fn, /K \* \(s - e\) \/ \(field\.length - 1\)/);
+  assert.doesNotMatch(src, /weeks\.mjs|state\.weeks|leg\.result|gradeStoredWeek/);
 });

@@ -8,26 +8,41 @@ Live weekly parlay tracker for Our Holm League.
 - A push to `main` deploys to production at https://holm-parlay.vercel.app.
 - Every PR gets a preview deployment, and the Vercel bot comments the link on the PR.
 - Vercel reports each deploy back as a **commit status** named `Vercel`. The repo's GitHub "Deployments" panel stays empty because this project doesn't create GitHub Deployment objects. That's expected and doesn't mean the link is broken.
-- The functions run in `cle1` (see `vercel.json`).
+- `vercel.json` sets the framework to Next.js and runs the functions in `cle1`.
 
 **Environment variables.** Set these in Vercel → Project → Settings → Environment Variables. `.env.example` lists them with placeholder values. Never commit real values.
 
 | Variable | Required | Read in | What breaks without it |
 |---|---|---|---|
-| `ESPN_S2` | yes | `api/espn.js` | The private fantasy league can't load: no last-place payer and no ESPN standings. `/api/espn?path=ffl` returns 401. |
-| `ESPN_SWID` | yes | `api/espn.js` | Same as `ESPN_S2`. Both are cookies from a logged-in espn.com session. |
-| `ESPN_LEAGUE_ID` | no | `api/espn.js` | Nothing. It defaults to `182263`. |
-| `SUPABASE_URL` | no | `api/pick.js` | Nothing. It falls back to the project URL hardcoded in `api/pick.js` and `app.js`. |
-| `SUPABASE_ANON_KEY` (or `SUPABASE_KEY`) | no | `api/pick.js` | Nothing. It falls back to the publishable key hardcoded in the same files. |
+| `ESPN_S2` | yes | `pages/api/espn.js` | The private fantasy league can't load: no last-place payer and no ESPN standings. `/api/espn?path=ffl` returns 401. |
+| `ESPN_SWID` | yes | `pages/api/espn.js` | Same as `ESPN_S2`. Both are cookies from a logged-in espn.com session. |
+| `ESPN_LEAGUE_ID` | no | `pages/api/espn.js` | Nothing. It defaults to `182263`. |
+| `SUPABASE_URL` | no | `pages/api/pick.js` | Nothing. It falls back to the project URL hardcoded in `pages/api/pick.js` and `lib/clients.mjs`. |
+| `SUPABASE_ANON_KEY` (or `SUPABASE_KEY`) | no | `pages/api/pick.js` | Nothing. It falls back to the publishable key hardcoded in the same files. |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | no | `lib/clients.mjs` (browser) | Nothing. They override the browser's Supabase project. Set them only if you move projects. |
 
 **Health check.** `GET /api/health` returns which of the variables above are set, as booleans only, never their values. It also returns the deployed commit and a list of problems. `"ok": true` means ESPN is configured.
 
-**Supabase.** `supabase/picks.sql` documents the two tables and the auto-commit RPC used by `api/pick.js`. It was rebuilt from the code and checked against the live tables. Read its header before running it. The commissioner RPCs (`holm_parlay_check_pass`, `holm_parlay_save_week`, `holm_parlay_delete_week`) exist only in the live database.
+**Supabase.** `supabase/picks.sql` documents the two tables and the auto-commit RPC used by `pages/api/pick.js`. It was rebuilt from the code and checked against the live tables. Read its header before running it. The commissioner RPCs (`holm_parlay_check_pass`, `holm_parlay_save_week`, `holm_parlay_delete_week`) exist only in the live database.
 
 **Local dev.**
-1. Copy `.env.example` to `.env.local`.
-2. Run `npm test` and `npm run check`.
-3. Run `vercel dev` (Vercel CLI) to serve the site and the `api/` functions together.
+1. Run `npm install`.
+2. Copy `.env.example` to `.env.local`.
+3. Run `npm run dev` and open http://localhost:3000. It serves the pages and `/api/*`.
+4. Run `npm test` for the unit tests, and `npm run check` for the syntax checks plus `next build`.
+
+## Code layout
+
+The site is a Next.js App Router app written in JavaScript, with no TypeScript and no extra frameworks.
+
+| Path | What it holds |
+|---|---|
+| `app/<page>/page.js` | One route per tab: `/week`, `/pick`, `/standings`, `/league`, `/bets`, `/chat`, `/commissioner`. `/` redirects to `/week` and maps old `#hash` links (`#history` → `/bets`, `#admin` → `/commissioner`). |
+| `components/*View.js` | The client component for each page. `LeagueProvider` and `Topbar` are shared by every page. |
+| `lib/*.mjs` | Pure logic shared by the pages, the API routes and the tests: grading, standings, Elo, history stats, the NFL clock, the pick form and the league store. |
+| `pages/api/*.js` | Serverless API routes: `espn`, `pick` and `health`. |
+| `app/data/bets.json`, `app/league-lore.json`, `app/parlay-history.json` | GET-only routes that serve the JSON files at their old URLs. They are read-only and bundled at build time, so data edits ship with the next deploy. |
+| `public/` | Icons and the PWA manifest. |
 
 ### Integration audit (2026-10-30)
 - **GitHub ↔ Vercel: working.** Every recent commit on `main` has a successful `Vercel` status, and production serves the current `main` build.
@@ -38,13 +53,76 @@ Live weekly parlay tracker for Our Holm League.
   - `/api/pick` has no auth, so anyone can submit or overwrite a manager's pick.
   - The publishable Supabase key is hardcoded as a fallback. Publishable keys are designed to be public, but they still allow whatever RLS permits.
 
+## Data model (schemaVersion 2)
+
+`lib/model.mjs` defines the model, and the same shapes exist as tables in `supabase/migrations/002_expanded_model.sql`.
+
+| Record | Where it lives | Notes |
+|---|---|---|
+| Player | `league-lore.json` people → `holm_players` | id, name, nick, aliases, parlay, abstain |
+| Week | `data/bets.json` weeks | The only record that adds or grades a week |
+| Leg | `week.legs` (synced one way to `holm_legs`) | Status is `open`, `won`, `lost`, `unknown`, `void` or `push`. Each leg also has a confidence label (`espn-final`, `espn-consensus-line` or `inferred-margin`, history only) and a source. |
+| Pick (saved) | `holm_parlay_picks` | A saved selection. **It is not a placed bet.** |
+| Contribution (recorded) | `week.contributions` / `holm_payments` | Money someone put in. **It does not mean the ticket was placed.** |
+| Ticket | `week.ticket` / `holm_tickets` | State is `proposed`, `placed` or `settled`, plus an `evidence` string saying how we know |
+| Payout | `week.payouts` / `holm_payouts` | Money a book actually paid. A slip's `toPay` is always hypothetical. |
+
+**Ticket state comes from evidence only.**
+- A full set of saved picks is `proposed`.
+- `placed` needs slip odds plus a to-pay amount, or a fully matched slip import.
+- `settled` means placed and every leg decided.
+- Graded legs alone never mark a ticket placed. That's why Week 5 is `proposed`: its results are recorded, but there's no slip data.
+
+**Migration.** Run `node scripts/migrate-bets-v2.mjs` (or `--check` in CI). It's idempotent and only adds fields: `schemaVersion`, `ticket`, and empty `contributions` and `payouts` arrays. It never changes a leg, result, stake or payer, and it never reads `parlay-history.json`. For Supabase, run `supabase/picks.sql` and then `supabase/migrations/002_expanded_model.sql`. Nothing has been applied to the live database.
+
+**Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
+
+## Importing picks and slips
+
+**WhatsApp** (Pick tab → From WhatsApp). Paste an export (Export chat → Without media) or a few lines. `/api/pick` parses it with `lib/import/whatsapp.mjs`.
+- **Formats:** iOS and Android export lines, HOLM PICK blocks, and pipe or `Name: pick` one-liners.
+- **Names:** must be an exact name, nickname or alias. Close spellings are not matched.
+- **Games:** a pick needs a game written as `AWAY at HOME`. A moneyline or spread must name one of the two teams.
+- **Week numbers:** a HOLM PICK block marked for another week is rejected.
+- **Unreadable lines:** these, and unknown names, come back with line numbers and are not saved.
+- **Source:** every saved pick records author, message time, line number and a hash of the message.
+
+**Dedupe** (`lib/import/dedupe.mjs`). Picks are keyed on (season, week, manager).
+- **Duplicates:** the same message twice, or the same market, are dropped.
+- **Conflicts:** a different pick from the same manager is a conflict. The `importConflict` rule decides what happens. Its default is `flag`: nothing is overwritten.
+- **Import log:** every outcome is written to `holm_import_records` once migration 002 has been run.
+
+**Sportsbook slips** (Commissioner → Sportsbook slip). Paste slip text or JSON. `lib/import/slip.mjs` matches each slip leg to one pick by team, player, side and line.
+- **Unmatched or ambiguous legs** are listed, never guessed.
+- **Placement evidence:** only a slip where every leg and every pick matched counts. For weeks stored in data/bets.json, the tool prints the `ticket` JSON to add to the file.
+
+## Open rule questions for the commissioner
+
+The site has not been told these rules, so each one is a placeholder in `lib/rules.mjs`. Undecided rules show as "Commissioner hasn't decided" and are never hardcoded. Answer these before the site handles real money:
+
+1. **payoutSplit**: How is a cashed payout split: evenly among the 11 pickers, all to the payer, or something else?
+2. **lastPlaceTie**: Who pays if two managers tie for last place in the prior fantasy week?
+3. **splitStake**: Can a week's stake be split between payers (Week 4 shows "Joseph McKeon + Kyle Heller")? If so, how is it recorded?
+4. **rollover**: When a ticket is not placed, does the stake roll over (Week 3 → Week 4 at $20)? Always, or only by vote?
+5. **pickDeadline**: When are picks due: first kickoff of the week, first kickoff of the picked game, or a fixed time?
+6. **editsAndLocks**: Can a manager change a pick after saving it? Until when? Who can unlock?
+7. **pushHandling**: If a leg pushes, does it drop from the parlay (odds recalculated) or count as a loss for attribution?
+8. **voidHandling**: If a leg is voided (player inactive, game postponed), is it dropped, replaced, or does the manager owe a new pick?
+9. **missingPicks**: If fewer than 11 picks are in by the deadline, is the ticket placed short, held, or does someone pick for the missing manager?
+10. **eligibility**: Who may opt out of a week or the season, and does opting out change who pays?
+11. **disputes**: How is a disputed grade or pick settled, and who has the final say?
+12. **placementProof**: Who places the ticket, and what counts as proof it was placed (slip photo, book screenshot)?
+13. **books**: Which books are allowed, who chooses, and do boosts or promos count toward the payout?
+14. **contributionTiming**: When is the stake due from the payer, and how is it marked as paid?
+15. **importConflict**: When an imported pick conflicts with a saved one, which wins: the saved pick, the newest message, or neither until the commissioner decides?
+
 ## Weekly tape (`data/bets.json`)
 
 Wins and losses live only in `data/bets.json`. That file is the only place a week is added or graded. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into this file.
 
 ## Parlay history (`parlay-history.json`)
 
-`parlay-history.json` is a static, read-only record of the weekly $10 group parlay. The **Bets** tab (`#history`) builds its stats from that file. Nothing is written to Supabase.
+`parlay-history.json` is a static, read-only record of the weekly $10 group parlay. The **Bets** tab (`/bets`) builds its stats from that file. Nothing is written to Supabase.
 
 **How it was built**
 - Source: the "Our Holm League" WhatsApp export (7/31/26 to 10/29/26). Each parlay has a `source` field with line refs (`L###`).

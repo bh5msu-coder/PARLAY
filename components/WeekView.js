@@ -1,0 +1,154 @@
+'use client';
+import Link from 'next/link';
+import { useLeague } from './LeagueProvider';
+import { Page } from './Topbar';
+import { StatusBadge } from './ui';
+import { fmtMoney, fmtOdds } from '../lib/format.mjs';
+import { sitHandle, whoLabel } from '../lib/ident.mjs';
+import { summarizeParlay } from '../lib/weeks.mjs';
+import { seasonRecord } from '../lib/standings.mjs';
+
+const TYPE_LABEL = { ml: 'Moneyline', spread: 'Spread', total: 'Total', player: 'Player prop', tbd: 'Not posted' };
+
+function LegRow({ g, week, dead }) {
+  const leg = g.leg;
+  const typeLabel = TYPE_LABEL[leg.type] || leg.type;
+  const game = (leg.game || []).filter(Boolean).join(' at ');
+  const inGroup = leg.group && week.groups && week.groups[leg.group];
+  const showCur = g.current != null && (g.state === 'live' || g.state === 'won' || g.state === 'lost');
+  return (
+    <li className={'leg' + (dead && g.state !== 'won' && g.state !== 'lost' && g.state !== 'push' ? ' leg--dead' : '')}>
+      <span className="leg__who">{whoLabel(leg.who)}</span>
+      <div>
+        <div className="leg__pick">{leg.label || ''}</div>
+        <div className="leg__market">{game ? `${typeLabel} · ${game}` : typeLabel}</div>
+      </div>
+      <div className="leg__game">
+        <span>{g.detail || ''}</span>
+        {showCur ? <span className="cur">{String(g.current)}</span> : null}
+      </div>
+      <div className="leg__right">
+        <span className="leg__odds num">{inGroup ? 'SGP' : fmtOdds(leg.odds)}</span>
+        <StatusBadge state={g.state} />
+      </div>
+    </li>
+  );
+}
+
+function WeekTabs({ store }) {
+  const { state } = store;
+  return (
+    <div className="tabs" role="tablist" aria-label="Weeks">
+      {store.weekTabNumbers().map((n) => (
+        <button key={n} className="tab" role="tab" type="button" aria-selected={n === state.selectedWeek ? 'true' : 'false'} onClick={() => store.selectWeek(n)}>{'Wk ' + n}</button>
+      ))}
+    </div>
+  );
+}
+
+export default function WeekView() {
+  const store = useLeague();
+  const { state } = store;
+  if (!state.ready) return <Page title="Parlay" />;
+  const n = state.selectedWeek || (state.nfl && state.nfl.active);
+  const week = (n && store.weekRecord(n)) || (state.weeks.length ? state.weeks[state.weeks.length - 1] : null);
+  if (!week) {
+    return (
+      <Page title="No tickets yet" sub="The commissioner adds the first week from the Commissioner tab.">
+        <div className="card"><div className="empty">No weeks yet. Add the current NFL week from the Commissioner tab.</div></div>
+      </Page>
+    );
+  }
+  const gr = state.graded[week.week];
+  const legs = week.legs || [];
+  const pending = !!week.pendingTicket || !legs.length;
+  const participants = legs.length || (state.config.roster || []).length || 11;
+  const share = week.toPay ? week.toPay / participants : null;
+  const payer = store.weekPayer(week);
+  const kick = store.weekKickNote(week.week);
+  const s = gr ? gr.summary : null;
+  const hold = week.results === 'unknown' || week.results === 'pending';
+
+  let statusEl;
+  if (pending && !s) statusEl = <span className="status status--pending">Waiting on the ticket</span>;
+  else if (!s) statusEl = <span className="status status--pending">Loading scores</span>;
+  else if (s.state === 'busted') statusEl = <span className="status status--lost">{`Busted · killed by ${s.killers.map((k) => whoLabel(k)).join(', ')}`}</span>;
+  else if (s.state === 'cashed') statusEl = <span className="status status--won">{`Cashed · ${fmtMoney(week.toPay)}`}</span>;
+  else if (hold) statusEl = <span className="status status--unknown">{`Unknown · ${s.pending} of ${s.total} not graded`}</span>;
+  else statusEl = <span className={'status status--' + (s.live ? 'live' : 'pending')}>{`${s.state === 'live' ? 'Live' : 'Open'} · ${s.won} of ${s.total} hit`}</span>;
+  const gradeNote = gr && gr.fetchedAt ? 'Updated ' + new Date(gr.fetchedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : hold ? 'Results not recorded' : gr && gr.fromLock ? 'Recorded result' : '';
+
+  // legs, with same-game parlays grouped under a header row
+  const dead = s && s.state === 'busted';
+  const graded = gr ? gr.graded : legs.map((leg) => ({ leg, state: 'pending', detail: 'Loading…' }));
+  const groups = week.groups || {};
+  const done = new Set();
+  const rows = [];
+  for (const g of graded) {
+    const gid = g.leg.group;
+    if (gid && groups[gid] && !done.has(gid)) {
+      done.add(gid);
+      const members = graded.filter((x) => x.leg.group === gid);
+      const gs = summarizeParlay(members);
+      rows.push(
+        <li key={'g-' + gid} className="leg leg--group">
+          <span className="label">{groups[gid].label || 'Same-game parlay'}</span>
+          <span className="muted" style={{ fontSize: 13 }}>Same-game parlay, priced as one leg</span>
+          <span className="muted" style={{ fontSize: 13 }}>{(members[0].leg.game || []).join(' at ')}</span>
+          <span className="num leg__odds" style={{ textAlign: 'right' }}>{fmtOdds(groups[gid].odds)}</span>
+          <span style={{ textAlign: 'right' }}><StatusBadge state={gs.state === 'busted' ? 'lost' : gs.state === 'cashed' ? 'won' : gs.live ? 'live' : 'pending'} /></span>
+        </li>);
+      members.forEach((m, i) => rows.push(<LegRow key={'g-' + gid + '-' + (m.leg.id || i)} g={m} week={week} dead={dead} />));
+    } else if (!gid || !groups[gid]) {
+      rows.push(<LegRow key={g.leg.id || 'leg-' + rows.length} g={g} week={week} dead={dead} />);
+    }
+  }
+
+  return (
+    <Page title={`Week ${week.week} parlay`} sub={pending ? 'Picks are open' : `${participants}-way split`}>
+      <WeekTabs store={store} />
+      {kick ? <p className="rules rules--warn">{kick}</p> : null}
+      {state.dataConflicts && state.dataConflicts.length
+        ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
+        : null}
+
+      <section className="card banner">
+        <div>
+          <span className="label">Payer</span>
+          <span className="big">{payer ? `${whoLabel(payer)} pays ${fmtMoney(week.stake || 10)}` : `Stake ${fmtMoney(week.stake || 10)} · payer not recorded`}</span>
+          <span className="small">{store.weekPayerNote(week)}</span>
+        </div>
+        <div>
+          <span className="label">Ticket</span>
+          <span className="big">{pending ? 'Not placed yet' : `${legs.length} legs · placed by ${week.placedBy ? whoLabel(week.placedBy) : '—'}`}</span>
+          <span className="small">{(state.config.abstain || []).length ? `${state.config.abstain.map((x) => sitHandle(x)).join(', ')} sits` : ''}</span>
+        </div>
+        <div>
+          <span className="label">Parlay status</span>
+          <div>{statusEl}</div>
+          <span className="small">{gradeNote || (pending ? 'After the previous week’s last game is final' : '')}</span>
+        </div>
+      </section>
+
+      <section className="stats" aria-label="Week stats">
+        <div className="card stat"><span className="label">Parlay odds</span><span className="stat__value">{pending ? '—' : fmtOdds(week.odds)}</span><span className="stat__delta">{`${fmtMoney(week.stake || 10)} stake`}</span></div>
+        <div className="card stat"><span className="label">Pays if it hits</span><span className="stat__value">{pending ? '—' : fmtMoney(week.toPay)}</span><span className="stat__delta">{share ? `${fmtMoney(share)} each` : ''}</span></div>
+        <div className="card stat"><span className="label">Legs settled</span><span className="stat__value">{s ? `${s.won + s.lost + s.pushes} / ${s.total}` : '–'}</span><span className="stat__delta">{s ? `${s.live} live · ${s.pending} to play` : (pending ? 'Ticket not in yet' : '')}</span></div>
+        <div className="card stat"><span className="label">Season parlays</span><span className="stat__value">{seasonRecord(state.weeks, state.graded)}</span><span className="stat__delta">cashed – busted</span></div>
+      </section>
+
+      {pending ? (
+        <section className="card">
+          <div className="empty">No ticket for this NFL week yet. Enter picks on the Pick tab — the board already moved on because last week’s games are final.</div>
+          <div className="notice"><Link href="/pick">Open the pick board</Link></div>
+        </section>
+      ) : (
+        <section className="card">
+          <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable; showing what we have.' : 'Scores refresh every 45 seconds during games.'}</span></div>
+          <ol className="legs">{rows}</ol>
+          <div className="notice"><span>{week.note || ''}</span><span>{week.book ? `Book: ${week.book}` : ''}</span></div>
+        </section>
+      )}
+    </Page>
+  );
+}
