@@ -5,9 +5,10 @@ export function StatusBadge({ state }) {
   return <span className={'status status--' + (state === 'unknown' ? 'unknown' : state)}>{STATUS_LABEL[state] || state}</span>;
 }
 
-export function KpiCard({ label, value, note }) {
+export function KpiCard({ label, value, note, size, champ }) {
+  const cls = 'card stat' + (size ? ' stat--' + size : '') + (champ ? ' stat--champ' : '');
   return (
-    <div className="card stat">
+    <div className={cls}>
       <span className="label">{label}</span>
       <span className="stat__value stat__value--name">{value}</span>
       <span className="stat__delta">{note || ''}</span>

@@ -241,17 +241,21 @@ export default function LeagueView() {
 
   return (
     <Page title={title} sub={sub}>
-      <section className="stats stats--lore">
-        <KpiCard label="Most titles" value={k.mostTitles ? whoLabel(k.mostTitles.owner) : '–'} note={k.mostTitles ? `${k.mostTitles.count} championships` : ''} />
-        <KpiCard label="Reigning champ" value={k.reigningChamp ? whoLabel(k.reigningChamp.owner) : '–'} note={k.reigningChamp ? String(k.reigningChamp.year) : ''} />
-        <KpiCard label="Longest drought" value={k.longestDrought ? whoLabel(k.longestDrought.owner) : '–'} note={k.longestDrought ? `${k.longestDrought.seasons} seasons, 0 rings` : ''} />
-        <KpiCard label="Most last places" value={k.mostLastPlaces ? whoLabel(k.mostLastPlaces.owner) : '–'} note={k.mostLastPlaces ? `${k.mostLastPlaces.count} toilet bowls` : ''} />
-        <KpiCard label="2025 PF monster" value={k.pfMonster2025 ? whoLabel(k.pfMonster2025.owner) : '–'} note={k.pfMonster2025 ? `${k.pfMonster2025.pf} pts` : ''} />
-        <KpiCard label="Best avg finish" value={h.bestAvgFinish ? whoLabel(h.bestAvgFinish.owner) : '–'} note={h.bestAvgFinish ? `${fmtFinish(h.bestAvgFinish.avgFinish)} over ${h.bestAvgFinish.seasons} seasons` : ''} />
-        <KpiCard label="Best win rate" value={h.bestWinPct ? whoLabel(h.bestWinPct.owner) : '–'} note={h.bestWinPct ? `${fmtPct(h.bestWinPct.pct)} · ${h.bestWinPct.wins}–${h.bestWinPct.losses} (${h.minSeasons}+ seasons)` : ''} />
-        <KpiCard label="Career PF leader" value={h.careerPf ? whoLabel(h.careerPf.owner) : '–'} note={h.careerPf ? `${Math.round(h.careerPf.pf).toLocaleString('en-US')} pts in ${h.careerPf.seasons} seasons` : ''} />
-        <KpiCard label="Best season PF" value={h.bestSeason ? whoLabel(h.bestSeason.owner) : '–'} note={h.bestSeason ? `${h.bestSeason.pf} pts in ${h.bestSeason.season} · ${h.bestSeason.rank === 1 ? 'won the title' : 'finished ' + h.bestSeason.rank}` : ''} />
-        <KpiCard label="Back to back" value={h.backToBack.length ? `${h.backToBack.length} repeat${h.backToBack.length === 1 ? '' : 's'}` : 'Nobody'} note={h.backToBack.length ? h.backToBack.map((x) => `${whoLabel(x.owner)} ${x.years[0]}–${String(x.years[1]).slice(2)}`).join(' · ') : 'No repeat champion yet'} />
+      <h2 className="stats__group">Champions and skill</h2>
+      <section className="stats stats--feature">
+        <KpiCard size="feature" champ label="Reigning champ" value={k.reigningChamp ? whoLabel(k.reigningChamp.owner) : '–'} note={k.reigningChamp ? String(k.reigningChamp.year) : ''} />
+        <KpiCard size="feature" champ label="Most titles" value={k.mostTitles ? whoLabel(k.mostTitles.owner) : '–'} note={k.mostTitles ? `${k.mostTitles.count} championships` : ''} />
+        <KpiCard size="feature" champ label="Back to back" value={h.backToBack.length ? `${h.backToBack.length} repeat${h.backToBack.length === 1 ? '' : 's'}` : 'Nobody'} note={h.backToBack.length ? h.backToBack.map((x) => `${whoLabel(x.owner)} ${x.years[0]}–${String(x.years[1]).slice(2)}`).join(' · ') : 'No repeat champion yet'} />
+        <KpiCard size="feature" label="Best win rate" value={h.bestWinPct ? whoLabel(h.bestWinPct.owner) : '–'} note={h.bestWinPct ? `${fmtPct(h.bestWinPct.pct)} · ${h.bestWinPct.wins}–${h.bestWinPct.losses} (${h.minSeasons}+ seasons)` : ''} />
+        <KpiCard size="feature" label="Best avg finish" value={h.bestAvgFinish ? whoLabel(h.bestAvgFinish.owner) : '–'} note={h.bestAvgFinish ? `${fmtFinish(h.bestAvgFinish.avgFinish)} over ${h.bestAvgFinish.seasons} seasons` : ''} />
+        <KpiCard size="feature" label="Career PF leader" value={h.careerPf ? whoLabel(h.careerPf.owner) : '–'} note={h.careerPf ? `${Math.round(h.careerPf.pf).toLocaleString('en-US')} pts in ${h.careerPf.seasons} seasons` : ''} />
+      </section>
+      <h2 className="stats__group">Bragging rights</h2>
+      <section className="stats stats--mini">
+        <KpiCard size="mini" label="Best season PF" value={h.bestSeason ? whoLabel(h.bestSeason.owner) : '–'} note={h.bestSeason ? `${h.bestSeason.pf} pts in ${h.bestSeason.season} · ${h.bestSeason.rank === 1 ? 'won the title' : 'finished ' + h.bestSeason.rank}` : ''} />
+        <KpiCard size="mini" label="2025 PF monster" value={k.pfMonster2025 ? whoLabel(k.pfMonster2025.owner) : '–'} note={k.pfMonster2025 ? `${k.pfMonster2025.pf} pts` : ''} />
+        <KpiCard size="mini" label="Longest drought" value={k.longestDrought ? whoLabel(k.longestDrought.owner) : '–'} note={k.longestDrought ? `${k.longestDrought.seasons} seasons, 0 rings` : ''} />
+        <KpiCard size="mini" label="Most last places" value={k.mostLastPlaces ? whoLabel(k.mostLastPlaces.owner) : '–'} note={k.mostLastPlaces ? `${k.mostLastPlaces.count} toilet bowls` : ''} />
       </section>
 
       <ParlayGlance store={store} />

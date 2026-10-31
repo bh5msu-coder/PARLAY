@@ -91,6 +91,23 @@ h2{margin:0;font:600 24px/28px var(--font-display)}
 @media (min-width:720px){.stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:24px}}
 .stats.stats--lore{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (min-width:900px){.stats.stats--lore{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}}
+/* League tiles: champions and skill large, bragging rights small. */
+.stats__group{font:600 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--eyebrow);margin:16px 0 10px}
+.stats__group:first-child{margin-top:4px}
+.stats.stats--feature,.stats.stats--mini{margin-bottom:16px}
+.stats.stats--feature{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:900px){.stats.stats--feature{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
+.stats.stats--mini{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (min-width:900px){.stats.stats--mini{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}}
+.stat--feature{padding:20px 18px;gap:6px}
+.stat--feature .stat__value--name{font-size:clamp(20px,5.8vw,34px);line-height:1.15;white-space:normal;overflow:visible}
+.stat--feature .stat__delta{font-size:14px;line-height:20px}
+.stat--champ{border-top:3px solid var(--accent2)}
+.stat--champ .label{color:var(--accent2)}
+.stat--mini{padding:10px 12px;gap:2px}
+.stat--mini .label{font-size:11px;line-height:14px}
+.stat--mini .stat__value--name{font-size:clamp(15px,4.2vw,20px);line-height:22px}
+.stat--mini .stat__delta{font-size:12px;line-height:16px}
 .stat{padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .stat__value{font:500 clamp(20px,6.4vw,30px)/36px var(--font-mono);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
 @media (min-width:720px){.stat__value{font-size:36px;line-height:40px}}
@@ -255,6 +272,8 @@ tr[onclick]{cursor:pointer}
   .banner .big{font-size:15px;line-height:20px}
   .banner .small{font-size:12px;line-height:16px}
   .stat{padding:12px 14px}
+  .stat--feature{padding:16px 14px}
+  .stat--mini{padding:10px 12px}
   .card__head{padding:12px 14px}
   .card__head .sub{display:none}
   .leg{padding:10px 14px}
