@@ -40,7 +40,7 @@ test('computing every Bets stat from history leaves data/bets.json and the histo
   assert.equal(fs.readFileSync(betsPath, 'utf8'), before, 'data/bets.json on disk unchanged');
   assert.equal(JSON.stringify(history), JSON.stringify(JSON.parse(historyText)));
   const w6 = weekly.weeks.find((w) => w.week === 6);
-  assert.ok(w6.legs.every((l) => l.result === 'unknown'), 'history grades never reach weekly legs');
+  assert.ok(w6.legs.every((l) => /ESPN|^Recorded (win|loss) · [A-Z]{2,3} \d/.test(l.detail || '')), 'weekly grades cite the ESPN final, not the history');
 });
 
 const strip = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');

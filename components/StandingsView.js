@@ -56,7 +56,8 @@ function ParlayExtras({ weeks, graded }) {
 }
 
 export default function StandingsView() {
-  const { state } = useLeague();
+  const store = useLeague();
+  const { state } = store;
   const [history, setHistory] = useState(cachedHistory());
   useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
   if (!state.ready) return <Page title="Standings" />;
@@ -69,7 +70,8 @@ export default function StandingsView() {
   const tickets = weeklyTickets(weeks, graded);
   const totals = ticketTotals(tickets);
   const killersByWeek = Object.fromEntries(weeks.map((w) => [w.week, (graded[w.week] && graded[w.week].summary.killers) || []]));
-  const stakes = weeks.reduce((a, w) => a + Number(w.stake || 10), 0);
+  const current = weeks.length ? weeks[weeks.length - 1] : null;
+  const owing = current ? store.weekPayers(current) : [];
   const totLegs = rows.reduce((a, r) => a + r.hit + r.miss, 0), totHit = rows.reduce((a, r) => a + r.hit, 0);
   const payers = {};
   for (const w of weeks) if (w.payer) payers[w.payer] = (payers[w.payer] || 0) + 1;
@@ -79,8 +81,8 @@ export default function StandingsView() {
   return (
     <Page title="Standings" sub="Ranked by leg hit rate, then fewest busts.">
       <section className="stats">
-        <div className="card stat"><span className="label">Payouts recorded <InfoTip k="payout" label="payouts recorded" /></span><span className="stat__value">{fmtMoney(totals.payouts)}</span><span className="stat__delta">{`${settled.length} of ${weeks.length} parlays settled`}</span></div>
-        <div className="card stat"><span className="label">Stakes listed <InfoTip k="stake" label="stakes listed" /></span><span className="stat__value">{fmtMoney(stakes)}</span><span className="stat__delta">{`${weeks.length} week${weeks.length === 1 ? '' : 's'} · ${fmtMoney(totals.contributions)} recorded as paid`}</span></div>
+        <div className="card stat"><span className="label">Winnings</span><span className="stat__value">{fmtMoney(totals.payouts)}</span><span className="stat__delta">{`${totals.cashed} cashed · ${settled.length} of ${weeks.length} parlays settled`}</span></div>
+        <div className="card stat"><span className="label">Owes this week</span><span className="stat__value" style={{ font: '600 26px/40px var(--font-display)', letterSpacing: 0 }}>{owing.length ? owing.map((p) => whoLabel(p)).join(' + ') : '–'}</span><span className="stat__delta">{current ? `Week ${current.week} · ${fmtMoney(current.stake || 10)} · settled on the side` : ''}</span></div>
         <div className="card stat"><span className="label">League leg hit rate <InfoTip k="hitRate" label="hit rate" /></span><span className="stat__value">{pct(totHit, totLegs)}</span><span className="stat__delta">{`${totHit} of ${totLegs} settled legs`} <SmallSample n={totLegs} /></span></div>
         <div className="card stat"><span className="label">Most frequent payer</span><span className="stat__value" style={{ font: '600 26px/40px var(--font-display)', letterSpacing: 0 }}>{topPayer ? whoLabel(topPayer[0]) : '–'}</span><span className="stat__delta">{topPayer ? `Paid ${topPayer[1]} of ${weeks.length}` : ''}</span></div>
       </section>

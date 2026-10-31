@@ -98,7 +98,7 @@ test('Weeks 2 and 4 are their own graded weeks, and Week 4 keeps its recorded sp
   const s2 = summarizeParlay(gradeStoredWeek(w2).graded);
   const s4 = summarizeParlay(gradeStoredWeek(w4).graded);
   assert.deepEqual([s2.state, s2.won, s2.lost], ['busted', 4, 8]);
-  assert.deepEqual([s4.state, s4.won, s4.lost, s4.pending], ['busted', 8, 3, 1]);
+  assert.deepEqual([s4.state, s4.won, s4.lost, s4.pending], ['busted', 8, 4, 0]);
   assert.deepEqual(w4.payers, ['Joe Mckeon', 'Kyle Heller']);
   assert.equal(w4.stake, 20);
   const disc = reconcile({ weeks: bets.weeks }, history).items.filter((i) => i.week === 2 || i.week === 4);

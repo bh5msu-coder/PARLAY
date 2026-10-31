@@ -10,7 +10,6 @@ import { seasonRecord } from '../lib/standings.mjs';
 import { weekStates, weekMoney } from '../lib/model.mjs';
 import { rule } from '../lib/rules.mjs';
 import InfoTip from './InfoTip';
-import PaymentChips from './PaymentChips';
 import { payerShare } from '../lib/league-store.mjs';
 import { buildRecap } from '../lib/recap.mjs';
 import { weeklyLegs, weeklyTickets } from '../lib/stats.mjs';
@@ -126,7 +125,7 @@ const TICKET_TEXT = {
 };
 
 /** The three separate facts about a week. None implies another. */
-function StateChips({ week, savedRows, need, config }) {
+function StateChips({ week, savedRows, need, config, payers }) {
   const st = weekStates(week, savedRows);
   const proof = 'Proof of placement: ' + rule(config, 'placementProof').text.charAt(0).toLowerCase() + rule(config, 'placementProof').text.slice(1);
   const t = st.ticket;
@@ -138,11 +137,11 @@ function StateChips({ week, savedRows, need, config }) {
         <span className="statechip__v">{`${st.picksSaved} / ${need}`}</span>
         <span className="small muted">A saved pick is not a bet.</span>
       </div>
-      <div className={'statechip' + (st.contributionsRecorded.count ? '' : ' statechip--no')}>
-        <span className="label">Contributions recorded <InfoTip k="contributions" label="contributions recorded" /></span>
-        <span className="statechip__v">{st.contributionsRecorded.count ? fmtMoney(st.contributionsRecorded.amount) : 'None recorded'}</span>
-        <span className="small muted">{`Stake listed ${fmtMoney(week.stake || 10)} · due by kickoff`}</span>
-        <PaymentChips payments={(week.contributions || []).filter((c) => c.who)} />
+      <div className="statechip">
+        <span className="label">Owes this week</span>
+        <span className="paychips">{payers.length ? payers.map((p) => (
+          <span key={p} className="pill pill--open">{`${whoLabel(p)} owes ${fmtMoney(payerShare(week.stake || 10, payers.length))}`}</span>)) : <span className="small muted">Payer not set yet</span>}</span>
+        <span className="small muted">Settled on the side, not tracked here.</span>
       </div>
       <div className={'statechip' + (placed ? '' : ' statechip--no')}>
         <span className="label">Ticket <InfoTip k="ticketState" label="ticket state" /></span>
@@ -264,7 +263,7 @@ export default function WeekView() {
       <ThisWeekCard store={store} week={week} pending={pending} s={s} payers={payers} need={participants} hold={hold} />
 
       {pending ? null : <>
-      <StateChips week={week} savedRows={savedRows} need={participants} config={state.config} />
+      <StateChips week={week} savedRows={savedRows} need={participants} config={state.config} payers={payers} />
 
       <section className="card banner">
         <div>

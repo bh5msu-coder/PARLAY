@@ -239,7 +239,7 @@ test('pick saved, contribution recorded and ticket placed are separate facts', (
 
 test('graded legs alone never mark a ticket placed', () => {
   assert.equal(deriveTicket(byWeek[5]).state, 'proposed', 'week 5 has results but no slip data');
-  assert.equal(deriveTicket(byWeek[7]).state, 'placed', 'week 7 has slip odds and to-pay');
+  assert.equal(deriveTicket(byWeek[7]).state, 'settled', 'week 7 has slip odds, to-pay and every result');
   assert.equal(deriveTicket(byWeek[8]).state, 'placed', 'week 8 has the DraftKings receipt');
   assert.equal(file.weeks.find((w) => w.week === 5).ticket.state, 'proposed', 'migrated file agrees');
 });
