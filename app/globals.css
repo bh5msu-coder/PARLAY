@@ -306,7 +306,14 @@ tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
 .pill--paid{border-color:var(--win);color:var(--win);text-transform:none;letter-spacing:0}
 .pill--open{border-style:dashed;border-color:var(--accent2);color:var(--ink);text-transform:none;letter-spacing:0}
 .iou--open{color:var(--accent2);font-weight:600}
-@media (max-width:719px){.iou-table th,.iou-table td{padding:8px 6px}.iou-table td:first-child{white-space:normal}}
+/* Phones: tables fit the screen. Tighter cells, headers and text cells wrap, numbers stay on one line. */
+@media (max-width:719px){
+  th,td{padding:8px 6px}
+  th{white-space:normal;letter-spacing:.04em;font-size:11px}
+  td{white-space:normal}
+  td:not(.r):not(.num):not(.rank){overflow-wrap:anywhere}
+  td .pill{display:inline-block;margin-top:2px;white-space:normal;text-align:center}
+}
 .payrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
 .payrow:first-child{border-top:0}
 

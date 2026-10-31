@@ -81,6 +81,8 @@ function History({ data, selectedOwner, weeks, payments, store }) {
   const wins = S.decided.filter((l) => l.result === 'win').length;
   const closest = S.graded.slice().sort((a, b) => a.record.loss - b.record.loss)[0];
   const stake = S.graded.reduce((s, p) => s + (p.stake || 0), 0);
+  const gradedWeeks = new Set(S.graded.map((p) => p.week));
+  const paidGraded = paymentTotal((payments || []).filter((p) => gradedWeeks.has(p.week)));
   const elig = S.rows.filter((r) => r.n >= 4);
   const lock = elig[0];
   const cursed = elig.slice().sort((a, b) => (a.w / a.n) - (b.w / b.n) || b.l - a.l)[0];
@@ -98,7 +100,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
         <KpiCard label="Tickets graded" value={String(S.graded.length)} note={`2026 · ${S.graded.filter((p) => p.result === 'win').length} cashed`} />
         <KpiCard label="Leg hit rate" value={hitPct(wins, S.decided.length)} note={`${wins}–${S.decided.length - wins} on decided legs`} />
         <KpiCard label="Closest call" value={closest ? closest.label : '–'} note={closest ? `${closest.record.loss} legs from cashing` : ''} />
-        <KpiCard label="Stakes listed" value={'$' + stake} note={`Graded tickets · ${paymentTotal(payments) ? fmtMoney(paymentTotal(payments)) + ' recorded paid (see IOU ledger below)' : 'no payments recorded yet'} · $0 recorded back`} />
+        <KpiCard label="Stakes listed" value={fmtMoney(stake)} note={`Graded tickets · ${paidGraded ? fmtMoney(paidGraded) + ' of it recorded paid' : 'no payments recorded yet'} · $0 recorded back`} />
       </section>
 
       <IouCard ledger={iouLedger(ledgerTickets(data, weeks, store), payments)} byWeek={paymentsByWeek(payments)} />
