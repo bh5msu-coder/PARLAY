@@ -6,11 +6,13 @@ import { ident } from '../lib/ident.mjs';
 import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
 import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
 import { PICK_API, toast } from '../lib/clients.mjs';
+import { rule } from '../lib/rules.mjs';
 
 const POLICY_TEXT = {
   flag: 'Conflicting picks are flagged and nothing is overwritten (the commissioner has not set a rule).',
   'keep-saved': 'Saved picks are kept; conflicting imports are reported.',
   latest: 'The newest message replaces a saved pick.',
+  slip: 'League rule: the pick on the placed sportsbook ticket wins. Until then, conflicting picks are flagged and nothing is overwritten.',
 };
 
 /** Result of a WhatsApp import: what was saved, skipped as duplicate, flagged as conflict, or unreadable. */
@@ -99,6 +101,7 @@ export default function PickView() {
   return (
     <Page title={`Week ${week} picks`} sub="One bet each">
       {kick ? <p className="rules rules--warn">{kick}</p> : null}
+      <p className="rules rules--info">{rule(state.config, 'pickDeadline').text + ' ' + rule(state.config, 'editsAndLocks').text}</p>
       {state.pick.setupError ? (
         <section className="card"><div className="card__body">
           <p className="rules">{state.pick.setupError}</p>
@@ -108,7 +111,7 @@ export default function PickView() {
       <section className="stats">
         <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>
         <div className="card stat"><span className="label">Heller</span><span className="stat__value stat__value--name">Sits</span><span className="stat__delta">Does not pick</span></div>
-        <div className="card stat"><span className="label">Book</span><span className="stat__value stat__value--name">MI</span><span className="stat__delta">One parlay at DK / FanDuel / BetMGM</span></div>
+        <div className="card stat"><span className="label">Book</span><span className="stat__value stat__value--name">Any</span><span className="stat__delta">One parlay · boosts encouraged · placed in MI or OH</span></div>
         <div className="card stat"><span className="label">Stake</span><span className="stat__value">$10</span><span className="stat__delta">{payer ? ident.nick(payer) + ' pays' : 'Last place last week pays'}</span></div>
       </section>
 
@@ -123,6 +126,17 @@ export default function PickView() {
               try { await navigator.clipboard.writeText(slipText(ticket, week)); toast('Bet slip copied'); } catch (e) { toast('Copy failed'); }
             }}>Copy bet slip</button>
             <Link className="btn btn--secondary" href="/week">Open week tab</Link>
+          </div>
+        </div></section>) : null}
+
+      {!ticket.complete && ticket.legs.length > 0 && rule(state.config, 'missingPicks').value === 'go-with-what-is-in' ? (
+        <section className="card"><div className="card__body">
+          <p className="rules">{`${ticket.count} of ${ticket.need} picks are in. League rule: ${rule(state.config, 'missingPicks').text} This is the slip so far — a proposed ticket, not a placed bet.`}</p>
+          <pre className="slip">{slipText(ticket, week)}</pre>
+          <div className="inline">
+            <button className="btn btn--secondary" type="button" onClick={async () => {
+              try { await navigator.clipboard.writeText(slipText(ticket, week)); toast('Slip so far copied'); } catch (e) { toast('Copy failed'); }
+            }}>Copy slip so far</button>
           </div>
         </div></section>) : null}
 
@@ -154,7 +168,7 @@ export default function PickView() {
             <div className="field"><label>Game</label>
               <select value={gameValue} onChange={(e) => { const [away, home] = e.target.value.split('|'); state.pick.form.gameAway = away || ''; setF('gameHome', home || ''); }}>
                 <option value="">Select NFL game</option>
-                {state.pick.games.map((g) => <option key={g.away + '|' + g.home} value={g.away + '|' + g.home}>{g.detail + (g.pre ? '' : ' · started')}</option>)}
+                {state.pick.games.map((g) => <option key={g.away + '|' + g.home} value={g.away + '|' + g.home} disabled={!g.pre}>{g.detail + (g.pre ? '' : ' · kicked off, locked')}</option>)}
               </select>
             </div>
             <div className="field"><label>Market</label>

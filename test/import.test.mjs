@@ -261,13 +261,22 @@ test('hit rate counts decided legs only', () => {
   assert.equal(legStatus({ type: 'ml' }, { results: 'unknown' }), 'unknown');
 });
 
-test('undecided rules are placeholders, with one conservative import default', () => {
-  assert.ok(OPEN_RULES.length >= 10);
-  assert.equal(rule({}, 'payoutSplit').value, null);
-  assert.equal(rule({}, 'payoutSplit').decided, false);
-  assert.equal(rule({}, 'importConflict').value, 'flag');
-  assert.equal(rule({ rules: { importConflict: 'latest' } }, 'importConflict').value, 'latest');
-  assert.equal(undecidedRules({ rules: { payoutSplit: 'even' } }).some((r) => r.key === 'payoutSplit'), false);
+test('league answers are recorded, and config can still override them', () => {
+  assert.equal(OPEN_RULES.length, 15);
+  assert.equal(undecidedRules({}).length, 0, 'every rule has a league answer');
+  assert.deepEqual([rule({}, 'payoutSplit').value, rule({}, 'payoutSplit').source], ['in-person', 'answer']);
+  assert.equal(rule({}, 'importConflict').value, 'slip');
+  assert.equal(rule({}, 'editsAndLocks').value, 'until-kickoff');
+  assert.equal(rule({}, 'missingPicks').value, 'go-with-what-is-in');
+  const o = rule({ rules: { importConflict: 'latest' } }, 'importConflict');
+  assert.deepEqual([o.value, o.source], ['latest', 'config']);
+});
+
+test('the slip policy never overwrites and says the sportsbook ticket decides', () => {
+  const saved = [{ who: 'Brad Holm', leg: { type: 'ml', label: 'Chiefs ML', team: 'KC', game: ['KC', 'LV'] } }];
+  const r = dedupePicks([pick('Brad Holm', 'Raiders ML', 'LV', 't3')], saved, { policy: 'slip', season: 2026, week: 9 });
+  assert.equal(r.accepted.length, 0);
+  assert.match(r.conflicts[0].reason, /not overwritten\. The pick on the placed sportsbook ticket decides/);
 });
 
 // ---------- API: import flow with a mocked Supabase ----------
@@ -316,7 +325,7 @@ test('API import saves new picks with their source and logs every record', async
   assert.equal(res.statusCode, 200);
   assert.deepEqual(res.body.saved.map((s) => s.who), ['Brad Holm', 'Chas Rossman', 'John Sachs']);
   assert.equal(res.body.errors.length, 5);
-  assert.equal(res.body.policy, 'flag');
+  assert.equal(res.body.policy, 'slip');
   const upserts = calls.filter((c) => c.url.includes('holm_parlay_picks') && c.method === 'POST');
   assert.equal(upserts.length, 3);
   assert.equal(upserts[0].body.leg.source.author, 'Brad Holm');
@@ -327,7 +336,7 @@ test('API import saves new picks with their source and logs every record', async
   assert.ok(log.body.every((r) => r.raw_hash && r.week === 9 && r.kind === 'whatsapp'));
 });
 
-test('API import never overwrites a different saved pick under the default policy', async () => {
+test('API import never overwrites a different saved pick under the league policy', async () => {
   const saved = [{ who: 'Brad Holm', source: 'web', leg: { type: 'ml', label: 'Raiders ML', team: 'LV', game: ['KC', 'LV'] }, updated_at: 'x' }];
   const { res, calls } = await callImport({ week: 9, import: true, text: '[10/29/26, 7:41 PM] Brad Holm: Chiefs ML KC at LV' }, saved);
   assert.equal(res.body.saved.length, 0);

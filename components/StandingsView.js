@@ -89,7 +89,7 @@ export default function StandingsView() {
       <section className="card">
         <div className="card__head"><h2>Managers</h2><span className="sub">Auction House handles. Last names stay off this board. Open legs stay out of the hit rate.</span></div>
         <div className="tablewrap"><table>
-          <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Legs</th><th className="r">Hit</th><th className="r">Miss</th><th className="r">Hit %</th><th className="r">Busts</th><th className="r hide-m">Streak</th><th className="r hide-m">Paid</th><th className="r hide-m">Won share <InfoTip text={split.decided ? 'Recorded payouts split ' + split.value + '.' : 'How a cashed payout is split has not been decided by the commissioner, so no share is shown.'} label="won share" /></th></tr></thead>
+          <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Legs</th><th className="r">Hit</th><th className="r">Miss</th><th className="r">Hit %</th><th className="r">Busts</th><th className="r hide-m">Streak</th><th className="r hide-m">Paid</th><th className="r hide-m">Won share <InfoTip text={split.decided ? split.text : 'How a cashed payout is split has not been decided by the commissioner, so no share is shown.'} label="won share" /></th></tr></thead>
           <tbody>
             {rows.map((r, i) => {
               const rate = r.hit + r.miss ? r.hit / (r.hit + r.miss) : null;
@@ -106,7 +106,7 @@ export default function StandingsView() {
                   <td className="r num">{String(r.busts)}</td>
                   <td className={'r num hide-m ' + (lastW ? 'pos' : r.streak.length ? 'neg' : '')}>{streakText(r.streak)}</td>
                   <td className="r num hide-m">{fmtMoney(r.paid)}</td>
-                  <td className="r num hide-m">{split.decided ? fmtMoney(0) : 'not decided'}</td>
+                  <td className="r num hide-m">{!split.decided ? 'not decided' : split.value === 'in-person' ? 'in person' : fmtMoney(0)}</td>
                 </tr>);
             })}
             {(config.abstain || []).map((a) => (
