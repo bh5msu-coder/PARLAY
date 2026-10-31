@@ -10,6 +10,7 @@ import { seasonRecord } from '../lib/standings.mjs';
 import { weekStates, weekMoney } from '../lib/model.mjs';
 import { rule } from '../lib/rules.mjs';
 import InfoTip from './InfoTip';
+import PaymentChips from './PaymentChips';
 import { buildRecap } from '../lib/recap.mjs';
 import { weeklyLegs, weeklyTickets } from '../lib/stats.mjs';
 import { toast } from '../lib/clients.mjs';
@@ -60,6 +61,7 @@ function StateChips({ week, savedRows, need, config }) {
         <span className="label">Contributions recorded <InfoTip k="contributions" label="contributions recorded" /></span>
         <span className="statechip__v">{st.contributionsRecorded.count ? fmtMoney(st.contributionsRecorded.amount) : 'None recorded'}</span>
         <span className="small muted">{`Stake listed ${fmtMoney(week.stake || 10)} · due by kickoff`}</span>
+        <PaymentChips payments={(week.contributions || []).filter((c) => c.who)} />
       </div>
       <div className={'statechip' + (placed ? '' : ' statechip--no')}>
         <span className="label">Ticket <InfoTip k="ticketState" label="ticket state" /></span>
