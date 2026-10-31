@@ -647,7 +647,7 @@
       "contributions": [],
       "payouts": [],
       "dates": "Oct 29–Nov 2, 2026",
-      "results": "unknown",
+      "results": "live",
       "stake": 10,
       "odds": 79578,
       "toPay": 7967.8,
@@ -655,23 +655,23 @@
       "book": "DraftKings (MI)",
       "payer": "Brad Holm",
       "placedBy": "Chas Rossman",
-      "note": "Current week. NFL Week 8 runs Thursday Oct 29 through Monday Nov 2. Payer Brad Holm; placed by Chas Rossman on 10/29/26 (Auction House Parlays 2026 spreadsheet; the chat has Chas posting the DraftKings slip link). Lines, Chas's Seahawks ML and the payout come from the DraftKings receipt screenshot taken 10/29 at 7:03 PM. Kickoffs are from the slip. No result is recorded.",
+      "note": "Current week. NFL Week 8 runs Thursday Oct 29 through Monday Nov 2. Payer Brad Holm; placed by Chas Rossman on 10/29/26 (Auction House Parlays 2026 spreadsheet; the chat has Chas posting the DraftKings slip link). Lines, Chas's Seahawks ML and the payout come from the DraftKings receipt screenshot taken 10/29 at 7:03 PM. Kickoffs are from the slip. Results grade live from ESPN final scores and box scores.",
       "groups": {
         "sgp1": { "odds": null, "label": "2 pick SGP · Vikings at Lions" },
         "sgp2": { "odds": null, "label": "2 pick SGP · Patriots at Dolphins" }
       },
       "legs": [
-        {"id": "w8-meltser", "who": "Adam Meltser", "type": "player", "group": "sgp1", "label": "Jahmyr Gibbs 30+ rec yds", "player": "Jahmyr Gibbs", "stat": "recYds", "side": "over", "line": 29.5, "game": ["MIN", "DET"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
-        {"id": "w8-kyle", "who": "Kyle McFadden", "type": "player", "group": "sgp1", "label": "Justin Jefferson anytime TD", "player": "Justin Jefferson", "stat": "anyTD", "side": "over", "line": 0.5, "game": ["MIN", "DET"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
-        {"id": "w8-brad", "who": "Brad Holm", "type": "player", "group": "sgp2", "label": "Ollie Gordon II over 61.5 rush yds", "player": "Ollie Gordon II", "stat": "rushYds", "side": "over", "line": 61.5, "game": ["NE", "MIA"], "gameDate": "2026-11-01T21:25Z", "result": "unknown"},
-        {"id": "w8-jarn", "who": "John Sachs", "type": "spread", "group": "sgp2", "label": "Dolphins +7.5 (alt spread)", "team": "MIA", "line": 7.5, "game": ["NE", "MIA"], "gameDate": "2026-11-01T21:25Z", "result": "unknown"},
-        {"id": "w8-dj", "who": "DJ Dangerous", "type": "total", "label": "Panthers/Packers Over 46.5", "side": "over", "line": 46.5, "game": ["CAR", "GB"], "gameDate": "2026-10-30T00:15Z", "result": "unknown"},
-        {"id": "w8-joey", "who": "Joe Mckeon", "type": "total", "label": "Browns/Steelers Under 39.5", "side": "under", "line": 39.5, "game": ["CLE", "PIT"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
-        {"id": "w8-jace", "who": "Jace Clark", "type": "total", "label": "Cardinals/Cowboys Over 54.5", "side": "over", "line": 54.5, "game": ["ARI", "DAL"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
-        {"id": "w8-nick", "who": "Nick Curtis", "type": "spread", "label": "Bills -2.5 vs Baltimore (alt spread)", "team": "BUF", "line": -2.5, "game": ["BAL", "BUF"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
-        {"id": "w8-hoss", "who": "Ryan Hoffman", "type": "spread", "label": "Raiders +1.5", "team": "LV", "line": 1.5, "game": ["LV", "NYJ"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
-        {"id": "w8-kev", "who": "Kevin Sack", "type": "ml", "label": "Broncos ML", "team": "DEN", "game": ["KC", "DEN"], "gameDate": "2026-11-01T21:25Z", "result": "unknown"},
-        {"id": "w8-chas", "who": "Chas Rossman", "type": "ml", "label": "Seahawks ML", "team": "SEA", "game": ["CHI", "SEA"], "gameDate": "2026-11-03T01:20Z", "result": "unknown"}
+        {"id": "w8-meltser", "who": "Adam Meltser", "type": "player", "group": "sgp1", "label": "Jahmyr Gibbs 30+ rec yds", "player": "Jahmyr Gibbs", "stat": "recYds", "side": "over", "line": 29.5, "game": ["MIN", "DET"], "gameDate": "2026-11-01T18:00Z"},
+        {"id": "w8-kyle", "who": "Kyle McFadden", "type": "player", "group": "sgp1", "label": "Justin Jefferson anytime TD", "player": "Justin Jefferson", "stat": "anyTD", "side": "over", "line": 0.5, "game": ["MIN", "DET"], "gameDate": "2026-11-01T18:00Z"},
+        {"id": "w8-brad", "who": "Brad Holm", "type": "player", "group": "sgp2", "label": "Ollie Gordon II over 61.5 rush yds", "player": "Ollie Gordon II", "stat": "rushYds", "side": "over", "line": 61.5, "game": ["NE", "MIA"], "gameDate": "2026-11-01T21:25Z"},
+        {"id": "w8-jarn", "who": "John Sachs", "type": "spread", "group": "sgp2", "label": "Dolphins +7.5 (alt spread)", "team": "MIA", "line": 7.5, "game": ["NE", "MIA"], "gameDate": "2026-11-01T21:25Z"},
+        {"id": "w8-dj", "who": "DJ Dangerous", "type": "total", "label": "Panthers/Packers Over 46.5", "side": "over", "line": 46.5, "game": ["CAR", "GB"], "gameDate": "2026-10-30T00:15Z"},
+        {"id": "w8-joey", "who": "Joe Mckeon", "type": "total", "label": "Browns/Steelers Under 39.5", "side": "under", "line": 39.5, "game": ["CLE", "PIT"], "gameDate": "2026-11-01T18:00Z"},
+        {"id": "w8-jace", "who": "Jace Clark", "type": "total", "label": "Cardinals/Cowboys Over 54.5", "side": "over", "line": 54.5, "game": ["ARI", "DAL"], "gameDate": "2026-11-01T18:00Z"},
+        {"id": "w8-nick", "who": "Nick Curtis", "type": "spread", "label": "Bills -2.5 vs Baltimore (alt spread)", "team": "BUF", "line": -2.5, "game": ["BAL", "BUF"], "gameDate": "2026-11-01T18:00Z"},
+        {"id": "w8-hoss", "who": "Ryan Hoffman", "type": "spread", "label": "Raiders +1.5", "team": "LV", "line": 1.5, "game": ["LV", "NYJ"], "gameDate": "2026-11-01T18:00Z"},
+        {"id": "w8-kev", "who": "Kevin Sack", "type": "ml", "label": "Broncos ML", "team": "DEN", "game": ["KC", "DEN"], "gameDate": "2026-11-01T21:25Z"},
+        {"id": "w8-chas", "who": "Chas Rossman", "type": "ml", "label": "Seahawks ML", "team": "SEA", "game": ["CHI", "SEA"], "gameDate": "2026-11-03T01:20Z"}
       ]
     }
   ]

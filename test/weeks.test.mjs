@@ -37,7 +37,8 @@ test('week 5 is the recorded 5-6 bust', () => {
 });
 
 test('unknown weeks never become wins or losses', () => {
-  for (const n of [6, 7, 8]) {
+  assert.equal(gradeStoredWeek(byWeek[8]), null, 'week 8 grades live from ESPN');
+  for (const n of [6, 7]) {
     const graded = gradeStoredWeek(byWeek[n]);
     assert.ok(graded, 'week ' + n);
     const summary = summarizeParlay(graded.graded);
@@ -48,13 +49,13 @@ test('unknown weeks never become wins or losses', () => {
     assert.equal(summary.killers.length, 0);
     for (const g of graded.graded) assert.equal(tallyState(g.state), 'open');
   }
-  const current = gradeStoredWeek(byWeek[8]);
-  const chas = current.graded.find((g) => g.leg.who === 'Chas Rossman');
-  assert.equal(chas.leg.label, 'Seahawks ML', 'the DraftKings receipt names Chas\'s pick');
-  assert.deepEqual(chas.leg.game, ['CHI', 'SEA']);
-  const tnf = current.graded.find((g) => g.leg.who === 'DJ Dangerous');
-  assert.deepEqual(tnf.leg.game, ['CAR', 'GB']);
-  assert.equal(tnf.leg.line, 46.5);
+  const chas = byWeek[8].legs.find((l) => l.who === 'Chas Rossman');
+  assert.equal(chas.label, 'Seahawks ML', 'the DraftKings receipt names Chas\'s pick');
+  assert.deepEqual(chas.game, ['CHI', 'SEA']);
+  const tnf = byWeek[8].legs.find((l) => l.who === 'DJ Dangerous');
+  assert.deepEqual(tnf.game, ['CAR', 'GB']);
+  assert.equal(tnf.line, 46.5);
+  assert.ok(byWeek[8].legs.every((l) => l.result === undefined), 'no stored result blocks live grading');
 });
 
 test('hit rate ignores open legs', () => {
@@ -66,7 +67,7 @@ test('hit rate ignores open legs', () => {
     else if (bucket === 'miss') row.miss++;
     else row.open++;
   }
-  for (const g of gradeStoredWeek(byWeek[8]).graded) {
+  for (const g of gradeStoredWeek(byWeek[6]).graded) {
     row.legs++;
     assert.equal(tallyState(g.state), 'open');
     row.open++;
