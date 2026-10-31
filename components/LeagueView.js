@@ -5,7 +5,7 @@ import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { KpiCard } from './ui';
 import { fmtElo, fmtFinish, fmtMoney } from '../lib/format.mjs';
-import { payerShare } from '../lib/league-store.mjs';
+import { settleWeek } from '../lib/iou.mjs';
 import { ident, RIVALRIES, seasonRows, whoLabel } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
 import { drawSeasonElo } from '../lib/tape.mjs';
@@ -29,6 +29,7 @@ function ParlayGlance({ store }) {
   const g = state.graded[week.week];
   const s = g && g.summary;
   const payers = store.weekPayers(week);
+  const { shares } = settleWeek(week.week, week.stake || 10, payers, week.contributions || state.payments.filter((p) => p.week === week.week));
   const killers = s && s.killers ? s.killers : [];
   const line = s
     ? `${s.won} of ${s.total} hit` + (killers.length ? ` · killed by ${killers.map((k) => whoLabel(k)).join(', ')}` : s.pending ? ` · ${s.pending} to play` : '')
@@ -41,7 +42,7 @@ function ParlayGlance({ store }) {
         <span className="small muted">{line}</span>
       </div>
       <div className="glance__side">
-        <span className="paychips">{payers.map((p) => <span key={p} className="pill pill--open">{`${whoLabel(p)} owes ${fmtMoney(payerShare(week.stake || 10, payers.length))}`}</span>)}</span>
+        <span className="paychips">{shares.map((p) => <span key={p.who} className={'pill ' + (p.open ? 'pill--open' : 'pill--paid')}>{`${whoLabel(p.who)} · ${p.open ? fmtMoney(p.open) + ' open' : 'funded'}`}</span>)}</span>
         <Link className="btn btn--secondary btn--sm" href="/week">Open this week</Link>
       </div>
     </section>
