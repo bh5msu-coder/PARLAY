@@ -182,7 +182,7 @@
       "payer": "Joe Mckeon + Kyle Heller",
       "payers": ["Joe Mckeon", "Kyle Heller"],
       "payerNote": "Double stake: Heller was last in Week 3, and Joey made up the Week 3 ticket he never placed",
-      "note": "Graded from parlay-history.json (ESPN finals). $20 because Week 3 was never placed: Joey and Heller pay $10 each. Slip to pay $7,093. Ja'Marr Chase left hurt in Q2 and the book's settlement of that leg is not recorded, so it stays unknown. Busted 8–3.",
+      "note": "Graded from parlay-history.json (ESPN finals). $20 because Week 3 was never placed: Joey and Heller pay $10 each. Slip to pay $7,093. Ja'Marr Chase left hurt in Q2 with no TD; graded a loss on the game. Busted 8–4.",
       "legs": [
         {
           "id": "w4-brad",
@@ -328,10 +328,10 @@
           "player": "Ja'Marr Chase",
           "stat": "anyTD",
           "game": ["JAX", "CIN"],
-          "result": "unknown",
-          "note": "Chat L576-583: hurt in Q2, possible void. Book settlement not in chat.",
+          "result": "loss",
+          "note": "Chat L576-583: hurt in Q2, possible void. Graded on the game: he played and scored no TD (ESPN box score).",
           "gameDate": "2026-10-04T17:00Z",
-          "detail": "Recorded unknown · 0 TD; left injured in Q2"
+          "detail": "Recorded loss · 0 TD; left injured in Q2"
         }
       ]
     },
@@ -479,16 +479,16 @@
     },
     {
       "week": 6,
-      "ticket": { "state": "proposed", "evidence": "Picks are listed, but no slip, odds or payout is recorded." },
+      "ticket": { "state": "proposed", "evidence": "Every leg has a recorded result, but nothing recorded shows the ticket was placed (no slip odds or to-pay amount)." },
       "contributions": [],
       "payouts": [],
       "dates": "Oct 15–19, 2026",
-      "results": "unknown",
+      "results": "recorded",
       "stake": 10,
       "book": "DraftKings (MI)",
       "payer": "DJ Dangerous",
       "placedBy": "Chas Rossman",
-      "note": "Pool window was called Oct 14–16. These 11 legs are the NFL Week 6 slate (Thursday Oct 15 through Monday Oct 19). No result is recorded. Blank lines were not given. Payer DJ Dangerous; placed by Chas Rossman on 10/16/26 (Auction House Parlays 2026 spreadsheet, and the chat has Chas Rossman posting the DraftKings slip link). No slip odds or to-pay amount were recorded, so the ticket stays proposed.",
+      "note": "Pool window was called Oct 14–16. These 11 legs are the NFL Week 6 slate (Thursday Oct 15 through Monday Oct 19). Graded from ESPN finals: busted 3–8. Two totals had no line on the ticket and are graded against ESPN's consensus O/U; Chas's 1st half +0.5 from ESPN's line score. Payer DJ Dangerous; placed by Chas Rossman on 10/16/26 (Auction House Parlays 2026 spreadsheet, and the chat has Chas Rossman posting the DraftKings slip link). No slip odds or to-pay amount were recorded, so the ticket stays proposed.",
       "legs": [
         {
           "id": "w6-hoss",
@@ -497,7 +497,7 @@
           "label": "Bills ML vs Raiders",
           "team": "BUF",
           "game": ["BUF", "LV"],
-          "result": "unknown"
+          "result": "win", "detail": "Recorded win · BUF 33–LV 30"
         },
         {
           "id": "w6-kyle",
@@ -509,7 +509,7 @@
           "side": "over",
           "line": 0.5,
           "game": ["BAL", "CLE"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · BAL 10–CLE 13"
         },
         {
           "id": "w6-jarn",
@@ -518,7 +518,7 @@
           "label": "Packers ML",
           "team": "GB",
           "game": ["DAL", "GB"],
-          "result": "unknown"
+          "result": "win", "detail": "Recorded win · DAL 13–GB 23"
         },
         {
           "id": "w6-jace",
@@ -527,7 +527,7 @@
           "label": "Over Bills/Raiders",
           "side": "over",
           "game": ["BUF", "LV"],
-          "result": "unknown"
+          "result": "win", "detail": "Recorded win · BUF 33–LV 30 · 63 pts · graded against ESPN consensus O/U 54.5 (no line on the ticket)"
         },
         {
           "id": "w6-nick",
@@ -537,7 +537,7 @@
           "team": "JAX",
           "line": -2.5,
           "game": ["HOU", "JAX"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · HOU 34–JAX 31"
         },
         {
           "id": "w6-meltser",
@@ -549,7 +549,7 @@
           "side": "over",
           "line": 0.5,
           "game": ["DAL", "GB"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · DAL 13–GB 23"
         },
         {
           "id": "w6-brad",
@@ -562,7 +562,7 @@
           "line": 1.5,
           "game": ["DAL", "GB"],
           "note": "Stored as over 1.5 passing TDs so 2+ would cash. Not graded.",
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · DAL 13–GB 23"
         },
         {
           "id": "w6-joey",
@@ -571,7 +571,7 @@
           "label": "Steelers/Bucs UNDER",
           "side": "under",
           "game": ["PIT", "TB"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · PIT 26–TB 19 · 45 pts · graded against ESPN consensus O/U 37.5 (no line on the ticket)"
         },
         {
           "id": "w6-chas",
@@ -582,7 +582,7 @@
           "line": 0.5,
           "period": "1H",
           "game": ["CHI", "ATL"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · 1st half: ATL 7, CHI 21 (ESPN line score)"
         },
         {
           "id": "w6-dj",
@@ -592,7 +592,7 @@
           "side": "under",
           "line": 43.5,
           "game": ["NYJ", "NE"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · NYJ 19–NE 26 · 45 pts"
         },
         {
           "id": "w6-kev",
@@ -604,41 +604,41 @@
           "side": "over",
           "line": 39.5,
           "game": ["BUF", "LV"],
-          "result": "unknown"
+          "result": "loss", "detail": "Recorded loss · BUF 33–LV 30"
         }
       ]
     },
     {
       "week": 7,
-      "ticket": { "state": "placed", "evidence": "Slip odds and to-pay amount are recorded." },
+      "ticket": { "state": "settled", "evidence": "Slip odds and to-pay amount are recorded. Every leg has a recorded result." },
       "contributions": [],
       "payouts": [],
       "dates": "Oct 22–26, 2026",
-      "results": "unknown",
+      "results": "recorded",
       "stake": 10,
       "odds": 22840,
       "toPay": 2294.04,
       "book": "",
       "payer": "Chas Rossman",
       "placedBy": "Jarn Sachs",
-      "note": "Stored ticket from the league database, dated with the Oct 22 kickoff. Results were not recorded, so every leg stays unknown. Chat lore that a leg killed the ticket is not a grade.",
+      "note": "Stored ticket from the league database, dated with the Oct 22 kickoff. Graded from ESPN finals and box scores: busted 4–7.",
       "groups": {
         "sgp1": { "odds": 525, "label": "3 pick SGP" },
         "sgp2": { "odds": 460, "label": "4 pick SGP" }
       },
       "overrides": {},
       "legs": [
-        {"id": "l1", "who": "Ryan Hoffman", "game": ["DEN", "ARI"], "odds": -238, "team": "DEN", "type": "ml", "label": "Broncos ML", "result": "unknown"},
-        {"id": "l2", "who": "Joseph McKeon", "game": ["MIA", "NYJ"], "line": 39.5, "odds": -112, "side": "under", "type": "total", "label": "Under 39.5", "result": "unknown"},
-        {"id": "l3", "who": "Kyle McFadden", "game": ["TB", "CAR"], "odds": -162, "team": "CAR", "type": "ml", "label": "Panthers ML", "result": "unknown"},
-        {"id": "l4", "who": "Chas Rossman", "game": ["NYG", "HOU"], "line": 0.5, "odds": -197, "side": "over", "stat": "passINT", "type": "player", "label": "J.J. McCarthy over 0.5 INT thrown", "player": "J.J. McCarthy", "result": "unknown"},
-        {"id": "l5", "who": "Jarn Sachs", "game": ["NE", "CHI"], "team": "CHI", "type": "ml", "group": "sgp1", "label": "Bears ML", "result": "unknown"},
-        {"id": "l6", "who": "Jace Clark", "game": ["NE", "CHI"], "line": 50.5, "side": "over", "type": "total", "group": "sgp1", "label": "Over 50.5", "result": "unknown"},
-        {"id": "l7", "who": "DJ Dangerous", "game": ["NE", "CHI"], "line": 0.5, "side": "over", "stat": "anyTD", "type": "player", "group": "sgp1", "label": "A.J. Brown anytime TD", "player": "A.J. Brown", "result": "unknown"},
-        {"id": "l8", "who": "Kevin Sack", "game": ["GB", "DET"], "team": "DET", "type": "ml", "group": "sgp2", "label": "Lions ML", "result": "unknown"},
-        {"id": "l9", "who": "Nick Curtis", "game": ["GB", "DET"], "line": 281.5, "side": "over", "stat": "passYds", "type": "player", "group": "sgp2", "label": "Jordan Love 282+ pass yds", "player": "Jordan Love", "result": "unknown"},
-        {"id": "l10", "who": "Brad Holm", "game": ["GB", "DET"], "line": 79.5, "side": "over", "stat": "recYds", "type": "player", "group": "sgp2", "label": "Christian Watson 80+ rec yds", "player": "Christian Watson", "result": "unknown"},
-        {"id": "l11", "who": "Adam Meltser", "game": ["GB", "DET"], "line": 0.5, "side": "over", "stat": "anyTD", "type": "player", "group": "sgp2", "label": "Jahmyr Gibbs anytime TD", "player": "Jahmyr Gibbs", "result": "unknown"}
+        {"id": "l1", "who": "Ryan Hoffman", "game": ["DEN", "ARI"], "odds": -238, "team": "DEN", "type": "ml", "label": "Broncos ML", "result": "win", "detail": "Recorded win · DEN 30–ARI 16"},
+        {"id": "l2", "who": "Joseph McKeon", "game": ["MIA", "NYJ"], "line": 39.5, "odds": -112, "side": "under", "type": "total", "label": "Under 39.5", "result": "loss", "detail": "Recorded loss · MIA 28–NYJ 25 · 53 pts"},
+        {"id": "l3", "who": "Kyle McFadden", "game": ["TB", "CAR"], "odds": -162, "team": "CAR", "type": "ml", "label": "Panthers ML", "result": "loss", "detail": "Recorded loss · TB 43–CAR 13"},
+        {"id": "l4", "who": "Chas Rossman", "game": ["NYG", "HOU"], "line": 0.5, "odds": -197, "side": "over", "stat": "passINT", "type": "player", "label": "J.J. McCarthy over 0.5 INT thrown", "player": "J.J. McCarthy", "result": "loss", "detail": "Recorded loss · NYG 27–HOU 21"},
+        {"id": "l5", "who": "Jarn Sachs", "game": ["NE", "CHI"], "team": "CHI", "type": "ml", "group": "sgp1", "label": "Bears ML", "result": "win", "detail": "Recorded win · NE 24–CHI 30"},
+        {"id": "l6", "who": "Jace Clark", "game": ["NE", "CHI"], "line": 50.5, "side": "over", "type": "total", "group": "sgp1", "label": "Over 50.5", "result": "win", "detail": "Recorded win · NE 24–CHI 30 · 54 pts"},
+        {"id": "l7", "who": "DJ Dangerous", "game": ["NE", "CHI"], "line": 0.5, "side": "over", "stat": "anyTD", "type": "player", "group": "sgp1", "label": "A.J. Brown anytime TD", "player": "A.J. Brown", "result": "loss", "detail": "Recorded loss · NE 24–CHI 30"},
+        {"id": "l8", "who": "Kevin Sack", "game": ["GB", "DET"], "team": "DET", "type": "ml", "group": "sgp2", "label": "Lions ML", "result": "win", "detail": "Recorded win · GB 17–DET 20"},
+        {"id": "l9", "who": "Nick Curtis", "game": ["GB", "DET"], "line": 281.5, "side": "over", "stat": "passYds", "type": "player", "group": "sgp2", "label": "Jordan Love 282+ pass yds", "player": "Jordan Love", "result": "loss", "detail": "Recorded loss · GB 17–DET 20"},
+        {"id": "l10", "who": "Brad Holm", "game": ["GB", "DET"], "line": 79.5, "side": "over", "stat": "recYds", "type": "player", "group": "sgp2", "label": "Christian Watson 80+ rec yds", "player": "Christian Watson", "result": "loss", "detail": "Recorded loss · GB 17–DET 20"},
+        {"id": "l11", "who": "Adam Meltser", "game": ["GB", "DET"], "line": 0.5, "side": "over", "stat": "anyTD", "type": "player", "group": "sgp2", "label": "Jahmyr Gibbs anytime TD", "player": "Jahmyr Gibbs", "result": "loss", "detail": "Recorded loss · GB 17–DET 20"}
       ]
     },
     {

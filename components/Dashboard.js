@@ -72,8 +72,7 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
             <th className="hide-m">Ticket <InfoTip k="ticketState" label="ticket state" /></th>
             {showPayer ? <th className="hide-m">Payer</th> : null}
             <th className="r">Stake <InfoTip k="stake" label="stake listed" /></th>
-            <th className="r hide-m">Paid in <InfoTip k="contributions" label="contributions recorded" /></th>
-            <th className="r">Payout <InfoTip k="payout" label="payout recorded" /></th>
+            <th className="r">Winnings</th>
             <th className="r hide-m">Hypothetical <InfoTip k="hypothetical" label="hypothetical payout" /></th>
             {killers ? <th className="hide-m">Killed by</th> : null}
           </tr></thead>
@@ -84,8 +83,7 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
               <td className="hide-m" title={x.evidence}>{STATE_TEXT[x.ticketState] || x.ticketState}</td>
               {showPayer ? <td className="hide-m">{x.payer ? whoLabel(x.payer) : '–'}</td> : null}
               <td className="r num">{fmtMoney(x.stake)}</td>
-              <td className="r num hide-m">{x.contributions == null ? 'not tracked' : x.contributions ? fmtMoney(x.contributions) : 'none recorded'}</td>
-              <td className="r num">{x.payoutRecorded == null ? 'none recorded' : fmtMoney(x.payoutRecorded)}</td>
+              <td className="r num">{x.payoutRecorded ? fmtMoney(x.payoutRecorded) : '$0'}</td>
               <td className="r num hide-m">{x.hypotheticalToPay == null ? '–' : <span className="hypo">{fmtMoney(x.hypotheticalToPay)} <small>hypothetical</small></span>}</td>
               {killers ? <td className="hide-m">{(killers[x.week] || []).map((k) => whoLabel(k)).join(', ') || '–'}</td> : null}
             </tr>))}</tbody>
@@ -95,14 +93,13 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
             <td className="hide-m" />
             {showPayer ? <td className="hide-m" /> : null}
             <td className="r num">{fmtMoney(t.stakeListed)}</td>
-            <td className="r num hide-m">{fmtMoney(t.contributions)}</td>
             <td className="r num">{fmtMoney(t.payouts)}</td>
             <td className="r num hide-m"><span className="hypo">{fmtMoney(t.hypothetical)} <small>hypothetical</small></span></td>
             {killers ? <td className="hide-m" /> : null}
           </tr></tfoot>
         </table></div>
         <StakeReturnChart tickets={tickets} />
-        <p className="muted">Stake is what the week lists; it is not proof anyone paid. Paid in and payout count only money someone recorded. Hypothetical is what the slip would have paid if every pick won — no book paid it.</p>
+        <p className="muted">Stake is what the ticket cost; who owes it is settled on the side. Winnings count only money a book paid. Hypothetical is what the slip would have paid if every pick won — no book paid it.</p>
       </div>
     </section>
   );

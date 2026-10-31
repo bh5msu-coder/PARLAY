@@ -408,11 +408,12 @@
       "CIN"
      ],
      "kickoff": "2026-10-04T17:00Z",
-     "result": "unknown",
+     "result": "loss",
      "player": "Ja'Marr Chase",
      "stat": "anyTD",
      "actual": "0 TD; left injured in Q2",
-     "note": "Chat L576-583: hurt in Q2, possible void. Book settlement not in chat."
+     "note": "Chat L576-583: hurt in Q2, possible void. Graded on the game: he played and scored no TD.",
+     "confidence": "espn-final"
     }
    ],
    "stake": 20,
@@ -422,8 +423,8 @@
    "notes": "$20 stake because Week 3 was never placed (Joey forgot, L383-424). Slip shows to pay $7,093 (Auction House Parlays 2026 spreadsheet).",
    "record": {
     "win": 8,
-    "loss": 3,
-    "unknown": 1,
+    "loss": 4,
+    "unknown": 0,
     "pending": 0
    },
    "result": "loss"

@@ -58,7 +58,7 @@ test('the migration never reads parlay-history.json', () => {
   assert.doesNotMatch(code, /parlay-history/);
 });
 
-test('reconcile agrees on the $70 staked and lists only the Week 6 and 7 grades, changing neither source', () => {
+test('reconcile finds the weekly file and the history in agreement, changing neither source', () => {
   const weekly = normalizeFile(JSON.parse(text));
   const history = JSON.parse(historyText);
   const snapW = JSON.stringify(weekly);
@@ -67,7 +67,7 @@ test('reconcile agrees on the $70 staked and lists only the Week 6 and 7 grades,
   assert.equal(JSON.stringify(history), JSON.stringify(JSON.parse(historyText)), 'history not mutated');
   assert.equal(r.items.find((i) => i.kind === 'stake-total'), undefined, 'busted Week 8 brings the history to $70 too');
   const kinds = r.items.filter((i) => i.severity !== 'wording').map((i) => `${i.kind}:${i.week}`);
-  assert.deepEqual(kinds, ['result:6', 'result:7'], 'live Week 8 grades from ESPN, so it is not compared');
+  assert.deepEqual(kinds, [], 'Weeks 6 and 7 graded from ESPN match the history; live Week 8 is not compared');
   const w6 = weekly.weeks.find((w) => w.week === 6);
-  assert.ok(w6.legs.every((l) => l.result === 'unknown'), 'history grades are not copied into the weekly file');
+  assert.ok(w6.legs.every((l) => /ESPN|^Recorded (win|loss) · [A-Z]{2,3} \d/.test(l.detail || '')), 'weekly grades cite the ESPN final, not the history');
 });

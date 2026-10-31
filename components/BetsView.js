@@ -9,8 +9,6 @@ import { calcSeasonElo } from '../lib/elo.mjs';
 import { calcParlayStats, hitPct, SMALL_N } from '../lib/history-stats.mjs';
 
 import InfoTip, { SmallSample } from './InfoTip';
-import { paymentTotal } from '../lib/payments.mjs';
-import { iouLedger, splitPayers } from '../lib/iou.mjs';
 import { fmtMoney } from '../lib/format.mjs';
 import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
 import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
@@ -23,67 +21,14 @@ import SeasonGlance from './SeasonGlance';
 const SampleTag = ({ n }) => <SmallSample n={n} threshold={SMALL_N} />;
 const TYPE_LAB = { ml: 'Moneyline', spread: 'Spread', total: 'Game total', player: 'Player prop' };
 
-/** Each week's stake split across its payers, set against the payments recorded for it. A share with no recorded
- *  payment is open: the money may have moved in the chat without being entered. */
-function ledgerTickets(data, weeks, store) {
-  const out = {};
-  for (const p of (data && data.parlays) || []) {
-    if (p.stake && p.payer) out[p.week] = { week: p.week, stake: p.stake, payers: splitPayers(p.payer) };
-  }
-  for (const w of weeks || []) {
-    const payers = w.stake ? store.weekPayers(w) : [];
-    if (payers.length) out[w.week] = { week: w.week, stake: w.stake, payers };
-  }
-  return Object.values(out);
-}
-
-function shareChip(s) {
-  const bits = [];
-  if (s.paid) bits.push(<span key="p" className="pill pill--paid">{`${whoLabel(s.who)} · ${fmtMoney(s.paid)} paid`}</span>);
-  for (const c of s.covered) bits.push(<span key={'c' + c.who} className="pill pill--paid">{`${whoLabel(c.who)} covered ${whoLabel(s.who)} · ${fmtMoney(c.amount)}`}</span>);
-  if (s.open) bits.push(<span key="o" className="pill pill--open">{`${whoLabel(s.who)} · ${fmtMoney(s.open)} not recorded`}</span>);
-  return bits;
-}
-
-function IouCard({ ledger }) {
-  const { weeks, people, totals } = ledger;
-  return (
-    <section className="card" id="iou">
-      <div className="card__head"><h2>IOU ledger</h2><span className="sub">{weeks.length ? `${fmtMoney(totals.owed)} in stakes · ${fmtMoney(totals.recorded)} recorded paid · ${fmtMoney(totals.open)} not recorded` : 'no stakes yet'}</span></div>
-      <div className="card__body">
-        {people.length ? (
-          <div className="tablewrap"><table className="iou-table">
-            <thead><tr><th>Manager</th><th className="r">Owed</th><th className="r">Paid</th><th className="r" title="Paid by someone else">Covered</th><th className="r hide-m">Covered for others</th><th className="r">Open</th></tr></thead>
-            <tbody>{people.map((r) => (
-              <tr key={r.who}>
-                <td>{whoLabel(r.who)}</td>
-                <td className="r num">{fmtMoney(r.owed)}</td>
-                <td className="r num">{r.paid ? fmtMoney(r.paid) : '–'}</td>
-                <td className="r num">{r.coveredByOthers ? fmtMoney(r.coveredByOthers) : '–'}</td>
-                <td className="r num hide-m">{r.coveredForOthers ? fmtMoney(r.coveredForOthers) : '–'}</td>
-                <td className={'r num' + (r.open ? ' iou--open' : '')}>{r.open ? fmtMoney(r.open) : '–'}</td>
-              </tr>))}</tbody>
-          </table></div>
-        ) : null}
-        {weeks.map((w) => (
-          <div key={w.week} className="payrow">
-            <span className="label">{`Week ${w.week} · ${fmtMoney(w.stake)}`}</span>
-            <span className="paychips">{w.shares.flatMap(shareChip)}{w.extra.map((x) => <span key={'x' + x.who} className="pill pill--paid">{`${whoLabel(x.who)} · ${fmtMoney(x.amount)} extra`}</span>)}</span>
-          </div>
-        ))}
-        <p className="muted small">Only payments entered in the league database count as paid. Open means no payment is on file yet, not that it was never paid. Covered means someone else paid that share. Ties for last split the stake ($5 each on $10).</p>
-      </div>
-    </section>
-  );
-}
-
 function History({ data, selectedOwner, weeks, payments, store }) {
   const S = calcParlayStats(data, whoLabel);
   const wins = S.decided.filter((l) => l.result === 'win').length;
-  const closest = S.graded.slice().sort((a, b) => a.record.loss - b.record.loss)[0];
-  const stake = S.graded.reduce((s, p) => s + (p.stake || 0), 0);
-  const gradedWeeks = new Set(S.graded.map((p) => p.week));
-  const paidGraded = paymentTotal((payments || []).filter((p) => gradedWeeks.has(p.week)));
+  // Closest call reads finished tickets only: a week still being played has legs left to lose.
+  const closest = S.graded.filter((p) => !(p.record.pending || 0)).sort((a, b) => a.record.loss - b.record.loss)[0];
+  const cashed = S.graded.filter((p) => p.result === 'win');
+  const winnings = cashed.reduce((s, p) => s + (p.toPay || 0), 0);
+  const bestShot = S.graded.filter((p) => p.toPay).sort((a, b) => b.toPay - a.toPay)[0];
   const elig = S.rows.filter((r) => r.n >= 4);
   const lock = elig[0];
   const cursed = elig.slice().sort((a, b) => (a.w / a.n) - (b.w / b.n) || b.l - a.l)[0];
@@ -100,12 +45,11 @@ function History({ data, selectedOwner, weeks, payments, store }) {
       <section className="stats stats--lore">
         <KpiCard label="Tickets graded" value={String(S.graded.length)} note={`2026 · ${S.graded.filter((p) => p.result === 'win').length} cashed`} />
         <KpiCard label="Leg hit rate" value={hitPct(wins, S.decided.length)} note={`${wins}–${S.decided.length - wins} on decided legs`} />
-        <KpiCard label="Closest call" value={closest ? closest.label : '–'} note={closest ? `${closest.record.loss} legs from cashing` : ''} />
-        <KpiCard label="Stakes listed" value={fmtMoney(stake)} note={`Graded tickets · ${paidGraded ? fmtMoney(paidGraded) + ' of it recorded paid' : 'no payments recorded yet'} · $0 recorded back`} />
+        <KpiCard label="Closest call" value={closest ? `Week ${closest.week}` : '–'} note={closest ? `${closest.record.loss} leg${closest.record.loss === 1 ? '' : 's'} from cashing` + (closest.stake > 10 ? ` · $${closest.stake} double stake` : '') : ''} />
+        <KpiCard label="Winnings" value={fmtMoney(winnings)} note={cashed.length ? `${cashed.length} ticket${cashed.length === 1 ? '' : 's'} cashed` : bestShot ? `Nothing cashed yet · biggest miss Week ${bestShot.week} at ${fmtMoney(bestShot.toPay)}` : 'Nothing cashed yet'} />
       </section>
 
       <SeasonGlance data={data} rows={S.rows} selectedOwner={selectedOwner} />
-      <IouCard ledger={iouLedger(ledgerTickets(data, weeks, store), payments)} />
       <DiscrepancyCard result={reconcile({ weeks }, data)} />
       <TicketSection tickets={historyTickets(data)} sourceNote="parlay-history.json (read-only)" />
       <SelectionCharts legs={historyLegs(data)} sourceNote="parlay-history.json (read-only) · decided picks only" />
@@ -163,7 +107,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
               <tbody>{p.legs.map((l) => (
                 <tr key={l.who}><td>{whoLabel(l.who)}</td><td>{l.label}{l.note ? <span className="muted">{' · ' + l.note}</span> : null}</td></tr>))}</tbody>
             </table></div>
-            <p className="muted">{'Not graded and not counted in any stat, stake or IOU. Source: ' + p.source}</p>
+            <p className="muted">{'Not graded and not counted in any stat or winnings. Source: ' + p.source}</p>
           </div>
         </section>))}
 
