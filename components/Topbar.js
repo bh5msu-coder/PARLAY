@@ -5,28 +5,9 @@ import { usePathname } from 'next/navigation';
 import { ROUTES, routeFor, useLeague } from './LeagueProvider';
 import { SEASON } from '../lib/clients.mjs';
 
+/** The league emblem (Our Holm League shield). Drawn from public/emblem.png, made from the Canva design. */
 function LockupMark() {
-  return (
-    <svg className="lockup__mark" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id="lockup-slip"><rect x="3" y="12" width="58" height="40" rx="4" /></clipPath>
-        <clipPath id="lockup-ball"><ellipse cx="38" cy="32" rx="18" ry="11" /></clipPath>
-      </defs>
-      <rect className="mark__ticket" x="3" y="12" width="58" height="40" rx="4" />
-      <g clipPath="url(#lockup-slip)">
-        <rect className="mark__stub" x="3" y="12" width="8" height="40" />
-        {[18, 25, 32, 39, 46].map((cy) => <circle key={cy} className="mark__perf" cx="15.5" cy={cy} r="1.6" />)}
-      </g>
-      <ellipse className="mark__ball" cx="38" cy="32" rx="18" ry="11" />
-      <g clipPath="url(#lockup-ball)">
-        <path className="mark__lace" d="M24 32h28" />
-        <path className="mark__lace" d="M31 26.5v11M35.5 25.5v13M40 25v14M44.5 25.5v13M49 26.5v11" />
-      </g>
-      <circle className="mark__chip" cx="51" cy="44" r="7" />
-      <circle className="mark__chip-ring" cx="51" cy="44" r="4" />
-      <circle className="mark__chip-pip" cx="51" cy="44" r="1.2" />
-    </svg>
-  );
+  return <img className="lockup__mark" src="/emblem.png" width="40" height="40" alt="" aria-hidden="true" />;
 }
 
 function ThemeButton() {
