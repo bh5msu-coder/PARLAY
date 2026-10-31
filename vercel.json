@@ -25,12 +25,5 @@
         }
       ]
     }
-  ],
-  "redirects": [
-    {
-      "source": "/favicon.ico",
-      "destination": "/icon.svg",
-      "permanent": false
-    }
   ]
 }
