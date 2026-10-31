@@ -2,6 +2,42 @@
 
 Live weekly parlay tracker for Our Holm League.
 
+## Deploy & integrations
+
+**Pipeline.** GitHub `bh5msu-coder/PARLAY` is connected to the Vercel project `holm-parlay` (team `bh5msu-coders-projects`) through the Vercel GitHub App:
+- A push to `main` deploys to production at https://holm-parlay.vercel.app.
+- Every PR gets a preview deployment, and the Vercel bot comments the link on the PR.
+- Vercel reports each deploy back as a **commit status** named `Vercel`. The repo's GitHub "Deployments" panel stays empty because this project doesn't create GitHub Deployment objects. That's expected and doesn't mean the link is broken.
+- The functions run in `cle1` (see `vercel.json`).
+
+**Environment variables.** Set these in Vercel → Project → Settings → Environment Variables. `.env.example` lists them with placeholder values. Never commit real values.
+
+| Variable | Required | Read in | What breaks without it |
+|---|---|---|---|
+| `ESPN_S2` | yes | `api/espn.js` | The private fantasy league can't load: no last-place payer and no ESPN standings. `/api/espn?path=ffl` returns 401. |
+| `ESPN_SWID` | yes | `api/espn.js` | Same as `ESPN_S2`. Both are cookies from a logged-in espn.com session. |
+| `ESPN_LEAGUE_ID` | no | `api/espn.js` | Nothing. It defaults to `182263`. |
+| `SUPABASE_URL` | no | `api/pick.js` | Nothing. It falls back to the project URL hardcoded in `api/pick.js` and `app.js`. |
+| `SUPABASE_ANON_KEY` (or `SUPABASE_KEY`) | no | `api/pick.js` | Nothing. It falls back to the publishable key hardcoded in the same files. |
+
+**Health check.** `GET /api/health` returns which of the variables above are set, as booleans only, never their values. It also returns the deployed commit and a list of problems. `"ok": true` means ESPN is configured.
+
+**Supabase.** `supabase/picks.sql` documents the two tables and the auto-commit RPC used by `api/pick.js`. It was rebuilt from the code and checked against the live tables. Read its header before running it. The commissioner RPCs (`holm_parlay_check_pass`, `holm_parlay_save_week`, `holm_parlay_delete_week`) exist only in the live database.
+
+**Local dev.**
+1. Copy `.env.example` to `.env.local`.
+2. Run `npm test` and `npm run check`.
+3. Run `vercel dev` (Vercel CLI) to serve the site and the `api/` functions together.
+
+### Integration audit (2026-10-30)
+- **GitHub ↔ Vercel: working.** Every recent commit on `main` has a successful `Vercel` status, and production serves the current `main` build.
+- **ESPN: broken in production.** `ESPN_S2` and `ESPN_SWID` are not set on the Vercel project, so `/api/espn?path=ffl` fails. **Fix:** add both variables in Vercel, redeploy, and confirm that `/api/health` reports `"ok": true`. This needs the account owner, because secrets can't be set from the repo.
+- **"Claude" connection: not confirmed.** Nothing in this repo or its git history calls Claude or Anthropic, and the repo has no Claude config. The AI tool that has worked on the code is Cursor (commit authors, Bugbot reviews). If a Claude GitHub App or connector is expected, check GitHub → Repo Settings → GitHub Apps and Vercel → Project → Settings → Git. Neither can be inspected from the codebase.
+- **"Origin": not confirmed.** PR #5 says its code was copied "from Origin", but no file, branch, remote or Vercel project by that name is referenced anywhere. The git remote `origin` correctly points at `github.com/bh5msu-coder/PARLAY`. If Origin is a separate site or folder, it isn't connected to this pipeline.
+- **Known gaps, not fixed here:**
+  - `/api/pick` has no auth, so anyone can submit or overwrite a manager's pick.
+  - The publishable Supabase key is hardcoded as a fallback. Publishable keys are designed to be public, but they still allow whatever RLS permits.
+
 ## Weekly tape (`data/bets.json`)
 
 Wins and losses live only in `data/bets.json`. That file is the only place a week is added or graded. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into this file.
