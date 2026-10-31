@@ -53,6 +53,30 @@ The site is a Next.js App Router app written in JavaScript, with no TypeScript a
   - `/api/pick` has no auth, so anyone can submit or overwrite a manager's pick.
   - The publishable Supabase key is hardcoded as a fallback. Publishable keys are designed to be public, but they still allow whatever RLS permits.
 
+## Dashboards
+
+Standings reads the **weekly record** (data/bets.json plus live grades). Bets reads the **history** (parlay-history.json, loaded read-only through `lib/history.mjs`, which makes one GET and deep-freezes the result). The two sources are never merged, and each card says which one it uses. `lib/stats.mjs` computes both levels:
+
+- **Selections** (one manager's picks):
+  - hit rate, record, current and best streak
+  - bet-type breakdown, with a manager × type matrix
+  - night/day split (7 PM ET or later)
+  - bust attribution (losing picks on busted tickets)
+  - charts for hit rate over time and hit rate by bet type
+- **Tickets** (the week's parlay):
+  - result and ticket state (proposed, placed or settled, with the evidence on hover)
+  - payer
+  - stake listed, contributions recorded, payout recorded, and hypothetical payout
+  - a stake-vs-return chart. Solid bars are recorded money, and the hatched bar is the hypothetical payout, labeled as such.
+
+**Rules every dashboard follows:**
+- Rates count decided picks only: wins ÷ (wins + losses). Open and unknown picks are shown separately.
+- Any metric with fewer than 5 decided picks gets a **small sample** badge.
+- Every metric has a plain-language **?** tooltip. The text is in `METRIC_HELP` in `lib/stats.mjs`.
+- Every payout that was not actually paid is labeled **hypothetical**.
+- "Won share" shows "not decided" until the commissioner sets the `payoutSplit` rule. The site does not assume an even split.
+- The **Data discrepancies** card, on both Standings and Bets, lists the output of `lib/reconcile.mjs`.
+
 ## Data model (schemaVersion 2)
 
 `lib/model.mjs` defines the model, and the same shapes exist as tables in `supabase/migrations/002_expanded_model.sql`.

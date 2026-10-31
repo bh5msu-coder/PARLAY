@@ -238,3 +238,50 @@ tr[onclick]{cursor:pointer}
   .tabs .tab{min-height:36px;padding:6px 14px}
 }
 .import-report{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+
+/* ---- dashboards (PR 4) ---- */
+.infotip{position:relative;display:inline-flex;vertical-align:middle;margin-left:4px}
+.infotip__btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--line-strong);background:transparent;color:var(--ink-muted);font:600 11px/16px var(--font-sans);padding:0;cursor:help}
+.infotip__body{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:min(260px,70vw);padding:8px 10px;border-radius:var(--radius-md);background:var(--surface-200);border:1px solid var(--line-strong);color:var(--ink);font:400 13px/18px var(--font-sans);text-transform:none;letter-spacing:0;text-align:left;white-space:normal;z-index:20;visibility:hidden;opacity:0;transition:opacity .12s}
+.infotip:hover .infotip__body,.infotip:focus-within .infotip__body{visibility:visible;opacity:1}
+.pill--sample{border-color:var(--pending);color:var(--pending)}
+.pill--money{border-color:var(--loss);color:var(--loss)}
+.pill--result{border-color:var(--pending);color:var(--pending)}
+.pill--pick{border-color:var(--brand);color:var(--brand)}
+.card--warn{border-color:var(--pending)}
+.discrepancies{margin:8px 0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.two--charts{align-items:start}
+.card__head--flush{padding-left:0;padding-right:0}
+.chart{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chart svg{width:100%;height:auto;display:block}
+.chart__title{font:600 15px/20px var(--font-display);letter-spacing:.02em}
+.chart__grid{stroke:var(--line);stroke-width:1}
+.chart__tick,.chart__note,.chart__value,.chart__label{fill:var(--ink-muted);font:500 13px var(--font-mono)}
+.chart__label{fill:var(--ink);font:500 14px var(--font-sans)}
+.chart__track{fill:var(--surface-200)}
+.chart__bar{fill:var(--brand)}
+.chart__bar--hollow{fill:transparent;stroke:var(--brand);stroke-width:1.5;stroke-dasharray:3 2}
+.chart__bar--stake{fill:var(--ink-muted)}
+.chart__bar--contrib{fill:var(--brand)}
+.chart__bar--payout{fill:var(--win)}
+.chart__hypo{stroke:var(--pending);stroke-width:1}
+.chart__value--hypo{fill:var(--pending)}
+.chart__hatch{stroke:var(--pending);stroke-width:2}
+.chart__line{fill:none;stroke:var(--pending);stroke-width:2}
+.chart__dot{fill:var(--pending)}
+.chart__legend{margin:0;color:var(--ink-muted);font-size:12px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.key{display:inline-block;width:12px;height:10px;border-radius:2px;vertical-align:middle}
+.key--bar,.key--contrib{background:var(--brand)}
+.key--hollow{border:1.5px dashed var(--brand)}
+.key--line{height:2px;background:var(--pending)}
+.key--stake{background:var(--ink-muted)}
+.key--payout{background:var(--win)}
+.key--hypo{background:repeating-linear-gradient(45deg,var(--pending) 0 2px,transparent 2px 5px);border:1px solid var(--pending)}
+.hypo{color:var(--pending)}
+.hypo small{font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.statechip{display:flex;flex-direction:column;gap:2px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--surface-100);min-width:180px;flex:1}
+.statechip__v{font:600 16px/20px var(--font-display)}
+.statechip--no{border-style:dashed}
+tfoot td{font-weight:600;border-top:1px solid var(--line-strong)}
+.chart--wide{max-width:720px}
