@@ -242,8 +242,10 @@ tr[onclick]{cursor:pointer}
 /* ---- dashboards (PR 4) ---- */
 .infotip{position:relative;display:inline-flex;vertical-align:middle;margin-left:4px}
 .infotip__btn{width:18px;height:18px;border-radius:50%;border:1px solid var(--line-strong);background:transparent;color:var(--ink-muted);font:600 11px/16px var(--font-sans);padding:0;cursor:help}
-.infotip__body{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:min(260px,70vw);padding:8px 10px;border-radius:var(--radius-md);background:var(--surface-200);border:1px solid var(--line-strong);color:var(--ink);font:400 13px/18px var(--font-sans);text-transform:none;letter-spacing:0;text-align:left;white-space:normal;z-index:20;visibility:hidden;opacity:0;transition:opacity .12s}
-.infotip:hover .infotip__body,.infotip:focus-within .infotip__body{visibility:visible;opacity:1}
+.infotip__body{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%);width:min(260px,70vw);padding:8px 10px;border-radius:var(--radius-md);background:var(--surface-200);border:1px solid var(--line-strong);color:var(--ink);font:400 13px/18px var(--font-sans);text-transform:none;letter-spacing:0;text-align:left;white-space:normal;z-index:20;display:none}
+.infotip:hover .infotip__body,.infotip:focus-within .infotip__body{display:block}
+/* On a phone a tooltip anchored to its "?" runs off the screen: pin it above the tab bar instead. */
+@media (max-width:640px){.infotip__body{position:fixed;left:16px;right:16px;bottom:72px;width:auto;transform:none}}
 .pill--sample{border-color:var(--pending);color:var(--pending)}
 .pill--money{border-color:var(--loss);color:var(--loss)}
 .pill--result{border-color:var(--pending);color:var(--pending)}
