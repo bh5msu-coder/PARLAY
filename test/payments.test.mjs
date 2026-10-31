@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { normalizePayments, paymentsByWeek, paymentTotal, paidOn } from '../lib/payments.mjs';
 
 const rows = [
-  { id: 2, week: 4, who: 'Joseph McKeon', amount: '10.00', recorded_at: '2026-10-31T06:02:09Z', note: 'Joey' },
+  { id: 2, week: 4, who: 'Joseph McKeon', amount: '10.00', recorded_at: '2026-10-31T06:02:09Z', note: 'Joey', source: { date_known: false } },
   { id: 1, week: 4, who: 'Brad Holm', amount: '10.00', recorded_at: '2026-10-03T17:00:00Z', note: 'Brad for Heller' },
   { id: 3, week: 0, who: 'Brad Holm', amount: '10', recorded_at: '' },
   { id: 4, week: 5, who: '', amount: '10', recorded_at: '' },
@@ -27,4 +27,10 @@ test('payments group by week and total', () => {
 test('a noon Oct 3 payment shows as Oct 3', () => {
   assert.equal(paidOn('2026-10-03T17:00:00Z'), 'Oct 3');
   assert.equal(paidOn('garbage'), '');
+});
+
+test('a payment entered without its day carries no date', () => {
+  const p = normalizePayments(rows);
+  assert.equal(p[0].at, '2026-10-03T17:00:00Z');
+  assert.equal(p[1].at, '');
 });
