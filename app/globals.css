@@ -2,15 +2,15 @@
 :root{
   --surface-0:#0b0f14;--surface-100:#131a22;--surface-200:#1b2430;--line:#263241;--line-strong:#5b6b7f;
   --ink:#e8edf2;--ink-muted:#8b99a8;--brand:#4d8bff;--on-brand:#06101f;--focus:var(--brand);
-  --win:#34d8b0;--win-tint:#0f2e29;--loss:#ff8a4c;--loss-tint:#33190f;--pending:#f5c542;--push:var(--ink-muted);
-  --font-display:"Barlow Condensed","Arial Narrow",sans-serif;--font-sans:"Barlow",system-ui,sans-serif;--font-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --win:#34d8b0;--win-tint:#0f2e29;--loss:#e5484d;--loss-tint:#2e1416;--pending:#6ea8ff;--push:var(--ink-muted);
+  --font-display:var(--f-display),"Barlow Condensed","Arial Narrow",sans-serif;--font-sans:var(--f-sans),"Barlow",system-ui,sans-serif;--font-mono:var(--f-mono),"IBM Plex Mono",ui-monospace,monospace;
   --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;
   --radius-sm:4px;--radius-md:8px;--radius-pill:999px;
 }
 :root[data-theme="light"]{
   --surface-0:#f4f6f8;--surface-100:#ffffff;--surface-200:#eaeef2;--line:#d5dce3;--line-strong:#7c8896;
   --ink:#0f1720;--ink-muted:#526070;--brand:#1f5fe0;--on-brand:#ffffff;
-  --win:#08745f;--win-tint:#e2f5f0;--loss:#b5410c;--loss-tint:#fbe9df;--pending:#8a6100;
+  --win:#087a4d;--win-tint:#e2f5ec;--loss:#c8322d;--loss-tint:#fbe5e4;--pending:#2b6cd9;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--surface-0);color:var(--ink)}
@@ -83,8 +83,14 @@ h2{margin:0;font:600 24px/28px var(--font-display)}
 .status--won{background:var(--win-tint);color:var(--win)}
 .status--lost{background:var(--loss-tint);color:var(--loss)}
 .status--pending,.status--unknown{color:var(--pending);border-color:var(--pending)}
-.status--live{color:var(--pending);border-color:var(--pending);background:rgba(245,197,66,.08)}
+.status--live{color:var(--pending);border-color:var(--pending);background:rgba(110,168,255,.10)}
 .status--push,.status--void{color:var(--push);border-color:var(--line-strong)}
+/* Status carries a shape as well as a color: circle won, triangle lost, diamond open, bar push or void. */
+.status::before{content:'';display:inline-block;width:8px;height:8px;flex:none;background:currentColor}
+.status--won::before{border-radius:50%}
+.status--lost::before{clip-path:polygon(50% 0,100% 100%,0 100%)}
+.status--pending::before,.status--unknown::before,.status--live::before{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.status--push::before,.status--void::before{height:2px}
 
 .legs{list-style:none;margin:0;padding:0}
 .leg{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:2px;padding:12px 16px;border-top:1px solid var(--line);align-items:center}

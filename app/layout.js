@@ -1,4 +1,5 @@
 import './globals.css';
+import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 
@@ -18,18 +19,18 @@ export const viewport = {
   themeColor: '#0b0f14',
 };
 
+const sans = Barlow({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--f-sans', display: 'swap' });
+const display = Barlow_Condensed({ subsets: ['latin'], weight: ['600', '700'], variable: '--f-display', display: 'swap' });
+const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--f-mono', display: 'swap' });
+
 // Apply the saved theme before first paint so light mode does not flash dark.
 const THEME_SCRIPT = "try{document.documentElement.dataset.theme=localStorage.getItem('hp_theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}";
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${sans.variable} ${display.variable} ${mono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
       </head>
       <body>
         <LeagueProvider>
