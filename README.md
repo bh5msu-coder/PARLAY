@@ -168,7 +168,7 @@ These were decided by the league (commissioner answers, 2026-10-31) and recorded
 - Split payers and tied last places: the payer field still holds one name.
 - Rollovers.
 - A paid checkmark for the stake: Venmo has no public payments API for this. The planned path is the commissioner-only `holm_parlay_record_payment` in migration 002.
-- The no-opt-outs rule conflicts with the current config, where Kyle Heller sits. The roster is unchanged until the commissioner decides.
+- No one opts out, except Kyle Heller, who left the $10 bet on Oct 3, 2026: from Week 5 he does not pay (the next lowest scorer does) and forfeits his share of winnings. The roster already has him sitting.
 
 ## Weekly tape (`data/bets.json`)
 
