@@ -56,6 +56,10 @@ security definer
 set search_path = public
 as $$
 begin
+  -- Week 0 is commissioner-only league configuration, not an auto-built ticket.
+  if p_week <= 0 then
+    raise exception 'Auto-commit requires a positive week';
+  end if;
   insert into holm_parlay_weeks (season, week, data, updated_at)
   values (p_season, p_week, p_data, now())
   on conflict (season, week) do update
