@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { payerFor } from '../lib/league-store.mjs';
+import { payerFor, pickPayerRow } from '../lib/league-store.mjs';
 
 test('the payer is whoever is last on ESPN, even over a recorded payer', () => {
   assert.equal(payerFor({ who: 'Brad Holm' }, 'Joseph McKeon'), 'Brad Holm');
@@ -15,4 +15,22 @@ test('Heller is never named from ESPN: the recorded payer is used', () => {
 test('with no ESPN last place the recorded payer stands', () => {
   assert.equal(payerFor(null, 'DJ Dangerous'), 'DJ Dangerous');
   assert.equal(payerFor({ who: '' }, ''), '');
+});
+
+test('when Heller is last the next lowest scorer pays', () => {
+  const rows = [{ who: 'Kyle Heller', points: 61.2 }, { who: 'Ryan Hoffman', points: 70.4 }, { who: 'Brad Holm', points: 99 }];
+  const { last, skipped } = pickPayerRow(rows);
+  assert.equal(last.who, 'Ryan Hoffman');
+  assert.equal(skipped.who, 'Kyle Heller');
+});
+
+test('with Heller not last, the lowest scorer pays and nobody is skipped', () => {
+  const rows = [{ who: 'Brad Holm', points: 60 }, { who: 'Kyle Heller', points: 61 }];
+  const { last, skipped } = pickPayerRow(rows);
+  assert.equal(last.who, 'Brad Holm');
+  assert.equal(skipped, null);
+});
+
+test('unscored rows are ignored', () => {
+  assert.equal(pickPayerRow([{ who: 'Brad Holm', points: null }]).last, null);
 });
