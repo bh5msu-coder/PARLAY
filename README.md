@@ -77,6 +77,22 @@ Standings reads the **weekly record** (data/bets.json plus live grades). Bets re
 - "Won share" shows "not decided" until the commissioner sets the `payoutSplit` rule. The site does not assume an even split.
 - The **Data discrepancies** card, on both Standings and Bets, lists the output of `lib/reconcile.mjs`.
 
+## League features
+
+These are built only from recorded results, with no new rules:
+
+- **Achievements** (League tab, `lib/achievements.mjs`):
+  - There are eight badges: hot hand, lock, clean sheet, ticket killer, night owl, specialist, ever-present and cold streak.
+  - Each badge comes from decided picks and names its source and the fields it reads. Hover a badge to see them.
+  - Badges with fewer than 5 decided picks behind them get the small-sample flag.
+  - History and weekly badges are shown separately.
+- **Smack feed** (Chat tab, `lib/smack.mjs`): needles built from settled tickets (recap or lone buster), decided-pick streaks of 3 or more, and rivalry pick records. Each item can become a draft or a WhatsApp share link. Nothing posts by itself, and Chat has no backend.
+- **Weekly recap** (Week tab for busted or cashed weeks, `lib/recap.mjs`):
+  - Written only from settled results. Open or unrecorded weeks get no recap.
+  - Unknown picks are named and left out of the count.
+  - Payouts are labeled hypothetical unless one was recorded.
+  - It notes when nothing shows the ticket was placed.
+
 ## Data model (schemaVersion 2)
 
 `lib/model.mjs` defines the model, and the same shapes exist as tables in `supabase/migrations/002_expanded_model.sql`.

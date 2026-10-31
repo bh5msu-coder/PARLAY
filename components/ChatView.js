@@ -7,6 +7,9 @@ import { buildReceipt, ident, lorePerson, RIVALRIES } from '../lib/ident.mjs';
 import { saveTape, shareTape, tapeCanvas } from '../lib/tape.mjs';
 import { CHAT_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
 import { DEFAULT_CHAT_URL } from '../lib/pick-form.mjs';
+import SmackFeed from './SmackFeed';
+import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
+import { weeklyLegs, weeklyTickets } from '../lib/stats.mjs';
 
 function TapeImage({ a, b, rec, canvasRef }) {
   useEffect(() => {
@@ -30,7 +33,9 @@ export default function ChatView() {
   const youNick = state.config.you ? ident.nick(state.config.you) : '';
   const [who, setWho] = useState('');
 
+  const [history, setHistory] = useState(cachedHistory());
   useEffect(() => { setDrafts(lsGet(CHAT_LS, [])); }, []);
+  useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
   useEffect(() => {
     if (state.pendingChatDraft) {
       setText(state.pendingChatDraft);
@@ -105,6 +110,14 @@ export default function ChatView() {
           </div>
         </div>
       </section>
+
+      <SmackFeed
+        records={[
+          ...(history ? [{ legs: historyLegs(history), tickets: historyTickets(history), source: 'parlay-history.json' }] : []),
+          { legs: weeklyLegs(state.weeks, state.graded), tickets: weeklyTickets(state.weeks, state.graded), source: 'data/bets.json' },
+        ]}
+        onDraft={(t) => { setText(t); setTimeout(() => boxRef.current && boxRef.current.focus(), 0); }}
+        onShare={(t) => share(t, whoValue)} />
 
       <section className="card">
         <div className="card__head"><h2>Receipts</h2><span className="sub">Counted from 2010–2025 final place</span></div>

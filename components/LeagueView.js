@@ -9,6 +9,9 @@ import { ident, RIVALRIES, seasonRows } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
 import { drawSeasonElo } from '../lib/tape.mjs';
 import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
+import Achievements from './Achievements';
+import { cachedHistory, historyLegs, loadHistory } from '../lib/history.mjs';
+import { weeklyLegs } from '../lib/stats.mjs';
 
 function finClass(s) {
   return s.champion ? 'fin fin--gold' : s.rank <= 4 ? 'fin fin--good' : s.rank >= 11 ? 'fin fin--bad' : 'fin';
@@ -166,6 +169,8 @@ function KpiIdeas() {
 export default function LeagueView() {
   const store = useLeague();
   const { state } = store;
+  const [history, setHistory] = useState(cachedHistory());
+  useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
   const lore = ident.lore;
   const title = 'League';
   const sub = lore ? `${lore.span} · ${lore.seasonCount} seasons of Holm League history` : 'Career records and championships';
@@ -194,6 +199,11 @@ export default function LeagueView() {
         <div className="ribbonwrap"><div className="ribbon">{(lore.champions || []).map((c) => (
           <div key={c.year} className="champ"><div className="champ__y">{String(c.year)}</div><div className="champ__n">{c.owner}</div></div>))}</div></div>
       </section>
+
+      <Achievements groups={[
+        ...(history ? [{ title: 'Season so far', source: 'parlay-history.json', legs: historyLegs(history) }] : []),
+        { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
+      ]} />
 
       <RivalriesCard />
       <LeagueTape />
