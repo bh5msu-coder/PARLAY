@@ -3,7 +3,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test test/weeks.test.mjs test/espn-proxy.test.mjs test/health.test.mjs",
-    "check": "node --check app.js && node --check api/espn.js && node --check api/pick.js && node --check api/health.js && node --check lib/weeks.mjs && node --check lib/ticket.mjs && node --check test/espn-proxy.test.mjs && node --check test/weeks.test.mjs && node --check test/health.test.mjs"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check pages/api/espn.js && node --check pages/api/pick.js && node --check pages/api/health.js && for f in lib/*.mjs test/*.mjs; do node --check $f || exit 1; done && next build"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   }
 }

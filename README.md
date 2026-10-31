@@ -8,26 +8,41 @@ Live weekly parlay tracker for Our Holm League.
 - A push to `main` deploys to production at https://holm-parlay.vercel.app.
 - Every PR gets a preview deployment, and the Vercel bot comments the link on the PR.
 - Vercel reports each deploy back as a **commit status** named `Vercel`. The repo's GitHub "Deployments" panel stays empty because this project doesn't create GitHub Deployment objects. That's expected and doesn't mean the link is broken.
-- The functions run in `cle1` (see `vercel.json`).
+- `vercel.json` sets the framework to Next.js and runs the functions in `cle1`.
 
 **Environment variables.** Set these in Vercel → Project → Settings → Environment Variables. `.env.example` lists them with placeholder values. Never commit real values.
 
 | Variable | Required | Read in | What breaks without it |
 |---|---|---|---|
-| `ESPN_S2` | yes | `api/espn.js` | The private fantasy league can't load: no last-place payer and no ESPN standings. `/api/espn?path=ffl` returns 401. |
-| `ESPN_SWID` | yes | `api/espn.js` | Same as `ESPN_S2`. Both are cookies from a logged-in espn.com session. |
-| `ESPN_LEAGUE_ID` | no | `api/espn.js` | Nothing. It defaults to `182263`. |
-| `SUPABASE_URL` | no | `api/pick.js` | Nothing. It falls back to the project URL hardcoded in `api/pick.js` and `app.js`. |
-| `SUPABASE_ANON_KEY` (or `SUPABASE_KEY`) | no | `api/pick.js` | Nothing. It falls back to the publishable key hardcoded in the same files. |
+| `ESPN_S2` | yes | `pages/api/espn.js` | The private fantasy league can't load: no last-place payer and no ESPN standings. `/api/espn?path=ffl` returns 401. |
+| `ESPN_SWID` | yes | `pages/api/espn.js` | Same as `ESPN_S2`. Both are cookies from a logged-in espn.com session. |
+| `ESPN_LEAGUE_ID` | no | `pages/api/espn.js` | Nothing. It defaults to `182263`. |
+| `SUPABASE_URL` | no | `pages/api/pick.js` | Nothing. It falls back to the project URL hardcoded in `pages/api/pick.js` and `lib/clients.mjs`. |
+| `SUPABASE_ANON_KEY` (or `SUPABASE_KEY`) | no | `pages/api/pick.js` | Nothing. It falls back to the publishable key hardcoded in the same files. |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | no | `lib/clients.mjs` (browser) | Nothing. They override the browser's Supabase project. Set them only if you move projects. |
 
 **Health check.** `GET /api/health` returns which of the variables above are set, as booleans only, never their values. It also returns the deployed commit and a list of problems. `"ok": true` means ESPN is configured.
 
-**Supabase.** `supabase/picks.sql` documents the two tables and the auto-commit RPC used by `api/pick.js`. It was rebuilt from the code and checked against the live tables. Read its header before running it. The commissioner RPCs (`holm_parlay_check_pass`, `holm_parlay_save_week`, `holm_parlay_delete_week`) exist only in the live database.
+**Supabase.** `supabase/picks.sql` documents the two tables and the auto-commit RPC used by `pages/api/pick.js`. It was rebuilt from the code and checked against the live tables. Read its header before running it. The commissioner RPCs (`holm_parlay_check_pass`, `holm_parlay_save_week`, `holm_parlay_delete_week`) exist only in the live database.
 
 **Local dev.**
-1. Copy `.env.example` to `.env.local`.
-2. Run `npm test` and `npm run check`.
-3. Run `vercel dev` (Vercel CLI) to serve the site and the `api/` functions together.
+1. Run `npm install`.
+2. Copy `.env.example` to `.env.local`.
+3. Run `npm run dev` and open http://localhost:3000. It serves the pages and `/api/*`.
+4. Run `npm test` for the unit tests, and `npm run check` for the syntax checks plus `next build`.
+
+## Code layout
+
+The site is a Next.js App Router app written in JavaScript, with no TypeScript and no extra frameworks.
+
+| Path | What it holds |
+|---|---|
+| `app/<page>/page.js` | One route per tab: `/week`, `/pick`, `/standings`, `/league`, `/bets`, `/chat`, `/commissioner`. `/` redirects to `/week` and maps old `#hash` links (`#history` → `/bets`, `#admin` → `/commissioner`). |
+| `components/*View.js` | The client component for each page. `LeagueProvider` and `Topbar` are shared by every page. |
+| `lib/*.mjs` | Pure logic shared by the pages, the API routes and the tests: grading, standings, Elo, history stats, the NFL clock, the pick form and the league store. |
+| `pages/api/*.js` | Serverless API routes: `espn`, `pick` and `health`. |
+| `app/data/bets.json`, `app/league-lore.json`, `app/parlay-history.json` | GET-only routes that serve the JSON files at their old URLs. They are read-only and bundled at build time, so data edits ship with the next deploy. |
+| `public/` | Icons and the PWA manifest. |
 
 ### Integration audit (2026-10-30)
 - **GitHub ↔ Vercel: working.** Every recent commit on `main` has a successful `Vercel` status, and production serves the current `main` build.
@@ -44,7 +59,7 @@ Wins and losses live only in `data/bets.json`. That file is the only place a wee
 
 ## Parlay history (`parlay-history.json`)
 
-`parlay-history.json` is a static, read-only record of the weekly $10 group parlay. The **Bets** tab (`#history`) builds its stats from that file. Nothing is written to Supabase.
+`parlay-history.json` is a static, read-only record of the weekly $10 group parlay. The **Bets** tab (`/bets`) builds its stats from that file. Nothing is written to Supabase.
 
 **How it was built**
 - Source: the "Our Holm League" WhatsApp export (7/31/26 to 10/29/26). Each parlay has a `source` field with line refs (`L###`).

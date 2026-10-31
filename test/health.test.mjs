@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import handler from '../api/health.js';
+import handler from '../pages/api/health.js';
 
 const ENV_KEYS = ['ESPN_S2', 'espn_s2', 'ESPN_SWID', 'SWID', 'ESPN_LEAGUE_ID', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_KEY'];
 

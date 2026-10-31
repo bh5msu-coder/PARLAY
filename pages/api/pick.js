@@ -1,4 +1,4 @@
-import { assembleTicket, validatePick, PARLAY_11, canonicalWho } from '../lib/ticket.mjs';
+import { assembleTicket, validatePick, PARLAY_11, canonicalWho } from '../../lib/ticket.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
