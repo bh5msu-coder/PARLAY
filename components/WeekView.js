@@ -4,7 +4,7 @@ import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { StatusBadge } from './ui';
 import { fmtMoney, fmtOdds } from '../lib/format.mjs';
-import { sitHandle, whoLabel } from '../lib/ident.mjs';
+import { ident, sitHandle, whoLabel } from '../lib/ident.mjs';
 import { summarizeParlay } from '../lib/weeks.mjs';
 import { seasonRecord } from '../lib/standings.mjs';
 import { weekStates, weekMoney } from '../lib/model.mjs';
@@ -35,6 +35,86 @@ function RecapCard({ week, state }) {
           <button className="btn btn--ghost btn--sm" type="button" onClick={copy}>Copy</button>
         </div>
       </div>
+    </section>
+  );
+}
+
+/** Names for a sentence: "A, B and C", or the first four and "+N more". */
+function nameList(names) {
+  const shown = names.slice(0, 4).map((x) => whoLabel(x));
+  const more = names.length - shown.length;
+  if (more > 0) return shown.join(', ') + ` +${more} more`;
+  return shown.length > 1 ? shown.slice(0, -1).join(', ') + ' and ' + shown[shown.length - 1] : shown.join('');
+}
+
+function myName(state) {
+  let who = (state.pick.form && state.pick.form.who) || '';
+  if (!who) { try { who = localStorage.getItem('hp_who') || ''; } catch (e) { who = ''; } }
+  return who ? ident.canonical(who) : '';
+}
+
+/** One card that answers: what week is it, am I in, what happens next. Open, locked and settled each get their own copy. */
+function ThisWeekCard({ store, week, pending, s, payers, need, hold }) {
+  const { state } = store;
+  const clock = state.nfl && state.nfl.active === week.week ? state.nfl : null;
+  const pickOpen = pending && state.pick.week === week.week;
+  const rows = pickOpen ? state.pick.rows || [] : [];
+  const pickedSet = new Set(rows.map((r) => ident.canonical(r.who)));
+  const missing = pickOpen
+    ? ((state.pick.ticket && state.pick.ticket.missing) || (state.config.roster || []).filter((n) => !pickedSet.has(ident.canonical(n)))).map((n) => ident.canonical(n))
+    : [];
+  const me = myName(state);
+  const mine = me ? rows.find((r) => ident.canonical(r.who) === me) : null;
+  const stake = week.stake || 10;
+  const payLine = payers.length > 1
+    ? `${payers.map((x) => whoLabel(x)).join(' and ')} split the ${fmtMoney(stake)}`
+    : payers.length ? `${whoLabel(payers[0])} pays the ${fmtMoney(stake)}` : `${fmtMoney(stake)} stake · payer not set yet`;
+
+  let phase; let pill; let sub; let head; let line; let cta;
+  if (s && (s.state === 'busted' || s.state === 'cashed')) {
+    phase = 'settled';
+    pill = s.state === 'cashed' ? 'Cashed' : 'Busted';
+    sub = s.state === 'cashed' ? `${s.won} of ${s.total} hit` : `${s.won} of ${s.total} hit · killed by ${s.killers.map((k) => whoLabel(k)).join(', ')}`;
+    head = s.state === 'cashed' ? 'IT CASHED.' : 'BUSTED.';
+    line = clock ? `${payLine} · next week opens when the last game is final` : payLine;
+    cta = { href: '#legs', text: 'See the legs' };
+  } else if (!pending && hold && !(s && s.live)) {
+    phase = 'settled';
+    pill = 'Not recorded';
+    sub = 'No result was entered for this ticket';
+    head = 'RESULT NOT RECORDED.';
+    line = `${payLine} · ${(week.legs || []).length} legs`;
+    cta = { href: '#legs', text: 'See the legs' };
+  } else if (!pending) {
+    phase = 'locked';
+    pill = s && s.live ? 'Live' : 'Locked';
+    sub = s ? `${s.won} of ${s.total} hit · ${s.live} live · ${s.pending} to play` : 'Loading scores';
+    head = s && s.lost ? 'STILL SWEATING.' : 'TICKET IS IN.';
+    line = `${payLine} · ${(week.legs || []).length} legs`;
+    cta = { href: '#legs', text: 'Watch the legs' };
+  } else {
+    phase = 'open';
+    pill = 'Picks open';
+    sub = clock && clock.firstKickLabel ? `Locks at first kick · ${clock.firstKickLabel}` : 'Locks at kickoff';
+    const inCount = Math.max(0, need - missing.length);
+    if (me && mine) head = 'YOU’RE IN.';
+    else if (me) head = 'YOU’RE NOT IN YET.';
+    else head = `${inCount} OF ${need} PICKS IN.`;
+    line = [payLine, missing.length ? `Still need ${nameList(missing)}` : 'Every pick is in'].join(' · ');
+    cta = { href: '/pick', text: mine ? 'Change my pick' : 'Make my pick' };
+  }
+
+  return (
+    <section className={'card thisweek thisweek--' + phase} aria-label="This week">
+      <div className="thisweek__top">
+        <span className="label">{clock ? `This week’s parlay · Week ${week.week}` : `Week ${week.week} parlay`}</span>
+        <span className={'thisweek__pill thisweek__pill--' + phase}>{pill}</span>
+      </div>
+      <span className="small muted">{sub}</span>
+      <h2 className="thisweek__head">{head}</h2>
+      {mine ? <span className="small">{`Your pick: ${(mine.leg && mine.leg.label) || 'saved'}`}</span> : null}
+      <span className="small">{line}</span>
+      <div><Link className="btn btn--primary" href={cta.href}>{cta.text}</Link></div>
     </section>
   );
 }
@@ -181,6 +261,9 @@ export default function WeekView() {
         ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
         : null}
 
+      <ThisWeekCard store={store} week={week} pending={pending} s={s} payers={payers} need={participants} hold={hold} />
+
+      {pending ? null : <>
       <StateChips week={week} savedRows={savedRows} need={participants} config={state.config} />
 
       <section className="card banner">
@@ -207,16 +290,14 @@ export default function WeekView() {
         <div className="card stat"><span className="label">Legs settled</span><span className="stat__value">{s ? `${s.won + s.lost + s.pushes} / ${s.total}` : '–'}</span><span className="stat__delta">{s ? `${s.live} live · ${s.pending} to play` : (pending ? 'Ticket not in yet' : '')}</span></div>
         <div className="card stat"><span className="label">Season parlays</span><span className="stat__value">{seasonRecord(state.weeks, state.graded)}</span><span className="stat__delta">cashed – busted</span></div>
       </section>
+      </>}
 
       {pending ? (
-        <section className="card">
-          <div className="empty">No ticket for this NFL week yet. Enter picks on the Pick tab — the board already moved on because last week’s games are final.</div>
-          <div className="notice"><Link href="/pick">Open the pick board</Link></div>
-        </section>
+        <p className="muted small">{`${store.weekPayerNote(week)} · Season parlays ${seasonRecord(state.weeks, state.graded)} (cashed – busted)`}</p>
       ) : (
         <>
         <RecapCard week={week} state={state} />
-        <section className="card">
+        <section className="card" id="legs">
           <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable; showing what we have.' : 'Scores refresh every 45 seconds during games.'}</span></div>
           <ol className="legs">{rows}</ol>
           <div className="notice"><span>{week.note || ''}</span><span>{week.book ? `Book: ${week.book}` : ''}</span></div>
