@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
-import { ident } from '../lib/ident.mjs';
+import { ident, whoLabel } from '../lib/ident.mjs';
 import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
 import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
 import { PICK_API, toast } from '../lib/clients.mjs';
@@ -140,7 +140,7 @@ export default function PickView() {
           </div>
         </div></section>) : null}
 
-      {(ticket.issues || []).map((iss, i) => <p key={i} className={'rules rules--' + iss.level}>{iss.text}</p>)}
+      {(ticket.issues || []).map((iss, i) => <p key={i} className={'rules rules--' + iss.level}>{iss.names ? `${iss.lead} ${iss.names.map((n) => whoLabel(n)).join(', ')}` : iss.text}</p>)}
 
       <section className="card">
         <div className="card__head"><h2>The 11</h2><span className="sub">H-Bomb sits</span></div>
@@ -148,7 +148,7 @@ export default function PickView() {
           const row = submissions.find((s) => s.who === name);
           return (
             <div key={name} className={'slot' + (row ? ' slot--in' : '')}>
-              <div className="slot__who">{name}</div>
+              <div className="slot__who">{whoLabel(name)}</div>
               <div className="slot__pick">{row ? (row.leg.label || 'In') : 'Waiting'}</div>
               <div className="muted">{row ? (row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>
             </div>);
@@ -162,7 +162,7 @@ export default function PickView() {
             <div className="field"><label>I am</label>
               <select value={ident.canonical(f.who) || ''} onChange={(e) => setF('who', e.target.value)}>
                 <option value="">Select yourself</option>
-                {roster.map((n) => <option key={n} value={n}>{n}</option>)}
+                {roster.map((n) => <option key={n} value={n}>{whoLabel(n)}</option>)}
               </select>
             </div>
             <div className="field"><label>Game</label>

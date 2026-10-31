@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { ROUTES, routeFor, useLeague } from './LeagueProvider';
+import MoreMenu from './MoreMenu';
 import { SEASON } from '../lib/clients.mjs';
 
 /** The league emblem (Our Holm League shield). Drawn from public/emblem.png, made from the Canva design. */
@@ -47,9 +48,10 @@ export default function Topbar({ title, sub }) {
         </div>
         <div className="tools">
           <nav className="desknav" aria-label="Sections">
-            {ROUTES.map((r) => (
+            {ROUTES.filter((r) => r.primary).map((r) => (
               <Link key={r.path} className="btn btn--ghost btn--sm" href={r.path} aria-current={r.route === current ? 'page' : undefined}>{r.label}</Link>
             ))}
+            <MoreMenu current={current} className="more--down" />
           </nav>
           {state.config.chat ? <a className="btn btn--ghost btn--sm" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
           <ThemeButton />
