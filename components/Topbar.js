@@ -79,8 +79,9 @@ export default function Topbar({ title, sub }) {
           <ThemeButton />
         </div>
       </div>
-      <div className="titles">
-        <h1>{state.ready ? title : 'Our Holm League'}</h1>
+      {/* On League the wordmark already says it, so the page title is kept for screen readers only. */}
+      <div className={'titles' + (current === 'league' ? ' titles--home' : '')}>
+        <h1 className={current === 'league' ? 'sr-only' : undefined}>{state.ready ? title : 'Our Holm League'}</h1>
         <span className="sub">{subText}</span>
       </div>
     </header>
