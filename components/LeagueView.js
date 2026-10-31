@@ -13,6 +13,9 @@ import Achievements from './Achievements';
 import { cachedHistory, historyLegs, loadHistory } from '../lib/history.mjs';
 import { weeklyLegs } from '../lib/stats.mjs';
 import { allRules } from '../lib/rules.mjs';
+import { allTimeCareers, loreHeadlines, pfOutliers } from '../lib/lore-summary.mjs';
+
+function fmtPct(p) { return p == null ? '–' : (p * 100).toFixed(1) + '%'; }
 
 function finClass(s) {
   return s.champion ? 'fin fin--gold' : s.rank <= 4 ? 'fin fin--good' : s.rank >= 11 ? 'fin fin--bad' : 'fin';
@@ -197,6 +200,7 @@ export default function LeagueView() {
   if (!state.ready) return <Page title={title} />;
   if (!lore) return <Page title={title} sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
   const k = lore.kpis || {};
+  const h = loreHeadlines(lore);
   const selected = state.selectedOwner || ident.people[0].name;
   const select = (n) => { state.selectedOwner = n; store.emit(); };
   const table = ident.people.slice().sort((a, b) => (a.career && a.career.avgFinish || 99) - (b.career && b.career.avgFinish || 99) || a.name.localeCompare(b.name));
@@ -211,6 +215,11 @@ export default function LeagueView() {
         <KpiCard label="Longest drought" value={k.longestDrought ? whoLabel(k.longestDrought.owner) : '–'} note={k.longestDrought ? `${k.longestDrought.seasons} seasons, 0 rings` : ''} />
         <KpiCard label="Most last places" value={k.mostLastPlaces ? whoLabel(k.mostLastPlaces.owner) : '–'} note={k.mostLastPlaces ? `${k.mostLastPlaces.count} toilet bowls` : ''} />
         <KpiCard label="2025 PF monster" value={k.pfMonster2025 ? whoLabel(k.pfMonster2025.owner) : '–'} note={k.pfMonster2025 ? `${k.pfMonster2025.pf} pts` : ''} />
+        <KpiCard label="Best avg finish" value={h.bestAvgFinish ? whoLabel(h.bestAvgFinish.owner) : '–'} note={h.bestAvgFinish ? `${fmtFinish(h.bestAvgFinish.avgFinish)} over ${h.bestAvgFinish.seasons} seasons` : ''} />
+        <KpiCard label="Best win rate" value={h.bestWinPct ? whoLabel(h.bestWinPct.owner) : '–'} note={h.bestWinPct ? `${fmtPct(h.bestWinPct.pct)} · ${h.bestWinPct.wins}–${h.bestWinPct.losses} (${h.minSeasons}+ seasons)` : ''} />
+        <KpiCard label="Career PF leader" value={h.careerPf ? whoLabel(h.careerPf.owner) : '–'} note={h.careerPf ? `${Math.round(h.careerPf.pf).toLocaleString('en-US')} pts in ${h.careerPf.seasons} seasons` : ''} />
+        <KpiCard label="Best season PF" value={h.bestSeason ? whoLabel(h.bestSeason.owner) : '–'} note={h.bestSeason ? `${h.bestSeason.pf} pts in ${h.bestSeason.season} · ${h.bestSeason.rank === 1 ? 'won the title' : 'finished ' + h.bestSeason.rank}` : ''} />
+        <KpiCard label="Back to back" value={h.backToBack.length ? `${h.backToBack.length} repeat${h.backToBack.length === 1 ? '' : 's'}` : 'Nobody'} note={h.backToBack.length ? h.backToBack.map((x) => `${whoLabel(x.owner)} ${x.years[0]}–${String(x.years[1]).slice(2)}`).join(' · ') : 'No repeat champion yet'} />
       </section>
 
       <section className="card">
@@ -251,6 +260,42 @@ export default function LeagueView() {
               </tr>);
           })}</tbody>
         </table></div>
+      </section>
+
+      <section className="card">
+        <div className="card__head"><h2>Every manager, all time</h2><span className="sub">{`All ${allTimeCareers(lore).length} owners since 2010 · ${h.departedTitles} titles went to owners who left`}</span></div>
+        <div className="tablewrap"><table>
+          <thead><tr><th>Manager</th><th className="r hide-m">Years</th><th className="r">Titles</th><th className="r">W–L</th><th className="r hide-m">Win %</th><th className="r">Avg</th><th className="r hide-m">Best · worst</th><th className="r hide-m">Last</th></tr></thead>
+          <tbody>{allTimeCareers(lore).map((c) => (
+            <tr key={c.owner} className={c.owner === state.config.you ? 'me' : ''}>
+              <td><div className="who-cell"><span style={{ fontWeight: 600 }}>{c.current ? whoLabel(c.owner) : c.owner}</span>{c.current ? null : <span className="pills"><span className="pill">Former</span></span>}</div></td>
+              <td className="r num hide-m">{c.first === c.last ? String(c.first) : `${c.first}–${c.last}`}</td>
+              <td className="r num" style={{ whiteSpace: 'nowrap' }}>{String(c.titleCount || 0)}{c.titleCount ? <span className="muted hide-m">{` (${c.titles.join(', ')})`}</span> : null}</td>
+              <td className="r num" style={{ whiteSpace: 'nowrap' }}>{`${c.wins}–${c.losses}`}</td>
+              <td className="r num hide-m">{fmtPct(c.winPct)}</td>
+              <td className="r num">{fmtFinish(c.avgFinish)}</td>
+              <td className="r num hide-m">{`${c.bestFinish} · ${c.worstFinish}`}</td>
+              <td className="r num hide-m">{String(c.lastPlaceCount || 0)}</td>
+            </tr>))}</tbody>
+        </table></div>
+        <p className="notice">{`Years is first to last season played; ${allTimeCareers(lore).filter((c) => c.seasons < (c.last - c.first + 1)).length} owners sat seasons out in between. DJ has no season on file yet. Source: league-lore.json, ESPN 182263.`}</p>
+      </section>
+
+      <section className="card">
+        <div className="card__head"><h2>Seasons that broke the scale</h2><span className="sub">PF furthest from that year’s average · z-score</span></div>
+        <div className="tablewrap"><table>
+          <thead><tr><th>Yr</th><th>Manager</th><th className="hide-m">Team</th><th className="r">PF</th><th className="r">z</th><th className="r">Finish</th></tr></thead>
+          <tbody>{pfOutliers(lore).map((o) => (
+            <tr key={o.season + o.owner}>
+              <td className="num">{String(o.season)}</td>
+              <td>{ident.person(o.owner) ? whoLabel(o.owner) : o.owner}</td>
+              <td className="hide-m">{o.team}</td>
+              <td className="r num">{String(o.pf)}</td>
+              <td className={'r num ' + (o.z > 0 ? 'pos' : 'neg')}>{(o.z > 0 ? '+' : '') + o.z.toFixed(2)}</td>
+              <td className="r num">{o.champ ? 'Champ' : String(o.rank)}</td>
+            </tr>))}</tbody>
+        </table></div>
+        <p className="notice">{'+2 means about two standard deviations above the year’s average PF. A high score did not always win: Jarn’s 2025 1,830 finished 2nd, and Heller’s 2016 1,123 still finished 2nd.'}</p>
       </section>
 
       {k.mostLastPlaces ? <p className="rules">{`Toilet-bowl energy: ${k.mostLastPlaces.owner} has finished last ${k.mostLastPlaces.count} times (${(k.mostLastPlaces.years || []).join(', ')}). Weekly 2026 payer is still last place the week before — entered on the ticket.`}</p> : null}

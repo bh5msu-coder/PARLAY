@@ -995,7 +995,7 @@
    "legs": [
     {
      "who": "Joseph McKeon",
-     "label": "Browns/Steelers under",
+     "label": "Browns/Steelers under 39.5",
      "type": "total",
      "game": [
       "CLE",
@@ -1003,11 +1003,12 @@
      ],
      "kickoff": "2026-11-01T18:00Z",
      "result": "pending",
-     "side": "under"
+     "side": "under",
+     "line": 39.5
     },
     {
      "who": "Jace Clark",
-     "label": "Cowboys/Cardinals over",
+     "label": "Cowboys/Cardinals over 54.5",
      "type": "total",
      "game": [
       "ARI",
@@ -1015,7 +1016,8 @@
      ],
      "kickoff": "2026-11-01T18:00Z",
      "result": "pending",
-     "side": "over"
+     "side": "over",
+     "line": 54.5
     },
     {
      "who": "Adam Meltser",
@@ -1030,7 +1032,8 @@
      "line": 29.5,
      "side": "over",
      "player": "Jahmyr Gibbs",
-     "stat": "recYds"
+     "stat": "recYds",
+     "sgp": "MIN/DET 2 pick SGP"
     },
     {
      "who": "Kyle McFadden",
@@ -1043,7 +1046,8 @@
      "kickoff": "2026-11-01T18:00Z",
      "result": "pending",
      "player": "Justin Jefferson",
-     "stat": "anyTD"
+     "stat": "anyTD",
+     "sgp": "MIN/DET 2 pick SGP"
     },
     {
      "who": "Ryan Hoffman",
@@ -1085,7 +1089,7 @@
     },
     {
      "who": "DJ Dangerous",
-     "label": "Over tonight (Panthers/Packers TNF)",
+     "label": "Panthers/Packers over 46.5",
      "type": "total",
      "game": [
       "CAR",
@@ -1094,11 +1098,12 @@
      "kickoff": "2026-10-30T00:15Z",
      "result": "pending",
      "side": "over",
-     "note": "Line not in chat."
+     "note": "Line not in chat. 46.5 from the DraftKings receipt.",
+     "line": 46.5
     },
     {
      "who": "Brad Holm",
-     "label": "Ollie Gordon over rush yds",
+     "label": "Ollie Gordon II over 61.5 rush yds",
      "type": "player",
      "game": [
       "NE",
@@ -1108,7 +1113,9 @@
      "result": "pending",
      "side": "over",
      "player": "Ollie Gordon II",
-     "stat": "rushYds"
+     "stat": "rushYds",
+     "line": 61.5,
+     "sgp": "NE/MIA 2 pick SGP"
     },
     {
      "who": "Jarn Sachs",
@@ -1121,32 +1128,38 @@
      "kickoff": "2026-11-01T21:25Z",
      "result": "pending",
      "team": "MIA",
-     "line": 7.5
+     "line": 7.5,
+     "sgp": "NE/MIA 2 pick SGP"
     },
     {
      "who": "Chas Rossman",
-     "label": "Seahawks",
+     "label": "Seahawks ML",
      "type": "ml",
      "game": [
       "CHI",
       "SEA"
      ],
-     "kickoff": "2026-11-03T01:15Z",
+     "kickoff": "2026-11-03T01:20Z",
      "result": "pending",
      "team": "SEA",
-     "note": "Recorded as \"Seahawks\". Bet type (ML vs spread) not stated."
+     "note": "Recorded as \"Seahawks\". The DraftKings receipt shows SEA moneyline, Mon 8:20 PM ET."
     }
    ],
    "stake": 10,
-   "source": "Parent brief (final 11/11 list); chat L958-962 partial",
-   "notes": "Results pending.",
+   "source": "Parent brief (final 11/11 list); chat L958-962 partial; DraftKings receipt screenshot 10/29 7:03 PM (11 Pick Parlay SGPx, $10 wager, total payout $7,967.80)",
+   "notes": "Results pending. Lines and Chas's Seahawks ML from the DraftKings receipt.",
    "record": {
     "win": 0,
     "loss": 0,
     "unknown": 0,
     "pending": 11
    },
-   "result": "pending"
+   "result": "pending",
+   "odds": 79578,
+   "toPay": 7967.8,
+   "boost": "+10% parlay boost (+72,342 and $7,244.28 before the boost)",
+   "placedBy": "Chas Rossman",
+   "payer": "Brad Holm"
   }
  ],
  "excluded": [

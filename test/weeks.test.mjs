@@ -50,11 +50,11 @@ test('unknown weeks never become wins or losses', () => {
   }
   const current = gradeStoredWeek(byWeek[8]);
   const chas = current.graded.find((g) => g.leg.who === 'Chas Rossman');
-  assert.equal(chas.leg.label, 'TBD');
-  assert.equal(chas.detail, 'Pick not in yet');
-  const tnf = current.graded.find((g) => g.leg.label === 'Over Thursday night game');
+  assert.equal(chas.leg.label, 'Seahawks ML', 'the DraftKings receipt names Chas\'s pick');
+  assert.deepEqual(chas.leg.game, ['CHI', 'SEA']);
+  const tnf = current.graded.find((g) => g.leg.who === 'DJ Dangerous');
   assert.deepEqual(tnf.leg.game, ['CAR', 'GB']);
-  assert.equal(tnf.leg.line, undefined);
+  assert.equal(tnf.leg.line, 46.5);
 });
 
 test('hit rate ignores open legs', () => {

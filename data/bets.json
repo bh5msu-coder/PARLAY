@@ -643,128 +643,35 @@
     },
     {
       "week": 8,
-      "ticket": { "state": "proposed", "evidence": "Picks are listed, but no slip, odds or payout is recorded." },
+      "ticket": { "state": "placed", "evidence": "DraftKings receipt screenshot, 11 Pick Parlay (SGPx): $10 wager, +79,578 with the 10% parlay boost, total payout $7,967.80." },
       "contributions": [],
       "payouts": [],
       "dates": "Oct 29–Nov 2, 2026",
       "results": "unknown",
       "stake": 10,
+      "odds": 79578,
+      "toPay": 7967.8,
+      "boost": "+10% parlay boost (slip odds +72,342 and payout $7,244.28 before the boost)",
       "book": "DraftKings (MI)",
       "payer": "Brad Holm",
       "placedBy": "Chas Rossman",
-      "note": "Current week. The pool called the window Oct 27–29; NFL Week 8 runs Thursday Oct 29 through Monday Nov 2. Thursday night is Panthers at Packers. No result is recorded. Chas is TBD. Totals and the Ollie Gordon line were not given. Payer Brad Holm; placed by Chas Rossman on 10/29/26 (Auction House Parlays 2026 spreadsheet, and the chat has Chas Rossman posting the DraftKings slip link). No slip odds or to-pay amount were recorded, so the ticket stays proposed.",
+      "note": "Current week. NFL Week 8 runs Thursday Oct 29 through Monday Nov 2. Payer Brad Holm; placed by Chas Rossman on 10/29/26 (Auction House Parlays 2026 spreadsheet; the chat has Chas posting the DraftKings slip link). Lines, Chas's Seahawks ML and the payout come from the DraftKings receipt screenshot taken 10/29 at 7:03 PM. Kickoffs are from the slip. No result is recorded.",
+      "groups": {
+        "sgp1": { "odds": null, "label": "2 pick SGP · Vikings at Lions" },
+        "sgp2": { "odds": null, "label": "2 pick SGP · Patriots at Dolphins" }
+      },
       "legs": [
-        {
-          "id": "w8-joey",
-          "who": "Joe Mckeon",
-          "type": "total",
-          "label": "Browns/Steelers UNDER",
-          "side": "under",
-          "game": ["CLE", "PIT"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-jace",
-          "who": "Jace Clark",
-          "type": "total",
-          "label": "Cowboys/Cardinals OVER",
-          "side": "over",
-          "game": ["ARI", "DAL"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-meltser",
-          "who": "Adam Meltser",
-          "type": "player",
-          "label": "Gibbs 30+ rec yds",
-          "player": "Jahmyr Gibbs",
-          "stat": "recYds",
-          "side": "over",
-          "line": 29.5,
-          "game": ["MIN", "DET"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-kyle",
-          "who": "Kyle McFadden",
-          "type": "player",
-          "label": "Justin Jefferson anytime TD",
-          "player": "Justin Jefferson",
-          "stat": "anyTD",
-          "side": "over",
-          "line": 0.5,
-          "game": ["MIN", "DET"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-hoss",
-          "who": "Ryan Hoffman",
-          "type": "spread",
-          "label": "Raiders +1.5",
-          "team": "LV",
-          "line": 1.5,
-          "game": ["LV", "NYJ"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-nick",
-          "who": "Nick Curtis",
-          "type": "spread",
-          "label": "Bills -2.5 vs Baltimore",
-          "team": "BUF",
-          "line": -2.5,
-          "game": ["BAL", "BUF"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-kev",
-          "who": "Kevin Sack",
-          "type": "ml",
-          "label": "Denver ML",
-          "team": "DEN",
-          "game": ["KC", "DEN"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-dj",
-          "who": "DJ Dangerous",
-          "type": "total",
-          "label": "Over Thursday night game",
-          "side": "over",
-          "game": ["CAR", "GB"],
-          "note": "Thursday night is Panthers at Packers. The total was not given.",
-          "result": "unknown"
-        },
-        {
-          "id": "w8-brad",
-          "who": "Brad Holm",
-          "type": "player",
-          "label": "Ollie Gordon over rush yds",
-          "player": "Ollie Gordon",
-          "stat": "rushYds",
-          "side": "over",
-          "game": ["NE", "MIA"],
-          "note": "Rushing line was not given.",
-          "result": "unknown"
-        },
-        {
-          "id": "w8-jarn",
-          "who": "John Sachs",
-          "type": "spread",
-          "label": "Dolphins +7.5",
-          "team": "MIA",
-          "line": 7.5,
-          "game": ["NE", "MIA"],
-          "result": "unknown"
-        },
-        {
-          "id": "w8-chas",
-          "who": "Chas Rossman",
-          "type": "tbd",
-          "label": "TBD",
-          "game": [],
-          "result": "unknown"
-        }
+        {"id": "w8-meltser", "who": "Adam Meltser", "type": "player", "group": "sgp1", "label": "Jahmyr Gibbs 30+ rec yds", "player": "Jahmyr Gibbs", "stat": "recYds", "side": "over", "line": 29.5, "game": ["MIN", "DET"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
+        {"id": "w8-kyle", "who": "Kyle McFadden", "type": "player", "group": "sgp1", "label": "Justin Jefferson anytime TD", "player": "Justin Jefferson", "stat": "anyTD", "side": "over", "line": 0.5, "game": ["MIN", "DET"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
+        {"id": "w8-brad", "who": "Brad Holm", "type": "player", "group": "sgp2", "label": "Ollie Gordon II over 61.5 rush yds", "player": "Ollie Gordon II", "stat": "rushYds", "side": "over", "line": 61.5, "game": ["NE", "MIA"], "gameDate": "2026-11-01T21:25Z", "result": "unknown"},
+        {"id": "w8-jarn", "who": "John Sachs", "type": "spread", "group": "sgp2", "label": "Dolphins +7.5 (alt spread)", "team": "MIA", "line": 7.5, "game": ["NE", "MIA"], "gameDate": "2026-11-01T21:25Z", "result": "unknown"},
+        {"id": "w8-dj", "who": "DJ Dangerous", "type": "total", "label": "Panthers/Packers Over 46.5", "side": "over", "line": 46.5, "game": ["CAR", "GB"], "gameDate": "2026-10-30T00:15Z", "result": "unknown"},
+        {"id": "w8-joey", "who": "Joe Mckeon", "type": "total", "label": "Browns/Steelers Under 39.5", "side": "under", "line": 39.5, "game": ["CLE", "PIT"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
+        {"id": "w8-jace", "who": "Jace Clark", "type": "total", "label": "Cardinals/Cowboys Over 54.5", "side": "over", "line": 54.5, "game": ["ARI", "DAL"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
+        {"id": "w8-nick", "who": "Nick Curtis", "type": "spread", "label": "Bills -2.5 vs Baltimore (alt spread)", "team": "BUF", "line": -2.5, "game": ["BAL", "BUF"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
+        {"id": "w8-hoss", "who": "Ryan Hoffman", "type": "spread", "label": "Raiders +1.5", "team": "LV", "line": 1.5, "game": ["LV", "NYJ"], "gameDate": "2026-11-01T18:00Z", "result": "unknown"},
+        {"id": "w8-kev", "who": "Kevin Sack", "type": "ml", "label": "Broncos ML", "team": "DEN", "game": ["KC", "DEN"], "gameDate": "2026-11-01T21:25Z", "result": "unknown"},
+        {"id": "w8-chas", "who": "Chas Rossman", "type": "ml", "label": "Seahawks ML", "team": "SEA", "game": ["CHI", "SEA"], "gameDate": "2026-11-03T01:20Z", "result": "unknown"}
       ]
     }
   ]
