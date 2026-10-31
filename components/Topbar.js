@@ -73,7 +73,7 @@ export default function Topbar({ title, sub }) {
               return <Link key={r.path} className="navlink" href={r.path} aria-current={r.route === current ? 'page' : undefined}>{r.label}</Link>;
             })}
             <ParlayMenu current={current} className="more--down navlink" />
-            <Link className="navlink navlink--icon" href={top('admin').path} aria-current={current === 'admin' ? 'page' : undefined}><GearIcon /><span>Commissioner</span></Link>
+            <Link className="navlink navlink--icon" href={top('admin').path} aria-label="Commissioner" aria-current={current === 'admin' ? 'page' : undefined}><GearIcon /><span>Commissioner</span></Link>
           </nav>
           {state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
           <ThemeButton />
