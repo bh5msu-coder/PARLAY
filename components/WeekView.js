@@ -7,6 +7,41 @@ import { fmtMoney, fmtOdds } from '../lib/format.mjs';
 import { sitHandle, whoLabel } from '../lib/ident.mjs';
 import { summarizeParlay } from '../lib/weeks.mjs';
 import { seasonRecord } from '../lib/standings.mjs';
+import { weekStates, weekMoney } from '../lib/model.mjs';
+import { rule } from '../lib/rules.mjs';
+import InfoTip from './InfoTip';
+
+const TICKET_TEXT = {
+  proposed: 'Proposed — not placed at a sportsbook',
+  placed: 'Placed at a sportsbook',
+  settled: 'Placed and settled',
+};
+
+/** The three separate facts about a week. None implies another. */
+function StateChips({ week, savedRows, need }) {
+  const st = weekStates(week, savedRows);
+  const t = st.ticket;
+  const placed = t.state !== 'proposed';
+  return (
+    <section className="chips" aria-label="Week status">
+      <div className="statechip">
+        <span className="label">Picks saved</span>
+        <span className="statechip__v">{`${st.picksSaved} / ${need}`}</span>
+        <span className="small muted">A saved pick is not a bet.</span>
+      </div>
+      <div className={'statechip' + (st.contributionsRecorded.count ? '' : ' statechip--no')}>
+        <span className="label">Contributions recorded <InfoTip k="contributions" label="contributions recorded" /></span>
+        <span className="statechip__v">{st.contributionsRecorded.count ? fmtMoney(st.contributionsRecorded.amount) : 'None recorded'}</span>
+        <span className="small muted">{`Stake listed ${fmtMoney(week.stake || 10)}`}</span>
+      </div>
+      <div className={'statechip' + (placed ? '' : ' statechip--no')}>
+        <span className="label">Ticket <InfoTip k="ticketState" label="ticket state" /></span>
+        <span className="statechip__v">{TICKET_TEXT[t.state] || t.state}</span>
+        <span className="small muted">{t.evidence}</span>
+      </div>
+    </section>
+  );
+}
 
 const TYPE_LABEL = { ml: 'Moneyline', spread: 'Spread', total: 'Total', player: 'Player prop', tbd: 'Not posted' };
 
@@ -63,7 +98,10 @@ export default function WeekView() {
   const legs = week.legs || [];
   const pending = !!week.pendingTicket || !legs.length;
   const participants = legs.length || (state.config.roster || []).length || 11;
-  const share = week.toPay ? week.toPay / participants : null;
+  const split = rule(state.config, 'payoutSplit');
+  const money = weekMoney(week);
+  const ticketState = weekStates(week).ticket.state;
+  const savedRows = state.pick.week === week.week ? state.pick.rows : null;
   const payer = store.weekPayer(week);
   const kick = store.weekKickNote(week.week);
   const s = gr ? gr.summary : null;
@@ -73,7 +111,7 @@ export default function WeekView() {
   if (pending && !s) statusEl = <span className="status status--pending">Waiting on the ticket</span>;
   else if (!s) statusEl = <span className="status status--pending">Loading scores</span>;
   else if (s.state === 'busted') statusEl = <span className="status status--lost">{`Busted · killed by ${s.killers.map((k) => whoLabel(k)).join(', ')}`}</span>;
-  else if (s.state === 'cashed') statusEl = <span className="status status--won">{`Cashed · ${fmtMoney(week.toPay)}`}</span>;
+  else if (s.state === 'cashed') statusEl = <span className="status status--won">{money.recorded.payouts ? `Cashed · ${fmtMoney(money.recorded.payouts)} paid` : `Cashed · slip said ${fmtMoney(week.toPay)} (hypothetical until a payout is recorded)`}</span>;
   else if (hold) statusEl = <span className="status status--unknown">{`Unknown · ${s.pending} of ${s.total} not graded`}</span>;
   else statusEl = <span className={'status status--' + (s.live ? 'live' : 'pending')}>{`${s.state === 'live' ? 'Live' : 'Open'} · ${s.won} of ${s.total} hit`}</span>;
   const gradeNote = gr && gr.fetchedAt ? 'Updated ' + new Date(gr.fetchedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : hold ? 'Results not recorded' : gr && gr.fromLock ? 'Recorded result' : '';
@@ -112,6 +150,8 @@ export default function WeekView() {
         ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
         : null}
 
+      <StateChips week={week} savedRows={savedRows} need={participants} />
+
       <section className="card banner">
         <div>
           <span className="label">Payer</span>
@@ -120,7 +160,7 @@ export default function WeekView() {
         </div>
         <div>
           <span className="label">Ticket</span>
-          <span className="big">{pending ? 'Not placed yet' : `${legs.length} legs · placed by ${week.placedBy ? whoLabel(week.placedBy) : '—'}`}</span>
+          <span className="big">{pending ? 'Not placed yet' : ticketState === 'proposed' ? `${legs.length} legs · not placed` : `${legs.length} legs · placed by ${week.placedBy ? whoLabel(week.placedBy) : '—'}`}</span>
           <span className="small">{(state.config.abstain || []).length ? `${state.config.abstain.map((x) => sitHandle(x)).join(', ')} sits` : ''}</span>
         </div>
         <div>
@@ -132,7 +172,7 @@ export default function WeekView() {
 
       <section className="stats" aria-label="Week stats">
         <div className="card stat"><span className="label">Parlay odds</span><span className="stat__value">{pending ? '—' : fmtOdds(week.odds)}</span><span className="stat__delta">{`${fmtMoney(week.stake || 10)} stake`}</span></div>
-        <div className="card stat"><span className="label">Pays if it hits</span><span className="stat__value">{pending ? '—' : fmtMoney(week.toPay)}</span><span className="stat__delta">{share ? `${fmtMoney(share)} each` : ''}</span></div>
+        <div className="card stat"><span className="label">Hypothetical payout <InfoTip k="hypothetical" label="hypothetical payout" /></span><span className="stat__value">{pending ? '—' : fmtMoney(week.toPay)}</span><span className="stat__delta">{pending || week.toPay === '' || week.toPay == null ? '' : split.decided ? `If every leg hits · split ${split.value}` : 'If every leg hits · split not decided'}</span></div>
         <div className="card stat"><span className="label">Legs settled</span><span className="stat__value">{s ? `${s.won + s.lost + s.pushes} / ${s.total}` : '–'}</span><span className="stat__delta">{s ? `${s.live} live · ${s.pending} to play` : (pending ? 'Ticket not in yet' : '')}</span></div>
         <div className="card stat"><span className="label">Season parlays</span><span className="stat__value">{seasonRecord(state.weeks, state.graded)}</span><span className="stat__delta">cashed – busted</span></div>
       </section>
