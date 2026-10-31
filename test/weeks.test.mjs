@@ -9,8 +9,8 @@ const byWeek = Object.fromEntries(weeks.map((w) => [w.week, w]));
 
 test('bets file is the only place a new week is added', () => {
   assert.match(file.howToAddAWeek, /weeks/);
-  assert.deepEqual(weeks.map((w) => w.week), [5, 6, 7, 8]);
-  for (const w of weeks) assert.equal(w.legs.length, 11);
+  assert.deepEqual(weeks.map((w) => w.week), [2, 4, 5, 6, 7, 8]);
+  for (const w of weeks) assert.equal(w.legs.length, w.week <= 4 ? 12 : 11);
 });
 
 test('week 5 is the recorded 5-6 bust', () => {
