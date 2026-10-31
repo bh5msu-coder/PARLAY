@@ -1,4 +1,5 @@
 {
+  "schemaVersion": 2,
   "howToAddAWeek": "Add one object to weeks. Set week to the NFL week number, dates, and one leg per manager (who, label, type, game). Record result as win or loss only when that result is known. Set the week's results to unknown when the slate is not graded yet, and leave any missing line blank. A leg with no result and results live (or omitted) can grade from ESPN. Do not invent a result. No component change.",
   "config": {
     "leagueName": "Our Holm League",
@@ -8,6 +9,9 @@
   "weeks": [
     {
       "week": 5,
+      "ticket": { "state": "proposed", "evidence": "Every leg has a recorded result, but nothing recorded shows the ticket was placed (no slip odds or to-pay amount)." },
+      "contributions": [],
+      "payouts": [],
       "dates": "Oct 8–12, 2026 · graded Oct 11",
       "stake": 10,
       "book": "DraftKings (MI)",
@@ -145,6 +149,9 @@
     },
     {
       "week": 6,
+      "ticket": { "state": "proposed", "evidence": "Picks are listed, but no slip, odds or payout is recorded." },
+      "contributions": [],
+      "payouts": [],
       "dates": "Oct 15–19, 2026",
       "results": "unknown",
       "stake": 10,
@@ -271,6 +278,9 @@
     },
     {
       "week": 7,
+      "ticket": { "state": "placed", "evidence": "Slip odds and to-pay amount are recorded." },
+      "contributions": [],
+      "payouts": [],
       "dates": "Oct 22–26, 2026",
       "results": "unknown",
       "stake": 10,
@@ -301,6 +311,9 @@
     },
     {
       "week": 8,
+      "ticket": { "state": "proposed", "evidence": "Picks are listed, but no slip, odds or payout is recorded." },
+      "contributions": [],
+      "payouts": [],
       "dates": "Oct 29–Nov 2, 2026",
       "results": "unknown",
       "stake": 10,

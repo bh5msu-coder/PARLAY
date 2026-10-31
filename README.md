@@ -53,6 +53,69 @@ The site is a Next.js App Router app written in JavaScript, with no TypeScript a
   - `/api/pick` has no auth, so anyone can submit or overwrite a manager's pick.
   - The publishable Supabase key is hardcoded as a fallback. Publishable keys are designed to be public, but they still allow whatever RLS permits.
 
+## Data model (schemaVersion 2)
+
+`lib/model.mjs` defines the model, and the same shapes exist as tables in `supabase/migrations/002_expanded_model.sql`.
+
+| Record | Where it lives | Notes |
+|---|---|---|
+| Player | `league-lore.json` people → `holm_players` | id, name, nick, aliases, parlay, abstain |
+| Week | `data/bets.json` weeks | The only record that adds or grades a week |
+| Leg | `week.legs` (synced one way to `holm_legs`) | Status is `open`, `won`, `lost`, `unknown`, `void` or `push`. Each leg also has a confidence label (`espn-final`, `espn-consensus-line` or `inferred-margin`, history only) and a source. |
+| Pick (saved) | `holm_parlay_picks` | A saved selection. **It is not a placed bet.** |
+| Contribution (recorded) | `week.contributions` / `holm_payments` | Money someone put in. **It does not mean the ticket was placed.** |
+| Ticket | `week.ticket` / `holm_tickets` | State is `proposed`, `placed` or `settled`, plus an `evidence` string saying how we know |
+| Payout | `week.payouts` / `holm_payouts` | Money a book actually paid. A slip's `toPay` is always hypothetical. |
+
+**Ticket state comes from evidence only.**
+- A full set of saved picks is `proposed`.
+- `placed` needs slip odds plus a to-pay amount, or a fully matched slip import.
+- `settled` means placed and every leg decided.
+- Graded legs alone never mark a ticket placed. That's why Week 5 is `proposed`: its results are recorded, but there's no slip data.
+
+**Migration.** Run `node scripts/migrate-bets-v2.mjs` (or `--check` in CI). It's idempotent and only adds fields: `schemaVersion`, `ticket`, and empty `contributions` and `payouts` arrays. It never changes a leg, result, stake or payer, and it never reads `parlay-history.json`. For Supabase, run `supabase/picks.sql` and then `supabase/migrations/002_expanded_model.sql`. Nothing has been applied to the live database.
+
+**Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
+
+## Importing picks and slips
+
+**WhatsApp** (Pick tab → From WhatsApp). Paste an export (Export chat → Without media) or a few lines. `/api/pick` parses it with `lib/import/whatsapp.mjs`.
+- **Formats:** iOS and Android export lines, HOLM PICK blocks, and pipe or `Name: pick` one-liners.
+- **Names:** must be an exact name, nickname or alias. Close spellings are not matched.
+- **Games:** a pick needs a game written as `AWAY at HOME`. A moneyline or spread must name one of the two teams.
+- **Week numbers:** a HOLM PICK block marked for another week is rejected.
+- **Unreadable lines:** these, and unknown names, come back with line numbers and are not saved.
+- **Source:** every saved pick records author, message time, line number and a hash of the message.
+
+**Dedupe** (`lib/import/dedupe.mjs`). Picks are keyed on (season, week, manager).
+- **Duplicates:** the same message twice, or the same market, are dropped.
+- **Conflicts:** a different pick from the same manager is a conflict. The `importConflict` rule decides what happens. Its default is `flag`: nothing is overwritten.
+- **Import log:** every outcome is written to `holm_import_records` once migration 002 has been run.
+
+**Sportsbook slips** (Commissioner → Sportsbook slip). Paste slip text or JSON. `lib/import/slip.mjs` matches each slip leg to one pick by team, player, side and line.
+- **Unmatched or ambiguous legs** are listed, never guessed.
+- **Placement evidence:** only a slip where every leg and every pick matched counts. For weeks stored in data/bets.json, the tool prints the `ticket` JSON to add to the file.
+
+## Open rule questions for the commissioner
+
+The site has not been told these rules, so each one is a placeholder in `lib/rules.mjs`. Undecided rules show as "Commissioner hasn't decided" and are never hardcoded. Answer these before the site handles real money:
+
+1. **payoutSplit**: How is a cashed payout split: evenly among the 11 pickers, all to the payer, or something else?
+2. **lastPlaceTie**: Who pays if two managers tie for last place in the prior fantasy week?
+3. **splitStake**: Can a week's stake be split between payers (Week 4 shows "Joseph McKeon + Kyle Heller")? If so, how is it recorded?
+4. **rollover**: When a ticket is not placed, does the stake roll over (Week 3 → Week 4 at $20)? Always, or only by vote?
+5. **pickDeadline**: When are picks due: first kickoff of the week, first kickoff of the picked game, or a fixed time?
+6. **editsAndLocks**: Can a manager change a pick after saving it? Until when? Who can unlock?
+7. **pushHandling**: If a leg pushes, does it drop from the parlay (odds recalculated) or count as a loss for attribution?
+8. **voidHandling**: If a leg is voided (player inactive, game postponed), is it dropped, replaced, or does the manager owe a new pick?
+9. **missingPicks**: If fewer than 11 picks are in by the deadline, is the ticket placed short, held, or does someone pick for the missing manager?
+10. **eligibility**: Who may opt out of a week or the season, and does opting out change who pays?
+11. **disputes**: How is a disputed grade or pick settled, and who has the final say?
+12. **placementProof**: Who places the ticket, and what counts as proof it was placed (slip photo, book screenshot)?
+13. **books**: Which books are allowed, who chooses, and do boosts or promos count toward the payout?
+14. **contributionTiming**: When is the stake due from the payer, and how is it marked as paid?
+15. **importConflict**: When an imported pick conflicts with a saved one, which wins: the saved pick, the newest message, or neither until the commissioner decides?
+
 ## Weekly tape (`data/bets.json`)
 
 Wins and losses live only in `data/bets.json`. That file is the only place a week is added or graded. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into this file.

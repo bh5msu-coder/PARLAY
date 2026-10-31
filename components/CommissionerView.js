@@ -6,6 +6,8 @@ import { ident } from '../lib/ident.mjs';
 import { uniq } from '../lib/format.mjs';
 import { blankLeg, newWeek, nextUnusedWeek, STAT_OPTS } from '../lib/pick-form.mjs';
 import { SEASON, toast } from '../lib/clients.mjs';
+import { matchSlip, parseSlip, slipEvidence } from '../lib/import/slip.mjs';
+import { whoLabel } from '../lib/ident.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -217,7 +219,9 @@ function WeekEditor({ store }) {
     store.emit();
   };
 
+  const fileWeek = state.weeks.some((w) => w.week === wk.week && w.source === 'file');
   return (
+    <>
     <section className="card">
       <div className="card__head"><h2>Week ticket</h2><button className="btn btn--ghost btn--sm" type="button" onClick={lockAdmin}>Lock admin</button></div>
       <p className="muted" style={{ margin: '0 16px 8px' }}>Add a week by editing data/bets.json. Weeks in that file stay on the board. A Supabase week shows up only when its week number is not in the file.</p>
@@ -258,6 +262,65 @@ function WeekEditor({ store }) {
         <button className="btn btn--secondary" type="button" onClick={() => save(true)}>Lock results</button>
         {wk.locked ? <span className="muted">{'Locked ' + new Date(wk.locked.at).toLocaleDateString()}</span> : <span className="muted">Lock once every leg is final so standings stop hitting ESPN for this week.</span>}
         {isSaved ? <button className="btn btn--ghost" type="button" onClick={remove}>Delete week</button> : null}
+      </div>
+    </section>
+    <SlipImport key={'slip-' + wk.week} store={store} wk={wk} fileWeek={fileWeek} />
+    </>
+  );
+}
+
+/** Paste a sportsbook slip, match it leg-by-leg to the week's picks, and (only if every leg matches)
+ *  attach it as placement evidence. Unmatched legs are listed; nothing is guessed or graded. */
+function SlipImport({ store, wk, fileWeek }) {
+  const [text, setText] = useState('');
+  const [result, setResult] = useState(null);
+  const run = () => {
+    const slip = parseSlip(text);
+    const picks = (wk.legs || []).filter((l) => l.type !== 'tbd').map((l) => ({ who: l.who, leg: l }));
+    setResult({ slip, match: matchSlip(slip, picks) });
+  };
+  const evidence = result ? slipEvidence(result.match, new Date().toISOString()) : null;
+  const apply = () => {
+    if (!evidence) return;
+    wk.ticket = { state: 'placed', evidence: evidence.evidence };
+    if (evidence.odds != null) wk.odds = evidence.odds;
+    if (evidence.toPay != null) wk.toPay = evidence.toPay;
+    if (evidence.book) wk.book = evidence.book;
+    wk.__rev = (wk.__rev || 0) + 1;
+    toast('Slip attached to the draft. Save week to keep it.');
+    store.emit();
+  };
+  const m = result && result.match;
+  return (
+    <section className="card">
+      <div className="card__head"><h2>Sportsbook slip</h2><span className="sub">{`Match a slip to Week ${wk.week}'s picks`}</span></div>
+      <div className="card__body form">
+        <p className="muted">Paste the slip text (one leg per line, plus the wager, odds and to-pay lines) or slip JSON with a legs array. A slip only counts as placement evidence when every leg matches a pick and every pick is on the slip.</p>
+        <div className="field"><label htmlFor="slip-text">Slip</label><textarea id="slip-text" value={text} onChange={(e) => setText(e.target.value)} placeholder={'DraftKings\n11 Pick Parlay +22840\nDenver Broncos ML -238\nUnder 39.5 MIA/NYJ -112\n…\nWager $10.00\nTo Pay $2,294.04'} /></div>
+        <div className="inline"><button className="btn btn--secondary" type="button" onClick={run}>Match slip</button></div>
+        {m ? (
+          <>
+            <p className={'rules ' + (m.complete ? 'rules--info' : 'rules--warn')}>
+              {m.complete
+                ? `All ${m.matched.length} legs matched.` + (m.ticket.odds != null ? ` Odds ${m.ticket.odds}.` : '') + (m.ticket.toPay != null ? ` To pay $${m.ticket.toPay} (hypothetical until a payout is recorded).` : '')
+                : `${m.matched.length} matched · ${m.unmatchedSlip.length} slip legs unmatched · ${m.unmatchedPicks.length} picks not on the slip. Not used as evidence.`}
+            </p>
+            {result.slip.errors.map((e, i) => <p key={i} className="rules rules--error">{e.reason}</p>)}
+            <div className="tablewrap"><table>
+              <thead><tr><th>Slip line</th><th>Pick</th><th>Status</th></tr></thead>
+              <tbody>
+                {m.matched.map((x, i) => <tr key={'m' + i}><td>{x.slipLeg.text}</td><td>{`${whoLabel(x.pick.who)}: ${x.pick.leg.label}`}</td><td className="pos">{'Matched (' + x.why.join(', ') + ')'}</td></tr>)}
+                {m.unmatchedSlip.map((x, i) => <tr key={'s' + i}><td>{x.slipLeg.text}</td><td>–</td><td className="neg">{x.reason}</td></tr>)}
+                {m.unmatchedPicks.map((x, i) => <tr key={'p' + i}><td>–</td><td>{`${whoLabel(x.pick.who)}: ${x.pick.leg.label}`}</td><td className="neg">{x.reason}</td></tr>)}
+              </tbody>
+            </table></div>
+            {evidence ? (fileWeek ? (
+              <>
+                <p className="muted">{`Week ${wk.week} lives in data/bets.json, which wins over Supabase. Add this to the week in that file to record the placement:`}</p>
+                <pre className="slip">{JSON.stringify({ ticket: { state: 'placed', evidence: evidence.evidence }, odds: evidence.odds, toPay: evidence.toPay, book: evidence.book || wk.book }, null, 2)}</pre>
+              </>
+            ) : <div className="inline"><button className="btn btn--primary" type="button" onClick={apply}>Attach slip to the draft</button></div>) : null}
+          </>) : null}
       </div>
     </section>
   );
