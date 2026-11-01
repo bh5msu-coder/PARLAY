@@ -45,7 +45,7 @@ export default function ChatView() {
   });
 
   if (!state.ready) return <Page title="Chat" />;
-  const sub = 'Needles from real tape. Drafts stay on this phone — share to WhatsApp when you want the group.';
+  const sub = 'Receipts from real tape · share to WhatsApp';
   if (!ident.lore) return <Page title="Chat" sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
 
   const pair = {
@@ -87,7 +87,6 @@ export default function ChatView() {
 
   return (
     <Page title="Chat" sub={sub}>
-      <p className="rules rules--info">WhatsApp is still the league thread (paste picks on the Pick tab). This board is local-only — no Meta bot, no extra Supabase table on the shared bake-pool project.</p>
       <section className="card" id="chat-receipt">
         <div className="card__head"><h2>Receipt and tape</h2><span className="sub">{named ? named.title : 'Shared seasons only'}</span></div>
         <div className="card__body">
@@ -100,7 +99,6 @@ export default function ChatView() {
           <p className="receipt">{rec.line}</p>
           <p className="rivalry__stat">{rec.stat}</p>
           <div className="tape"><TapeImage a={pair.a} b={pair.b} rec={rec} canvasRef={tapeRef} /></div>
-          <p className="muted" style={{ margin: '8px 0 0' }}>The image carries the receipt, final place by year, and season points for. Share sends the image and the text together where the phone allows it; otherwise it saves the PNG and opens the text in WhatsApp.</p>
           <div className="inline" style={{ marginTop: 12 }}>
             <button className="btn btn--primary btn--sm" type="button" onClick={() => shareTape(tapeRef.current, pair.a, pair.b, receiptText(rec))}>Share tape + receipt</button>
             <button className="btn btn--secondary btn--sm" type="button" onClick={() => shareReceipt(rec)}>Text only to WhatsApp</button>

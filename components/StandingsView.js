@@ -79,7 +79,7 @@ export default function StandingsView() {
   const styles = computeBettingStyles(weeks, graded);
 
   return (
-    <Page title="Standings" sub="Ranked by leg hit rate, then fewest busts.">
+    <Page title="Standings" sub="By leg hit rate, then fewest busts">
       <section className="stats">
         <div className="card stat"><span className="label">Winnings</span><span className="stat__value">{fmtMoney(totals.payouts)}</span><span className="stat__delta">{`${totals.cashed} cashed · ${settled.length} of ${weeks.length} parlays settled`}</span></div>
         <div className="card stat"><span className="label">Owes this week</span><span className="stat__value" style={{ font: '600 26px/40px var(--font-display)', letterSpacing: 0 }}>{owing.length ? owing.map((p) => whoLabel(p)).join(' + ') : '–'}</span><span className="stat__delta">{current ? `Week ${current.week} · ${fmtMoney(current.stake || 10)} · settled on the side` : ''}</span></div>
@@ -87,10 +87,10 @@ export default function StandingsView() {
         <div className="card stat"><span className="label">Most frequent payer</span><span className="stat__value" style={{ font: '600 26px/40px var(--font-display)', letterSpacing: 0 }}>{topPayer ? whoLabel(topPayer[0]) : '–'}</span><span className="stat__delta">{topPayer ? `Paid ${topPayer[1]} of ${weeks.length}` : ''}</span></div>
       </section>
 
-      {issues ? <p className="small muted"><a href="#data-checks">{`${issues} data difference${issues === 1 ? '' : 's'} between the weekly file and the history`}</a> · listed at the bottom</p> : null}
+      {issues ? <p className="small muted"><a href="#data-checks">{`${issues} data difference${issues === 1 ? '' : 's'}`}</a></p> : null}
 
       <section className="card">
-        <div className="card__head"><h2>Managers</h2><span className="sub">Auction House handles. Last names stay off this board. Open legs stay out of the hit rate.</span></div>
+        <div className="card__head"><h2>Managers</h2><span className="sub">Settled legs only</span></div>
         <div className="tablewrap"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Legs</th><th className="r">Hit</th><th className="r">Miss</th><th className="r">Hit %</th><th className="r">Busts</th><th className="r hide-m">Streak</th><th className="r hide-m">Paid</th></tr></thead>
           <tbody>

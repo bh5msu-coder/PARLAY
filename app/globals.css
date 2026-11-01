@@ -432,6 +432,28 @@ main#view > *{min-width:0;margin-top:0;margin-bottom:0}
 @media (min-width:1200px) and (max-width:1399px){td,th{padding-left:8px;padding-right:8px}th{white-space:normal}}
 @media (max-width:719px){
   .tabs{gap:2px}
-  .ribbon{grid-template-columns:repeat(3,minmax(0,1fr))}
   .tabs .tab{padding:6px 9px}
+  /* Phones get the same tightening as desktop: closer cards, slimmer padding, four seasons a row. */
+  .wrap{gap:12px;padding-bottom:20px}
+  main#view{gap:12px}
+  .card__body{padding:12px 14px}
+  .card__head{padding:10px 14px}
+  .stats{gap:8px}
+  .stat{padding:10px 12px;gap:2px}
+  .stat--feature{padding:12px}
+  .stats__group{margin:4px 0 -4px}
+  .ribbonwrap{padding:10px 12px 12px}
+  .ribbon{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .champ{padding:6px 8px}
+  .champ__y{font-size:14px;line-height:18px}
+  .champ__n{font-size:12px}
+  .meter{padding:3px 0}
+  .elo-now{margin-bottom:8px}
+  .elo-now__item{min-height:28px;padding:2px 0}
+  .two{gap:12px}
+  .badges{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .badge{padding:8px 10px}
+  .badge__who{font-size:15px;line-height:19px}
+  .badge__detail{font-size:13px}
+  .badges-group{margin-bottom:10px}
 }

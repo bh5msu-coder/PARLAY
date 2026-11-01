@@ -297,7 +297,7 @@ export default function WeekView() {
         <>
         <RecapCard week={week} state={state} />
         <section className="card" id="legs">
-          <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable; showing what we have.' : 'Scores refresh every 45 seconds during games.'}</span></div>
+          <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable' : 'Live during games'}</span></div>
           <ol className="legs">{rows}</ol>
           <div className="notice"><span>{week.note || ''}</span><span>{week.book ? `Book: ${week.book}` : ''}</span></div>
         </section>

@@ -52,7 +52,6 @@ export function SelectionCharts({ legs, sourceNote }) {
               <td className="r num">{String(r.busts)}</td>
             </tr>))}</tbody>
         </table></div>
-        <p className="muted">Rates use decided picks only; the bracket after W–L counts picks still open or with no known result. Numbers in brackets in the type and night/day columns are decided picks. Under 5 decided picks is flagged as a small sample.</p>
       </div>
     </section>
   );
@@ -99,7 +98,6 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
           </tr></tfoot>
         </table></div>
         <StakeReturnChart tickets={tickets} />
-        <p className="muted">Stake is what the ticket cost; who owes it is settled on the side. Winnings count only money a book paid. Hypothetical is what the slip would have paid if every pick won — no book paid it.</p>
       </div>
     </section>
   );
@@ -113,9 +111,8 @@ export function DiscrepancyCard({ result }) {
   const label = { money: 'Money', result: 'Result', pick: 'Pick' };
   return (
     <section className="card card--warn">
-      <div className="card__head"><h2>Data discrepancies</h2><span className="sub">data/bets.json vs parlay-history.json · not reconciled</span></div>
+      <div className="card__head"><h2>Data discrepancies</h2><span className="sub">Weekly file vs history · for the commissioner</span></div>
       <div className="card__body">
-        <p className="muted">These records disagree. Nothing has been changed to make them match; the commissioner decides which is right. Weekly grading uses data/bets.json only.</p>
         <ul className="discrepancies">
           {main.sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)).map((i, k) => (
             <li key={k}><span className={'pill pill--' + i.severity}>{label[i.severity] || i.severity}</span> {i.message}</li>))}
