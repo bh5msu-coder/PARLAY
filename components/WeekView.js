@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { weekShareText } from '../lib/share-card.mjs';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { StatusBadge } from './ui';
@@ -113,7 +114,13 @@ function ThisWeekCard({ store, week, pending, s, payers, need, hold }) {
       <h2 className="thisweek__head">{head}</h2>
       {mine ? <span className="small">{`Your pick: ${(mine.leg && mine.leg.label) || 'saved'}`}</span> : null}
       <span className="small">{line}</span>
-      <div><Link className="btn btn--primary" href={cta.href}>{cta.text}</Link></div>
+      <div className="inline">
+        <Link className="btn btn--primary" href={cta.href}>{cta.text}</Link>
+        <button className="btn btn--secondary" type="button" onClick={() => {
+          const url = window.location.origin + '/week';
+          window.open('https://wa.me/?text=' + encodeURIComponent(weekShareText({ week: week.week, status: phase === 'open' ? `${pill} · ${line}` : sub, odds: phase === 'open' ? '' : week.odds, url })), '_blank');
+        }}>Share to WhatsApp</button>
+      </div>
     </section>
   );
 }

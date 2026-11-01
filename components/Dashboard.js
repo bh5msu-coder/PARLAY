@@ -1,4 +1,5 @@
 'use client';
+import Fold from './Fold';
 import InfoTip, { SmallSample } from './InfoTip';
 import { StatusBadge } from './ui';
 import HitRateChart from './charts/HitRateChart';
@@ -27,7 +28,7 @@ export function SelectionCharts({ legs, sourceNote }) {
           <HitRateChart points={overTime} />
           <BetTypeChart rows={types} />
         </div>
-        <div className="card__head card__head--flush"><h3 className="h3">By manager and bet type <InfoTip k="byType" label="bet-type breakdown" /></h3></div>
+        <Fold max={220}><div className="card__head card__head--flush"><h3 className="h3">By manager and bet type <InfoTip k="byType" label="bet-type breakdown" /></h3></div>
         <div className="tablewrap"><table>
           <thead><tr>
             <th>Manager</th>
@@ -51,7 +52,7 @@ export function SelectionCharts({ legs, sourceNote }) {
               <td className="r num hide-m">{`${r.primetime.prime.n ? pct(r.primetime.prime) + ' (' + r.primetime.prime.n + ')' : '–'} / ${r.primetime.day.n ? pct(r.primetime.day) + ' (' + r.primetime.day.n + ')' : '–'}`}</td>
               <td className="r num">{String(r.busts)}</td>
             </tr>))}</tbody>
-        </table></div>
+        </table></div></Fold>
       </div>
     </section>
   );
@@ -64,7 +65,7 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
     <section className="card">
       <div className="card__head"><h2>Tickets <InfoTip k="ticketResult" label="ticket result" /></h2><span className="sub">{sourceNote}</span></div>
       <div className="card__body">
-        <div className="tablewrap"><table>
+        <Fold max={260}><div className="tablewrap"><table>
           <thead><tr>
             <th>Week</th>
             <th>Result</th>
@@ -96,7 +97,7 @@ export function TicketSection({ tickets, sourceNote, showPayer = true, killers }
             <td className="r num hide-m"><span className="hypo">{fmtMoney(t.hypothetical)} <small>hypothetical</small></span></td>
             {killers ? <td className="hide-m" /> : null}
           </tr></tfoot>
-        </table></div>
+        </table></div></Fold>
         <StakeReturnChart tickets={tickets} />
       </div>
     </section>
