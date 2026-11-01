@@ -5,7 +5,7 @@ import { Page } from './Topbar';
 import RulesCard from './RulesCard';
 import { ident, whoLabel } from '../lib/ident.mjs';
 import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
-import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
+import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, placedTicketPicks, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
 import { PICK_API, toast } from '../lib/clients.mjs';
 import { rule } from '../lib/rules.mjs';
 
@@ -45,9 +45,14 @@ export default function PickView() {
   state.pick.week = week;
   const roster = ident.parlayRoster();
   const f = state.pick.form;
-  const payer = store.weekPayer({ week, payer: (state.weeks.find((w) => w.week === week) || {}).payer });
+  const record = state.weeks.find((w) => w.week === week) || {};
+  const payer = store.weekPayer({ week, payer: record.payer });
   const kick = store.weekKickNote(week);
-  const submissions = (state.pick.rows || []).map((p) => ({ who: ident.canonical(p.who), source: p.source, leg: p.leg }));
+  // A placed ticket is the record: its legs count as the week's picks and nothing more can be entered.
+  const onTicket = placedTicketPicks(record).map((p) => ({ ...p, who: ident.canonical(p.who) }));
+  const placed = onTicket.length > 0;
+  const saved = (state.pick.rows || []).map((p) => ({ who: ident.canonical(p.who), source: p.source, leg: p.leg }));
+  const submissions = placed ? onTicket.concat(saved.filter((s) => !onTicket.some((t) => t.who === s.who))) : saved;
   const ticket = assembleTicket(submissions, roster);
   const setF = (key, val, rerender) => { state.pick.form[key] = val; if (rerender !== false) store.emit(); };
 
@@ -102,7 +107,7 @@ export default function PickView() {
   return (
     <Page title={`Week ${week} picks`} sub="One bet each">
       {kick ? <p className="rules rules--warn">{kick}</p> : null}
-      <p className="rules rules--info">{rule(state.config, 'pickDeadline').text + ' ' + rule(state.config, 'editsAndLocks').text}</p>
+      {placed ? null : <p className="rules rules--info">{rule(state.config, 'pickDeadline').text + ' ' + rule(state.config, 'editsAndLocks').text}</p>}
       {state.pick.setupError ? (
         <section className="card"><div className="card__body">
           <p className="rules">{state.pick.setupError}</p>
@@ -110,13 +115,19 @@ export default function PickView() {
         </div></section>) : null}
 
       <section className="stats">
-        <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>
+        <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{placed ? 'Ticket placed' : ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>
         <div className="card stat"><span className="label">Heller</span><span className="stat__value stat__value--name">Sits</span><span className="stat__delta">Does not pick</span></div>
         <div className="card stat"><span className="label">Book</span><span className="stat__value stat__value--name">Any</span><span className="stat__delta">One parlay · boosts encouraged · placed in MI or OH</span></div>
         <div className="card stat"><span className="label">Stake</span><span className="stat__value">$10</span><span className="stat__delta">{payer ? ident.nick(payer) + ' pays' : 'Last place last week pays'}</span></div>
       </section>
 
-      {ticket.complete ? (
+      {placed ? (
+        <section className="card"><div className="card__body">
+          <p>{`Week ${week} is placed${record.book ? ' at ' + record.book : ''}. Picks for the next week open when this one is final.`}</p>
+          <div className="inline"><Link className="btn btn--primary" href="/week">Follow it on the Week tab</Link></div>
+        </div></section>) : null}
+
+      {!placed && ticket.complete ? (
         <section className="card"><div className="card__body">
           <p className="rules">{state.pick.committed
             ? 'All 11 are in, unique, and grouped so a Michigan book can take this as one wager. Ticket is saved to the Week tab.'
@@ -130,7 +141,7 @@ export default function PickView() {
           </div>
         </div></section>) : null}
 
-      {!ticket.complete && ticket.legs.length > 0 && rule(state.config, 'missingPicks').value === 'go-with-what-is-in' ? (
+      {!placed && !ticket.complete && ticket.legs.length > 0 && rule(state.config, 'missingPicks').value === 'go-with-what-is-in' ? (
         <section className="card"><div className="card__body">
           <p className="rules">{`${ticket.count} of ${ticket.need} picks are in. League rule: ${rule(state.config, 'missingPicks').text} This is the slip so far — a proposed ticket, not a placed bet.`}</p>
           <pre className="slip">{slipText(ticket, week)}</pre>
@@ -141,7 +152,7 @@ export default function PickView() {
           </div>
         </div></section>) : null}
 
-      {(ticket.issues || []).map((iss, i) => <p key={i} className={'rules rules--' + iss.level}>{iss.names ? `${iss.lead} ${iss.names.map((n) => whoLabel(n)).join(', ')}` : iss.text}</p>)}
+      {(placed ? [] : ticket.issues || []).map((iss, i) => <p key={i} className={'rules rules--' + iss.level}>{iss.names ? `${iss.lead} ${iss.names.map((n) => whoLabel(n)).join(', ')}` : iss.text}</p>)}
 
       <section className="card">
         <div className="card__head"><h2>The 11</h2><span className="sub">H-Bomb sits</span></div>
@@ -151,11 +162,12 @@ export default function PickView() {
             <div key={name} className={'slot' + (row ? ' slot--in' : '')}>
               <div className="slot__who">{whoLabel(name)}</div>
               <div className="slot__pick">{row ? (row.leg.label || 'In') : 'Waiting'}</div>
-              <div className="muted">{row ? (row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>
+              <div className="muted">{row ? (row.source === 'ticket' ? 'On the ticket' : row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>
             </div>);
         })}</div></div>
       </section>
 
+      {placed ? null : (<>
       <section className="card">
         <div className="card__head"><h2>Enter your bet</h2><span className="sub">Website · remembered on this phone</span></div>
         <div className="card__body form">
@@ -213,6 +225,7 @@ export default function PickView() {
           <ImportReport report={state.pick.importReport} />
         </div>
       </section>
+      </>)}
       <RulesCard config={state.config} />
     </Page>
   );
