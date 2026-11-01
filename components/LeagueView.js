@@ -1,4 +1,5 @@
 'use client';
+import Fold from './Fold';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useLeague } from './LeagueProvider';
@@ -84,14 +85,14 @@ function RivalriesCard() {
   return (
     <section className="card rivalries">
       <div className="card__head"><h2>Rivalries</h2><span className="sub">Public 2010–2025 tape · overlap ranks, not weekly H2H</span></div>
-      {RIVALRIES.map((r) => (
+      <Fold className="rivalries__list">{RIVALRIES.map((r) => (
         <article key={r.title} className="rivalry">
           <div className="rivalry__pair">{r.pair}</div>
           <div className="rivalry__title">{r.title}</div>
           <p className="rivalry__why">{r.why}</p>
           <p className="rivalry__stat">{r.stat}</p>
           <div className="inline"><Link className="btn btn--ghost btn--sm" href={'/chat?a=' + r.a + '&b=' + r.b}>Needle them in Chat</Link></div>
-        </article>))}
+        </article>))}</Fold>
     </section>
   );
 }

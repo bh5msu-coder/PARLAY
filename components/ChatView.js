@@ -1,4 +1,5 @@
 'use client';
+import Fold from './Fold';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLeague } from './LeagueProvider';
@@ -119,7 +120,7 @@ export default function ChatView() {
 
       <section className="card">
         <div className="card__head"><h2>Receipts</h2><span className="sub">Counted from 2010–2025 final place</span></div>
-        {RIVALRIES.map((r) => {
+        <Fold>{RIVALRIES.map((r) => {
           const pa = lorePerson(r.a);
           const pb = lorePerson(r.b);
           if (!pa || !pb) return null;
@@ -137,7 +138,7 @@ export default function ChatView() {
                 <button className="btn btn--ghost btn--sm" type="button" onClick={() => shareReceipt(card)}>Text only</button>
               </div>
             </article>);
-        })}
+        })}</Fold>
       </section>
 
       <section className="card">
