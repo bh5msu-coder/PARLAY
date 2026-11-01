@@ -14,36 +14,38 @@ import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
 import Achievements from './Achievements';
 import { cachedHistory, historyLegs, loadHistory } from '../lib/history.mjs';
 import { weeklyLegs } from '../lib/stats.mjs';
+import { heroFacts } from '../lib/hero.mjs';
+import { deriveTicket } from '../lib/model.mjs';
 import { allTimeCareers, loreHeadlines, pfOutliers } from '../lib/lore-summary.mjs';
 
 function fmtPct(p) { return p == null ? '–' : (p * 100).toFixed(1) + '%'; }
 
-const PARLAY_STATE = { cashed: 'Cashed', busted: 'Busted', live: 'Live', open: 'To play' };
-
-/** The weekly parlay as one card on the League page: where the ticket stands and who owes, with a way in. */
-function ParlayGlance({ store }) {
+/** The top of the League page: this week's parlay, where it stands, who still owes, and the way in. */
+function LeagueHero({ store }) {
   const { state } = store;
   const n = state.nfl && state.nfl.active;
   const week = (n && store.weekRecord(n)) || (state.weeks.length ? state.weeks[state.weeks.length - 1] : null);
   if (!week) return null;
   const g = state.graded[week.week];
-  const s = g && g.summary;
+  const f = heroFacts(g && g.summary, deriveTicket(week), whoLabel);
   const payers = store.weekPayers(week);
   const { shares } = settleWeek(week.week, week.stake || 10, payers, week.contributions || state.payments.filter((p) => p.week === week.week));
-  const killers = s && s.killers ? s.killers : [];
-  const line = s
-    ? `${s.won} of ${s.total} hit` + (killers.length ? ` · killed by ${killers.map((k) => whoLabel(k)).join(', ')}` : s.pending ? ` · ${s.pending} to play` : '')
-    : 'Picks are in';
   return (
-    <section className="card parlay-glance">
-      <div className="glance__main">
+    <section className={'card hero hero--' + f.tone}>
+      <div className="hero__main">
         <span className="label">{`Week ${week.week} parlay`}</span>
-        <span className="glance__state">{s ? PARLAY_STATE[s.state] || s.state : 'To play'}</span>
-        <span className="small muted">{line}</span>
+        <span className="hero__state">{f.label}</span>
+        <span className="hero__line">{f.line}</span>
+        {f.segments.length ? (
+          <div className="hero__bar" role="img" aria-label={f.line}>{f.segments.map(([k, c]) => (
+            <span key={k} className={'hero__seg hero__seg--' + k} style={{ flexGrow: c }} />))}</div>) : null}
       </div>
-      <div className="glance__side">
-        <span className="paychips">{shares.map((p) => <span key={p.who} className={'pill ' + (p.open ? 'pill--open' : 'pill--paid')}>{`${whoLabel(p.who)} · ${p.open ? fmtMoney(p.open) + ' open' : 'funded'}`}</span>)}</span>
-        <Link className="btn btn--secondary btn--sm" href="/week">Open this week</Link>
+      <div className="hero__side">
+        {shares.length ? <span className="paychips">{shares.map((p) => <span key={p.who} className={'pill ' + (p.open ? 'pill--open' : 'pill--paid')}>{`${whoLabel(p.who)} · ${p.open ? fmtMoney(p.open) + ' open' : 'funded'}`}</span>)}</span> : null}
+        <div className="hero__ctas">
+          {f.wantsPicks ? <Link className="btn btn--primary" href="/pick">Make your pick</Link> : null}
+          <Link className={'btn ' + (f.wantsPicks ? 'btn--secondary' : 'btn--primary')} href="/week">Open this week</Link>
+        </div>
       </div>
     </section>
   );
@@ -147,12 +149,14 @@ function SeasonElo({ selected, onSelect }) {
   if (!elo.now.length) return <section className="card"><div className="empty">No seasons on file to rate.</div></section>;
   const noSeason = ident.people.filter((p) => !seasonRows(p).length);
   return (
-    <section className="card half">
+    <section className="card">
       <div className="card__head"><h2>Season Elo</h2><span className="sub">From final place · start 1500</span></div>
-      <div className="card__body">
+      <div className="card__body elo-body">
+        <div className="elo-body__chart">
         <div className="elo-now">{elo.now.map((r, i) => (
           <button key={r.id} className={'elo-now__item' + (r.name === selected ? ' on' : '')} type="button" onClick={() => onSelect(r.name)}>{(i + 1) + '. ' + r.nick + ' '}<b>{fmtElo(r.rating)}</b></button>))}</div>
         <canvas ref={canvasRef} className="elo-chart" role="img" aria-label="Season Elo by year, 2010 to 2025. Lower on the table is a worse rating." />
+        </div>
         <div className="tablewrap hide-m"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r">Elo</th><th className="r hide-m">Seasons</th><th className="r hide-m">Peak</th><th className="r hide-m">Low</th></tr></thead>
           <tbody>{elo.now.map((r, i) => (
@@ -162,7 +166,7 @@ function SeasonElo({ selected, onSelect }) {
               <td className="r num hide-m">{fmtElo(r.peak)}</td><td className="r num hide-m">{fmtElo(r.low)}</td>
             </tr>))}</tbody>
         </table></div>
-        {noSeason.length ? <p className="muted">{noSeason.map((p) => (p.nick || p.name)).join(', ') + ': no season finishes yet, so no Elo.'}</p> : null}
+        {noSeason.length ? <p className="muted elo-body__note">{noSeason.map((p) => (p.nick || p.name)).join(', ') + ': no season finishes yet, so no Elo.'}</p> : null}
       </div>
     </section>
   );
@@ -183,8 +187,8 @@ function KpiIdeas() {
     setIdeas(next); setName(''); setDef('');
   };
   return (
-    <section className="card half">
-      <div className="card__head"><h2>Propose a KPI</h2><span className="sub">Saved on this device</span></div>
+    <details className="card kpi-ideas">
+      <summary className="card__head"><h2>Propose a KPI</h2><span className="sub">Saved on this device</span></summary>
       <div className="card__body form">
         <div className="field"><label htmlFor="kpi-name">Name</label><input id="kpi-name" type="text" placeholder="Title rate, playoff conversion…" value={name} onChange={(e) => setName(e.target.value)} /></div>
         <div className="field"><label htmlFor="kpi-def">Definition</label><textarea id="kpi-def" placeholder="What you would count, over which seasons" value={def} onChange={(e) => setDef(e.target.value)} /></div>
@@ -196,7 +200,7 @@ function KpiIdeas() {
           </table></div>
         ) : null}
       </div>
-    </section>
+    </details>
   );
 }
 
@@ -248,6 +252,8 @@ export default function LeagueView() {
 
   return (
     <Page title={title} sub={sub}>
+      <LeagueHero store={store} />
+
       <h2 className="stats__group">Champions and skill</h2>
       <section className="stats stats--feature">
         <KpiCard size="feature" champ label="Reigning champ" value={k.reigningChamp ? whoLabel(k.reigningChamp.owner) : '–'} note={k.reigningChamp ? String(k.reigningChamp.year) : ''} />
@@ -265,27 +271,15 @@ export default function LeagueView() {
         <KpiCard size="mini" label="Most last places" value={k.mostLastPlaces ? whoLabel(k.mostLastPlaces.owner) : '–'} note={k.mostLastPlaces ? `${k.mostLastPlaces.count} toilet bowls` : ''} />
       </section>
 
-      <ParlayGlance store={store} />
-
       <section className="card">
         <div className="card__head"><h2>Championship lineage</h2><span className="sub">Who actually finished the job</span></div>
         <div className="ribbonwrap"><div className="ribbon">{(lore.champions || []).map((c) => (
           <div key={c.year} className="champ"><div className="champ__y">{String(c.year)}</div><div className="champ__n">{whoLabel(c.owner)}</div></div>))}</div></div>
       </section>
 
-      <Achievements groups={[
-        ...(history ? [{ title: 'Season so far', source: 'parlay-history.json', legs: historyLegs(history) }] : []),
-        { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
-      ]} />
-
-      <RivalriesCard />
-      <LeagueTape />
-      <SeasonElo selected={selected} onSelect={select} />
-      <KpiIdeas />
-
       <section className="card half">
         <div className="card__head"><h2>The table</h2><span className="sub">Tap a name</span></div>
-        <div className="tablewrap"><table>
+        <Fold max={380}><div className="tablewrap"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Yrs</th><th className="r">Titles</th><th className="r">Avg finish</th><th className="r hide-m">Last place</th><th className="r hide-m">W–L</th></tr></thead>
           <tbody>{table.map((p, i) => {
             const c = p.career || {};
@@ -303,7 +297,7 @@ export default function LeagueView() {
                 <td className="r num hide-m">{`${c.wins || 0}–${c.losses || 0}`}</td>
               </tr>);
           })}</tbody>
-        </table></div>
+        </table></div></Fold>
       </section>
 
       <section className="card half">
@@ -315,6 +309,15 @@ export default function LeagueView() {
         </div>
       </section>
 
+      <SeasonElo selected={selected} onSelect={select} />
+
+      <Achievements groups={[
+        ...(history ? [{ title: 'Season so far', source: 'parlay-history.json', legs: historyLegs(history) }] : []),
+        { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
+      ]} />
+
+      <RivalriesCard />
+      <LeagueTape />
       <AllManagers lore={lore} departedTitles={h.departedTitles} you={state.config.you} />
 
       <section className="card">
@@ -336,13 +339,15 @@ export default function LeagueView() {
       <div className="two">
         <section className="card">
           <div className="card__head"><h2>Best money ever spent</h2><span className="sub">$20+ auction · pts per $</span></div>
-          <div className="tablewrap"><table><thead><tr><th>Yr</th><th>Owner</th><th>Player</th><th className="r">$</th><th className="r">Pts/$</th></tr></thead><tbody>{valueRows(lore.bestValues, 'pos')}</tbody></table></div>
+          <Fold max={260}><div className="tablewrap"><table><thead><tr><th>Yr</th><th>Owner</th><th>Player</th><th className="r">$</th><th className="r">Pts/$</th></tr></thead><tbody>{valueRows(lore.bestValues, 'pos')}</tbody></table></div></Fold>
         </section>
         <section className="card">
           <div className="card__head"><h2>Money on fire</h2><span className="sub">$20+ auction · pts per $</span></div>
-          <div className="tablewrap"><table><thead><tr><th>Yr</th><th>Owner</th><th>Player</th><th className="r">$</th><th className="r">Pts/$</th></tr></thead><tbody>{valueRows(lore.worstValues, 'neg')}</tbody></table></div>
+          <Fold max={260}><div className="tablewrap"><table><thead><tr><th>Yr</th><th>Owner</th><th>Player</th><th className="r">$</th><th className="r">Pts/$</th></tr></thead><tbody>{valueRows(lore.worstValues, 'neg')}</tbody></table></div></Fold>
         </section>
       </div>
+
+      <KpiIdeas />
     </Page>
   );
 }
