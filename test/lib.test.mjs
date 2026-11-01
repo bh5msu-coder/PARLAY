@@ -5,7 +5,7 @@ import { gradeLeg, gradeWeek } from '../lib/grade.mjs';
 import { resolveNflWeek } from '../lib/nfl-clock.mjs';
 import { computeStandings, leagueLegTally, parlayExtras } from '../lib/standings.mjs';
 import { calcParlayStats } from '../lib/history-stats.mjs';
-import { nextUnusedWeek, openPickWeek } from '../lib/pick-form.mjs';
+import { nextUnusedWeek, openPickWeek, placedTicketPicks } from '../lib/pick-form.mjs';
 import { normalizeFile } from '../lib/weeks.mjs';
 
 const file = JSON.parse(fs.readFileSync(new URL('../data/bets.json', import.meta.url), 'utf8'));
@@ -81,4 +81,13 @@ test('pick week and new-week helpers follow the NFL clock', () => {
   assert.equal(openPickWeek(weeks, null), 8);
   assert.equal(nextUnusedWeek(weeks, { active: 8 }), 9);
   assert.equal(nextUnusedWeek(weeks, { active: 10 }), 10);
+});
+
+test('a placed ticket counts as the week\'s picks on the Pick page', () => {
+  const w8 = weeks.find((w) => w.week === 8);
+  const picks = placedTicketPicks(w8);
+  assert.equal(picks.length, 11);
+  assert.ok(picks.every((p) => p.source === 'ticket' && p.leg.label));
+  assert.deepEqual(placedTicketPicks({ ticket: { state: 'proposed' }, legs: w8.legs }), []);
+  assert.equal(placedTicketPicks({ ticket: { state: 'placed' }, legs: [{ who: 'Brad Holm', type: 'tbd', label: 'TBD' }] }).length, 0);
 });

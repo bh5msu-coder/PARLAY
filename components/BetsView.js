@@ -14,6 +14,7 @@ import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
 import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
 import SeasonGlance from './SeasonGlance';
+import Fold from './Fold';
 
 // parlay-history.json is static and read-only: lib/history.mjs loads it with one GET and deep-freezes it.
 // This page never writes anything — no Supabase call, no POST, no change to data/bets.json.
@@ -66,7 +67,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
 
       <section className="card">
         <div className="card__head"><h2>Leg hit rate <InfoTip k="hitRate" label="hit rate" /></h2><span className="sub">Graded legs only · unknown in ( )</span></div>
-        <div className="card__body">
+        <Fold className="card__body">
           <div className="tablewrap"><table>
             <thead><tr><th>#</th><th>Picker</th><th className="r">W–L</th><th className="r">Hit</th><th className="r">Now</th><th className="r hide-m">Hot</th><th className="r hide-m">Cold</th><th className="r hide-m">Busted</th><th className="r hide-m">Primetime</th></tr></thead>
             <tbody>{S.rows.map((r, i) => (
@@ -82,40 +83,40 @@ function History({ data, selectedOwner, weeks, payments, store }) {
                 <td className="r num hide-m">{r.pn ? `${r.pw}/${r.pn}` : '–'}</td>
               </tr>))}</tbody>
           </table></div>
-        </div>
+        </Fold>
       </section>
 
       {(data.unplaced || []).map((p) => (
         <section key={p.label} className="card" id={`unplaced-${p.week}`}>
           <div className="card__head"><h2>{`${p.label}: never placed`}</h2><span className="pill pill--open">Not placed</span></div>
-          <div className="card__body">
+          <Fold className="card__body">
             <p>{p.notes}</p>
             <div className="tablewrap"><table>
               <thead><tr><th>Manager</th><th>Pick</th></tr></thead>
               <tbody>{p.legs.map((l) => (
                 <tr key={l.who}><td>{whoLabel(l.who)}</td><td>{l.label}{l.note ? <span className="muted">{' · ' + l.note}</span> : null}</td></tr>))}</tbody>
             </table></div>
-          </div>
+          </Fold>
         </section>))}
 
       <section className="card half">
         <div className="card__head"><h2>Who busted it</h2><span className="sub">Losing legs per ticket</span></div>
-        <div className="card__body">{data.parlays.map((p) => (
+        <Fold className="card__body">{data.parlays.map((p) => (
           <div key={p.label} className="field">
             <b>{`${p.label} · ${p.legs.length} legs · `}</b>
             {p.result === 'pending' ? <span className="pill">pending</span> : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : '')}
             {p.toPay ? <span className="muted">{` · would have paid ${fmtMoney(p.toPay)}`}</span> : null}
             <div className="pills">{p.legs.filter((l) => l.result === 'loss').map((l, i) => <span key={i} className="chip">{`${whoLabel(l.who)}: ${l.label}`}</span>)}</div>
-          </div>))}</div>
+          </div>))}</Fold>
       </section>
 
 
       <section className="card half">
         <div className="card__head"><h2>Near misses</h2><span className="sub">Lost by a hair</span></div>
-        <div className="card__body"><div className="tablewrap"><table>
+        <Fold className="card__body"><div className="tablewrap"><table>
           <thead><tr><th>Wk</th><th>Picker</th><th>Leg</th><th>Actual</th><th>Missed by</th></tr></thead>
           <tbody>{near.map((l, i) => <tr key={i}><td>{String(l.week)}</td><td>{whoLabel(l.who)}</td><td className="wraptext">{l.label}</td><td className="wraptext">{l.actual || ''}</td><td>{l.missBy}</td></tr>)}</tbody>
-        </table></div></div>
+        </table></div></Fold>
       </section>
 
       <section className="card half">
@@ -126,10 +127,10 @@ function History({ data, selectedOwner, weeks, payments, store }) {
 
       <section className="card half">
         <div className="card__head"><h2>Favorite teams &amp; players</h2><span className="sub">Picked 2+ times</span></div>
-        <div className="card__body"><div className="tablewrap"><table>
+        <Fold className="card__body"><div className="tablewrap"><table>
           <thead><tr><th>Team / player</th><th className="r">Picks</th><th className="r">Hit</th><th>By</th></tr></thead>
           <tbody>{S.favs.map((t) => <tr key={t.key}><td>{t.key}</td><td className="r num">{String(t.n)}</td><td className="r num">{`${t.w}/${t.n}`}</td><td className="wraptext">{Object.keys(t.by).join(', ')}</td></tr>)}</tbody>
-        </table></div></div>
+        </table></div></Fold>
       </section>
 
       <section className="card half">
@@ -148,13 +149,13 @@ function History({ data, selectedOwner, weeks, payments, store }) {
 
       <section className="card half">
         <div className="card__head"><h2>Elo vs betting accuracy</h2><span className="sub">Good at fantasy ≠ good at picking</span></div>
-        <div className="card__body"><div className="tablewrap"><table>
+        <Fold className="card__body"><div className="tablewrap"><table>
           <thead><tr><th>Manager</th><th className="r">Season Elo</th><th className="r">Elo rank</th><th className="r">Pick rank</th><th className="r">Hit</th></tr></thead>
           <tbody>{S.rows.map((r, i) => {
             const p = ident.person(r.name); const er = p ? eloRank[p.name] : null; const e = p && elo.now.find((x) => x.name === p.name);
             return <tr key={r.name}><td>{r.nick}</td><td className="r num">{e ? fmtElo(e.rating) : 'no seasons'}</td><td className="r num">{er ? '#' + er : '–'}</td><td className="r num">{'#' + (i + 1)}</td><td className="r num">{hitPct(r.w, r.n)}</td></tr>;
           })}</tbody>
-        </table></div></div>
+        </table></div></Fold>
       </section>
 
       <section className="card">
