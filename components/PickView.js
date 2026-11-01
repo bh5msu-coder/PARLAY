@@ -62,6 +62,7 @@ export default function PickView() {
     const errs = validatePick(leg, who, roster);
     if (errs.length) { toast(errs[0]); return; }
     try { localStorage.setItem('hp_who', who); } catch (e) { /* ignore */ }
+    state.config.you = who;
     const r = await fetch(PICK_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ week, who, source, leg }) });
     const data = await r.json().catch(() => ({}));
     if (!r.ok) { toast(data.error || 'Submit failed'); if (data.error) state.pick.setupError = data.error; store.emit(); return; }

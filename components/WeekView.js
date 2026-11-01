@@ -154,7 +154,7 @@ function StateChips({ week, savedRows, need, config, payers }) {
 
 const TYPE_LABEL = { ml: 'Moneyline', spread: 'Spread', total: 'Total', player: 'Player prop', tbd: 'Not posted' };
 
-function LegRow({ g, week, dead }) {
+function LegRow({ g, week, dead, you }) {
   const leg = g.leg;
   const typeLabel = TYPE_LABEL[leg.type] || leg.type;
   const game = (leg.game || []).filter(Boolean).join(' at ');
@@ -162,8 +162,8 @@ function LegRow({ g, week, dead }) {
   const showCur = g.current != null && (g.state === 'live' || g.state === 'won' || g.state === 'lost')
     && !String(g.detail || '').includes(String(g.current));
   return (
-    <li className={'leg' + (dead && g.state !== 'won' && g.state !== 'lost' && g.state !== 'push' ? ' leg--dead' : '')}>
-      <span className="leg__who">{whoLabel(leg.who)}</span>
+    <li className={'leg' + (dead && g.state !== 'won' && g.state !== 'lost' && g.state !== 'push' ? ' leg--dead' : '') + (you && leg.who === you ? ' leg--me' : '')}>
+      <span className="leg__who">{whoLabel(leg.who)}{you && leg.who === you ? <span className="pill pill--you">You</span> : null}</span>
       <div>
         <div className="leg__pick">{leg.label || ''}</div>
         <div className="leg__market">{game ? `${typeLabel} · ${game}` : typeLabel}</div>
@@ -177,6 +177,28 @@ function LegRow({ g, week, dead }) {
         <StatusBadge state={g.state} />
       </div>
     </li>
+  );
+}
+
+/** One dot per leg: hit, lost, live, push or still to play, with the next kickoff. Sticks under the top on phones. */
+export function legDotsSummary(graded, now = Date.now()) {
+  const dots = graded.map((g) => (g.state === 'won' ? 'won' : g.state === 'lost' ? 'lost' : g.state === 'live' ? 'live' : g.state === 'push' || g.state === 'void' ? 'push' : 'open'));
+  const count = (k) => dots.filter((d) => d === k).length;
+  const next = graded
+    .filter((g) => g.state !== 'won' && g.state !== 'lost' && g.state !== 'live' && g.leg.gameDate && Date.parse(g.leg.gameDate) > now)
+    .map((g) => Date.parse(g.leg.gameDate)).sort((a, b) => a - b)[0];
+  return { dots, won: count('won'), lost: count('lost'), live: count('live'), open: count('open'), next: next || null };
+}
+
+function LegDots({ graded }) {
+  const d = legDotsSummary(graded);
+  const parts = [`${d.won} hit`, d.lost ? `${d.lost} lost` : '', d.live ? `${d.live} live` : '', d.open ? `${d.open} to play` : ''].filter(Boolean);
+  const nextLabel = d.next ? 'next ' + new Date(d.next).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' }) + ' ET' : '';
+  return (
+    <a className="legdots" href="#legs" aria-label={`Legs: ${parts.join(', ')}`}>
+      <span className="legdots__row">{d.dots.map((k, i) => <span key={i} className={'legdot legdot--' + k} />)}</span>
+      <span className="legdots__text">{parts.join(' · ')}{nextLabel ? ` · ${nextLabel}` : ''}</span>
+    </a>
   );
 }
 
@@ -247,9 +269,9 @@ export default function WeekView() {
           <span className="num leg__odds" style={{ textAlign: 'right' }}>{fmtOdds(groups[gid].odds)}</span>
           <span style={{ textAlign: 'right' }}><StatusBadge state={gs.state === 'busted' ? 'lost' : gs.state === 'cashed' ? 'won' : gs.live ? 'live' : 'pending'} /></span>
         </li>);
-      members.forEach((m, i) => rows.push(<LegRow key={'g-' + gid + '-' + (m.leg.id || i)} g={m} week={week} dead={dead} />));
+      members.forEach((m, i) => rows.push(<LegRow key={'g-' + gid + '-' + (m.leg.id || i)} g={m} week={week} dead={dead} you={state.config.you} />));
     } else if (!gid || !groups[gid]) {
-      rows.push(<LegRow key={g.leg.id || 'leg-' + rows.length} g={g} week={week} dead={dead} />);
+      rows.push(<LegRow key={g.leg.id || 'leg-' + rows.length} g={g} week={week} dead={dead} you={state.config.you} />);
     }
   }
 
@@ -261,9 +283,19 @@ export default function WeekView() {
         ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
         : null}
 
+      {pending ? null : <LegDots graded={graded} />}
+
       <ThisWeekCard store={store} week={week} pending={pending} s={s} payers={payers} need={participants} hold={hold} />
 
+      {pending ? null : (
+        <section className="card" id="legs">
+          <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable' : 'Live during games'}</span></div>
+          <ol className="legs">{rows}</ol>
+          {week.book ? <div className="notice"><span>{`Book: ${week.book}`}</span></div> : null}
+        </section>)}
+
       {pending ? null : <>
+      <h2 className="sectionhead">Ticket and money</h2>
       <StateChips week={week} savedRows={savedRows} need={participants} config={state.config} payers={payers} />
 
       <section className="card banner">
@@ -297,11 +329,6 @@ export default function WeekView() {
       ) : (
         <>
         <RecapCard week={week} state={state} />
-        <section className="card" id="legs">
-          <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable' : 'Live during games'}</span></div>
-          <ol className="legs">{rows}</ol>
-          {week.book ? <div className="notice"><span>{`Book: ${week.book}`}</span></div> : null}
-        </section>
         </>
       )}
     </Page>

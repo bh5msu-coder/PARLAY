@@ -3,7 +3,12 @@ import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 
+const SITE = process.env.VERCEL_PROJECT_PRODUCTION_URL ? 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL : 'https://holm-parlay.vercel.app';
+
 export const metadata = {
+  metadataBase: new URL(SITE),
+  openGraph: { siteName: 'Our Holm League', type: 'website', title: 'Our Holm League', description: 'League history, the chat and the weekly parlay' },
+  twitter: { card: 'summary_large_image' },
   title: 'Our Holm League',
   description: 'Our Holm League: 16 seasons of league history, the chat, and the weekly parlay',
   manifest: '/manifest.webmanifest',

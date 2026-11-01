@@ -183,7 +183,7 @@ export default function BetsView() {
     <Page title="Parlay history" sub="Weekly $10 group parlay · 11–12 leg tickets only">
       {!loaded ? null : !data
         ? <div className="card"><div className="empty">Parlay history did not load.</div></div>
-        : <History data={data} selectedOwner={state.selectedOwner} weeks={state.weeks} payments={state.payments} store={store} />}
+        : <History data={data} selectedOwner={state.config.you || state.selectedOwner} weeks={state.weeks} payments={state.payments} store={store} />}
     </Page>
   );
 }

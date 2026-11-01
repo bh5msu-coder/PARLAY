@@ -42,6 +42,23 @@ function ThemeButton() {
   return <button className="iconbtn" type="button" aria-label={label} title={label} onClick={toggle}>{theme === 'light' ? <MoonIcon /> : <SunIcon />}</button>;
 }
 
+/** Who is using this phone. Remembered in this browser only; highlights your leg and rows across the site. */
+function YouPicker() {
+  const store = useLeague();
+  const you = store.state.config.you || '';
+  const nick = you ? ident.nick(you) || you : '';
+  return (
+    <label className="youpick" title={nick ? `You: ${nick}` : 'Who are you?'}>
+      <span className="youpick__badge" aria-hidden="true">{nick ? nick.charAt(0).toUpperCase() : '?'}</span>
+      <span className="youpick__label">You</span>
+      <select aria-label="Who are you" value={you} onChange={(e) => store.setYou(e.target.value)}>
+        <option value="">Pick yourself</option>
+        {ident.people.map((p) => <option key={p.id} value={p.name}>{p.nick || p.name}</option>)}
+      </select>
+    </label>
+  );
+}
+
 /** Page header, Classic Banner (Canva option A): shield and the league wordmark, the nav (League, Chat,
  *  Parlay menu, Commissioner, theme), then the page title over a gold rule with its subtitle. */
 export default function Topbar({ title, sub }) {
@@ -49,7 +66,7 @@ export default function Topbar({ title, sub }) {
   const current = routeFor(usePathname() || HOME_PATH);
   const clock = state.nfl;
   const clockBit = clock
-    ? `NFL Week ${clock.active}${clock.wednesday ? ' · Wednesday kickoff' : clock.firstKickLabel ? ' · ' + clock.firstKickLabel : ''}`
+    ? `NFL Week ${clock.active}${clock.firstKick && Date.parse(clock.firstKick) <= Date.now() ? '' : clock.wednesday ? ' · Wednesday kickoff' : clock.firstKickLabel ? ' · ' + clock.firstKickLabel : ''}`
     : '';
   const subText = state.bootError || (state.ready ? [sub || '', clockBit].filter(Boolean).join(' · ') : 'Loading…');
   const lore = ident.lore;
@@ -76,6 +93,7 @@ export default function Topbar({ title, sub }) {
             <Link className="navlink navlink--icon" href={top('admin').path} aria-label="Commissioner" aria-current={current === 'admin' ? 'page' : undefined}><GearIcon /><span>Commissioner</span></Link>
           </nav>
           {state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
+          {state.ready ? <YouPicker /> : null}
           <ThemeButton />
         </div>
       </div>

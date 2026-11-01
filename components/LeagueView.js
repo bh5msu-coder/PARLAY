@@ -240,7 +240,7 @@ export default function LeagueView() {
   if (!lore) return <Page title={title} sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
   const k = lore.kpis || {};
   const h = loreHeadlines(lore);
-  const selected = state.selectedOwner || ident.people[0].name;
+  const selected = state.selectedOwner || state.config.you || ident.people[0].name;
   const select = (n) => { state.selectedOwner = n; store.emit(); };
   const table = ident.people.slice().sort((a, b) => (a.career && a.career.avgFinish || 99) - (b.career && b.career.avgFinish || 99) || a.name.localeCompare(b.name));
   const valueRows = (list, cls) => (list || []).slice(0, 6).map((v, i) => (
