@@ -92,9 +92,8 @@ h2{margin:0;font:600 24px/28px var(--font-display)}
 .stats.stats--lore{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (min-width:900px){.stats.stats--lore{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}}
 /* League tiles: champions and skill large, bragging rights small. */
-.stats__group{font:600 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--eyebrow);margin:16px 0 10px}
-.stats__group:first-child{margin-top:4px}
-.stats.stats--feature,.stats.stats--mini{margin-bottom:16px}
+.stats__group{font:600 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--eyebrow);margin:6px 0 -6px}
+.stats__group:first-child{margin-top:0}
 .stats.stats--feature{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (min-width:900px){.stats.stats--feature{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
 .stats.stats--mini{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -150,6 +149,7 @@ h2{margin:0;font:600 24px/28px var(--font-display)}
 table{width:100%;border-collapse:collapse}
 th{font:600 12px/16px var(--font-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);text-align:left;padding:8px 12px;background:var(--surface-200);white-space:nowrap}
 td{padding:10px 12px;border-top:1px solid var(--line);white-space:nowrap}
+td.wraptext{white-space:normal}
 .r{text-align:right}
 .rank{font:600 18px/24px var(--font-display);color:var(--ink-muted);min-width:36px;white-space:nowrap}
 tr.me td{background:var(--surface-200)}
@@ -185,9 +185,10 @@ textarea{min-height:120px;font-family:var(--font-mono);font-size:13px}
 @media (min-width:720px){.two{grid-template-columns:1fr 1fr;gap:24px}}
 .h3{margin:0;font:600 18px/24px var(--font-display)}
 .stat__value--name{font:600 clamp(18px,5vw,28px)/32px var(--font-display);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ribbonwrap{overflow-x:auto;padding:12px 16px 16px}
-.ribbon{display:flex;gap:8px;min-width:min-content}
-.champ{min-width:104px;background:var(--surface-200);border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:var(--radius-sm);padding:8px 10px}
+.ribbonwrap{padding:12px 16px 16px}
+/* Every season on screen, no sideways scroll: the ribbon wraps into rows. */
+.ribbon{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.champ{min-width:0;background:var(--surface-200);border:1px solid var(--line);border-left:3px solid var(--accent2);border-radius:var(--radius-sm);padding:8px 10px}
 .champ__y{font:700 16px/20px var(--font-display);color:var(--accent2)}
 .champ__n{font-size:12.5px;font-weight:600;line-height:1.2}
 .picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
@@ -414,3 +415,23 @@ table td.rank:not(.num){white-space:nowrap;min-width:40px}
 .glance__state{font:700 24px/28px var(--font-display);text-transform:uppercase;color:var(--cream)}
 .glance__side{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .glance__side .paychips{margin-top:0}
+
+/* Page body: even spacing between cards everywhere; on a wide screen, cards marked .half sit two to a row
+   and the page runs wider, so tables and the season ribbon fit without scrolling sideways. */
+main#view{display:flex;flex-direction:column;gap:16px;min-width:0}
+main#view > *{min-width:0;margin-top:0;margin-bottom:0}
+@media (min-width:1200px){
+  .wrap{max-width:1440px;padding-left:32px;padding-right:32px}
+  main#view{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;align-items:start}
+  main#view > *{grid-column:1/-1}
+  main#view > .half{grid-column:auto}
+  .ribbon{grid-template-columns:repeat(8,minmax(0,1fr))}
+  td{padding:9px 10px}
+  th{padding:8px 10px}
+}
+@media (min-width:1200px) and (max-width:1399px){td,th{padding-left:8px;padding-right:8px}th{white-space:normal}}
+@media (max-width:719px){
+  .tabs{gap:2px}
+  .ribbon{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tabs .tab{padding:6px 9px}
+}
