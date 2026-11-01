@@ -1,4 +1,5 @@
 'use client';
+import Fold from './Fold';
 import { SmallSample } from './InfoTip';
 import { whoLabel } from '../lib/ident.mjs';
 import { computeAchievements } from '../lib/achievements.mjs';
@@ -8,7 +9,7 @@ export default function Achievements({ groups }) {
   return (
     <section className="card">
       <div className="card__head"><h2>Parlay achievements</h2><span className="sub">Decided picks only</span></div>
-      <div className="card__body">
+      <Fold className="card__body">
         {groups.map((g) => {
           const badges = computeAchievements(g.legs, g.source);
           return (
@@ -24,7 +25,7 @@ export default function Achievements({ groups }) {
               ) : <p className="muted">No badges yet.</p>}
             </div>);
         })}
-      </div>
+      </Fold>
     </section>
   );
 }

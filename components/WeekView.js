@@ -159,7 +159,8 @@ function LegRow({ g, week, dead }) {
   const typeLabel = TYPE_LABEL[leg.type] || leg.type;
   const game = (leg.game || []).filter(Boolean).join(' at ');
   const inGroup = leg.group && week.groups && week.groups[leg.group];
-  const showCur = g.current != null && (g.state === 'live' || g.state === 'won' || g.state === 'lost');
+  const showCur = g.current != null && (g.state === 'live' || g.state === 'won' || g.state === 'lost')
+    && !String(g.detail || '').includes(String(g.current));
   return (
     <li className={'leg' + (dead && g.state !== 'won' && g.state !== 'lost' && g.state !== 'push' ? ' leg--dead' : '')}>
       <span className="leg__who">{whoLabel(leg.who)}</span>
@@ -168,7 +169,7 @@ function LegRow({ g, week, dead }) {
         <div className="leg__market">{game ? `${typeLabel} · ${game}` : typeLabel}</div>
       </div>
       <div className="leg__game">
-        <span>{g.detail || ''}</span>
+        {g.detail ? <span>{g.detail}</span> : null}
         {showCur ? <span className="cur">{String(g.current)}</span> : null}
       </div>
       <div className="leg__right">
@@ -299,7 +300,7 @@ export default function WeekView() {
         <section className="card" id="legs">
           <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable' : 'Live during games'}</span></div>
           <ol className="legs">{rows}</ol>
-          <div className="notice"><span>{week.note || ''}</span><span>{week.book ? `Book: ${week.book}` : ''}</span></div>
+          {week.book ? <div className="notice"><span>{`Book: ${week.book}`}</span></div> : null}
         </section>
         </>
       )}

@@ -1,4 +1,5 @@
 'use client';
+import Fold from './Fold';
 import { allRules } from '../lib/rules.mjs';
 
 const RULE_NAMES = {
@@ -12,8 +13,8 @@ export default function RulesCard({ config }) {
   return (
     <section className="card">
       <div className="card__head"><h2>House rules</h2><span className="sub">Set by the league</span></div>
-      <dl className="rulelist">{allRules(config).map((r) => (
-        <div key={r.key}><dt>{RULE_NAMES[r.key] || r.key}</dt><dd>{r.text}</dd></div>))}</dl>
+      <Fold><dl className="rulelist">{allRules(config).map((r) => (
+        <div key={r.key}><dt>{RULE_NAMES[r.key] || r.key}</dt><dd>{r.text}</dd></div>))}</dl></Fold>
     </section>
   );
 }
