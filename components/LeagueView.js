@@ -319,7 +319,7 @@ export default function LeagueView() {
 
       <section className="card">
         <div className="card__head"><h2>Seasons that broke the scale</h2><span className="sub">PF vs that year’s average</span></div>
-        <div className="tablewrap"><table>
+        <Fold><div className="tablewrap"><table>
           <thead><tr><th>Yr</th><th>Manager</th><th className="hide-m">Team</th><th className="r">PF</th><th className="r">z</th><th className="r">Finish</th></tr></thead>
           <tbody>{pfOutliers(lore).map((o) => (
             <tr key={o.season + o.owner}>
@@ -330,7 +330,7 @@ export default function LeagueView() {
               <td className={'r num ' + (o.z > 0 ? 'pos' : 'neg')}>{(o.z > 0 ? '+' : '') + o.z.toFixed(2)}</td>
               <td className="r num">{o.champ ? 'Champ' : String(o.rank)}</td>
             </tr>))}</tbody>
-        </table></div>
+        </table></div></Fold>
       </section>
 
       <div className="two">

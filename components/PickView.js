@@ -163,7 +163,7 @@ export default function PickView() {
             <div key={name} className={'slot' + (row ? ' slot--in' : '')}>
               <div className="slot__who">{whoLabel(name)}</div>
               <div className="slot__pick">{row ? (row.leg.label || 'In') : 'Waiting'}</div>
-              <div className="muted">{row ? (row.source === 'ticket' ? 'On the ticket' : row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>
+              {row && row.source === 'ticket' ? null : <div className="muted">{row ? (row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>}
             </div>);
         })}</div></div>
       </section>

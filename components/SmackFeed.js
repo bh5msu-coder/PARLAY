@@ -7,6 +7,7 @@ const FIRST = 6;
 /** Feed of needles built from recorded results. Each item can become a draft or go to WhatsApp. */
 export default function SmackFeed({ records, onDraft, onShare }) {
   const [all, setAll] = useState(false);
+  const [open, setOpen] = useState({});
   const items = records.flatMap((r) => smackFeed(r));
   const shown = all ? items : items.slice(0, FIRST);
   return (
@@ -15,11 +16,13 @@ export default function SmackFeed({ records, onDraft, onShare }) {
       {items.length ? (<>
         <div className="chatlog">{shown.map((i) => (
           <article key={i.source + i.id} className="chatline">
-            <div className="chatline__who">{i.kind === 'recap' ? 'Recap' : i.kind === 'bust' ? 'Bust' : i.kind === 'streak' ? 'Streak' : 'Rivalry'}</div>
-            <p className="chatline__text">{i.text}</p>
-            <div className="inline">
-              <button className="btn btn--ghost btn--sm" type="button" onClick={() => onDraft(i.text)}>Use as draft</button>
-              <button className="btn btn--secondary btn--sm" type="button" onClick={() => onShare(i.text)}>Share to WhatsApp</button>
+            <p className={'chatline__text' + (open[i.source + i.id] ? ' is-open' : '')} onClick={() => setOpen({ ...open, [i.source + i.id]: !open[i.source + i.id] })}>{i.text}</p>
+            <div className="chatline__foot">
+              <span className="chatline__who">{i.kind === 'recap' ? 'Recap' : i.kind === 'bust' ? 'Bust' : i.kind === 'streak' ? 'Streak' : 'Rivalry'}</span>
+              <span className="inline">
+                <button className="btn btn--ghost btn--sm" type="button" aria-label="Use as draft" onClick={() => onDraft(i.text)}>Draft</button>
+                <button className="btn btn--secondary btn--sm" type="button" aria-label="Share to WhatsApp" onClick={() => onShare(i.text)}>Share</button>
+              </span>
             </div>
           </article>))}</div>
         {items.length > FIRST ? <div className="card__body"><button className="btn btn--ghost btn--sm" type="button" onClick={() => setAll(!all)}>{all ? 'Show fewer' : `Show all ${items.length}`}</button></div> : null}

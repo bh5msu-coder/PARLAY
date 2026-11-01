@@ -104,3 +104,10 @@ test('week link preview reads recorded results only', async () => {
   assert.equal(weekCardFacts(w7).status, 'BUSTED');
   assert.equal(weekCardFacts({ week: 9, legs: [] }).status, 'PICKS OPEN');
 });
+
+test('week share line', async () => {
+  const { weekShareText } = await import('../lib/share-card.mjs');
+  assert.equal(weekShareText({ week: 8, status: '0 of 11 hit · killed by DJ Cricket', odds: 79578, url: 'https://x/week' }),
+    'Week 8: 0 of 11 hit · killed by DJ Cricket · +79,578\nhttps://x/week');
+  assert.equal(weekShareText({ week: 9, status: 'Picks open', odds: '', url: 'u' }), 'Week 9: Picks open\nu');
+});
