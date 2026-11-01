@@ -364,3 +364,10 @@ test('auto-commit proposes the ticket; it never claims it was placed', async () 
   assert.match(rpc.body.p_data.ticket.evidence, /Not placed/);
   assert.equal(rpc.body.p_data.placedBy, undefined);
 });
+
+test('a placed week counts its legs as picks, not the empty site submissions', () => {
+  const wk = { week: 9, odds: 50000, toPay: 5000, stake: 10, ticket: { state: 'placed' },
+    legs: [{ who: 'A', type: 'ml', label: 'X ML' }, { who: 'B', type: 'ml', label: 'Y ML' }, { who: 'C', type: 'tbd', label: 'TBD' }] };
+  assert.equal(weekStates(wk, []).picksSaved, 2);
+  assert.equal(weekStates({ week: 9, legs: [] }, [{ who: 'A' }]).picksSaved, 1);
+});
