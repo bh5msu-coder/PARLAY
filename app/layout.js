@@ -1,5 +1,6 @@
 import './globals.css';
 import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }) {
           <div className="wrap">{children}</div>
           <BottomNav />
         </LeagueProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
