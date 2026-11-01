@@ -133,9 +133,9 @@ function StateChips({ week, savedRows, need, config, payers }) {
   return (
     <section className="chips" aria-label="Week status">
       <div className="statechip">
-        <span className="label">Picks saved</span>
+        <span className="label">{placed ? 'On the ticket' : 'Picks saved'}</span>
         <span className="statechip__v">{`${st.picksSaved} / ${need}`}</span>
-        <span className="small muted">A saved pick is not a bet.</span>
+        <span className="small muted">{placed ? 'Legs on the placed slip.' : 'A saved pick is not a bet.'}</span>
       </div>
       <div className="statechip">
         <span className="label">Owes this week</span>

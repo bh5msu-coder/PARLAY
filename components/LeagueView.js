@@ -199,6 +199,34 @@ function KpiIdeas() {
   );
 }
 
+/** Every owner since 2010. The current managers show first; former owners wait behind a button. */
+function AllManagers({ lore, departedTitles, you }) {
+  const [allRows, setAllRows] = useState(false);
+  const all = allTimeCareers(lore);
+  const former = all.filter((c) => !c.current).length;
+  const shown = allRows ? all : all.filter((c) => c.current);
+  return (
+    <section className="card">
+      <div className="card__head"><h2>Every manager, all time</h2><span className="sub">{`${all.length} owners since 2010 · ${departedTitles} titles went to owners who left`}</span></div>
+      <div className="tablewrap"><table>
+        <thead><tr><th>Manager</th><th className="r hide-m">Years</th><th className="r">Titles</th><th className="r">W–L</th><th className="r hide-m">Win %</th><th className="r">Avg</th><th className="r hide-m">Best · worst</th><th className="r hide-m">Last</th></tr></thead>
+        <tbody>{shown.map((c) => (
+          <tr key={c.owner} className={c.owner === you ? 'me' : ''}>
+            <td><div className="who-cell"><span style={{ fontWeight: 600 }}>{c.current ? whoLabel(c.owner) : c.owner}</span>{c.current ? null : <span className="pills"><span className="pill">Former</span></span>}</div></td>
+            <td className="r num hide-m">{c.first === c.last ? String(c.first) : `${c.first}–${c.last}`}</td>
+            <td className="r num" style={{ whiteSpace: 'nowrap' }}>{String(c.titleCount || 0)}{c.titleCount ? <span className="muted hide-m">{` (${c.titles.join(', ')})`}</span> : null}</td>
+            <td className="r num" style={{ whiteSpace: 'nowrap' }}>{`${c.wins}–${c.losses}`}</td>
+            <td className="r num hide-m">{fmtPct(c.winPct)}</td>
+            <td className="r num">{fmtFinish(c.avgFinish)}</td>
+            <td className="r num hide-m">{`${c.bestFinish} · ${c.worstFinish}`}</td>
+            <td className="r num hide-m">{String(c.lastPlaceCount || 0)}</td>
+          </tr>))}</tbody>
+      </table></div>
+      {former ? <div className="card__body"><button className="btn btn--ghost btn--sm" type="button" onClick={() => setAllRows(!allRows)}>{allRows ? 'Current managers only' : `Show all ${all.length}, with ${former} former`}</button></div> : null}
+    </section>
+  );
+}
+
 export default function LeagueView() {
   const store = useLeague();
   const { state } = store;
@@ -286,23 +314,7 @@ export default function LeagueView() {
         </div>
       </section>
 
-      <section className="card">
-        <div className="card__head"><h2>Every manager, all time</h2><span className="sub">{`All ${allTimeCareers(lore).length} owners since 2010 · ${h.departedTitles} titles went to owners who left`}</span></div>
-        <div className="tablewrap"><table>
-          <thead><tr><th>Manager</th><th className="r hide-m">Years</th><th className="r">Titles</th><th className="r">W–L</th><th className="r hide-m">Win %</th><th className="r">Avg</th><th className="r hide-m">Best · worst</th><th className="r hide-m">Last</th></tr></thead>
-          <tbody>{allTimeCareers(lore).map((c) => (
-            <tr key={c.owner} className={c.owner === state.config.you ? 'me' : ''}>
-              <td><div className="who-cell"><span style={{ fontWeight: 600 }}>{c.current ? whoLabel(c.owner) : c.owner}</span>{c.current ? null : <span className="pills"><span className="pill">Former</span></span>}</div></td>
-              <td className="r num hide-m">{c.first === c.last ? String(c.first) : `${c.first}–${c.last}`}</td>
-              <td className="r num" style={{ whiteSpace: 'nowrap' }}>{String(c.titleCount || 0)}{c.titleCount ? <span className="muted hide-m">{` (${c.titles.join(', ')})`}</span> : null}</td>
-              <td className="r num" style={{ whiteSpace: 'nowrap' }}>{`${c.wins}–${c.losses}`}</td>
-              <td className="r num hide-m">{fmtPct(c.winPct)}</td>
-              <td className="r num">{fmtFinish(c.avgFinish)}</td>
-              <td className="r num hide-m">{`${c.bestFinish} · ${c.worstFinish}`}</td>
-              <td className="r num hide-m">{String(c.lastPlaceCount || 0)}</td>
-            </tr>))}</tbody>
-        </table></div>
-      </section>
+      <AllManagers lore={lore} departedTitles={h.departedTitles} you={state.config.you} />
 
       <section className="card">
         <div className="card__head"><h2>Seasons that broke the scale</h2><span className="sub">PF vs that year’s average</span></div>

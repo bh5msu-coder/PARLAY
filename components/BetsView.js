@@ -10,8 +10,9 @@ import { calcParlayStats, hitPct, SMALL_N } from '../lib/history-stats.mjs';
 
 import InfoTip, { SmallSample } from './InfoTip';
 import { fmtMoney } from '../lib/format.mjs';
-import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
-import { cachedHistory, historyLegs, historyTickets, loadHistory } from '../lib/history.mjs';
+import Link from 'next/link';
+import { DiscrepancyCard } from './Dashboard';
+import { cachedHistory, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
 import SeasonGlance from './SeasonGlance';
 import Fold from './Fold';
@@ -52,8 +53,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
 
       <SeasonGlance data={data} rows={S.rows} selectedOwner={selectedOwner} />
       <DiscrepancyCard result={reconcile({ weeks }, data)} />
-      <TicketSection tickets={historyTickets(data)} sourceNote="parlay-history.json (read-only)" />
-      <SelectionCharts legs={historyLegs(data)} sourceNote="parlay-history.json (read-only) · decided picks only" />
+      <p className="rules rules--info">Ticket and pick charts live on <Link href="/standings">Standings</Link>.</p>
 
       <section className="card">
         <div className="card__head"><h2>Awards</h2><span className="sub">{`${S.graded.length} graded tickets · everything here is a small sample`}</span></div>
