@@ -91,3 +91,16 @@ test('a placed ticket counts as the week\'s picks on the Pick page', () => {
   assert.deepEqual(placedTicketPicks({ ticket: { state: 'proposed' }, legs: w8.legs }), []);
   assert.equal(placedTicketPicks({ ticket: { state: 'placed' }, legs: [{ who: 'Brad Holm', type: 'tbd', label: 'TBD' }] }).length, 0);
 });
+
+test('week link preview reads recorded results only', async () => {
+  const { weekCardFacts } = await import('../lib/share-card.mjs');
+  const w8 = weeks.find((w) => w.week === 8);
+  const f = weekCardFacts(w8);
+  assert.equal(f.status, 'IN PLAY');
+  assert.equal(f.line, '11 legs');
+  assert.equal(f.odds, '+79,578');
+  assert.equal(f.pays, '$7,968');
+  const w7 = weeks.find((w) => w.week === 7);
+  assert.equal(weekCardFacts(w7).status, 'BUSTED');
+  assert.equal(weekCardFacts({ week: 9, legs: [] }).status, 'PICKS OPEN');
+});
