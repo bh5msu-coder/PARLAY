@@ -41,7 +41,6 @@ export default function SeasonGlance({ data, rows, selectedOwner }) {
               <span className="glance__val num">{w.notPlaced ? '–' : rec(w)}</span>
             </div>
           ))}
-          <p className="muted small">Payouts after the arrow are what the slip showed. None were paid.</p>
         </div>
         <div>
           <h3 className="h3">Manager leg records</h3>

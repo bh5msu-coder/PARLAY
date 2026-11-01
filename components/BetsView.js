@@ -82,7 +82,6 @@ function History({ data, selectedOwner, weeks, payments, store }) {
                 <td className="r num hide-m">{r.pn ? `${r.pw}/${r.pn}` : '–'}</td>
               </tr>))}</tbody>
           </table></div>
-          <p className="muted">Busted = legs that lost on a ticket that lost. Every graded ticket lost, so each loss counts. Primetime = night kickoffs (TNF/SNF/MNF). Under 5 legs is flagged as a small sample.</p>
         </div>
       </section>
 
@@ -96,7 +95,6 @@ function History({ data, selectedOwner, weeks, payments, store }) {
               <tbody>{p.legs.map((l) => (
                 <tr key={l.who}><td>{whoLabel(l.who)}</td><td>{l.label}{l.note ? <span className="muted">{' · ' + l.note}</span> : null}</td></tr>))}</tbody>
             </table></div>
-            <p className="muted">{'Not graded and not counted in any stat or winnings. Source: ' + p.source}</p>
           </div>
         </section>))}
 
@@ -106,7 +104,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
           <div key={p.label} className="field">
             <b>{`${p.label} · ${p.legs.length} legs · `}</b>
             {p.result === 'pending' ? <span className="pill">pending</span> : `${p.record.win}–${p.record.loss}` + (p.record.unknown ? ` · ${p.record.unknown} unknown` : '')}
-            {p.toPay ? <span className="muted">{` · hypothetical payout ${fmtMoney(p.toPay)} (not paid)`}</span> : null}
+            {p.toPay ? <span className="muted">{` · would have paid ${fmtMoney(p.toPay)}`}</span> : null}
             <div className="pills">{p.legs.filter((l) => l.result === 'loss').map((l, i) => <span key={i} className="chip">{`${whoLabel(l.who)}: ${l.label}`}</span>)}</div>
           </div>))}</div>
       </section>
@@ -145,7 +143,6 @@ function History({ data, selectedOwner, weeks, payments, store }) {
             const edge = ra == null || rb == null ? 'No contest: one side has no graded legs' : ra === rb ? 'Dead even' : `Edge: ${ra > rb ? a.nick : b.nick}`;
             return <div key={rv.title} className="field"><b>{rv.title + ' · '}</b>{`${a.nick} ${fa} vs ${b.nick} ${fb} · ${edge}`}</div>;
           })}
-          <p className="muted">No weekly fantasy matchup records exist in league-lore.json, so this compares parlay legs only. Small sample.</p>
         </div>
       </section>
 
@@ -164,9 +161,7 @@ function History({ data, selectedOwner, weeks, payments, store }) {
         <div className="card__head"><h2>Hypothetical payouts</h2><span className="sub">What one cash would have meant</span></div>
         <div className="card__body">
           <p>{data.parlays.filter((p) => p.toPay).map((p) => `${p.label}: hypothetical ${fmtMoney(p.toPay)} on $${p.stake}. `).join('')}</p>
-          <p>{`A straight 11-leg ticket at -110 every leg pays about $${Math.round(10 * Math.pow(dec110, 11)).toLocaleString()} on $10. 12 legs pays about $${Math.round(10 * Math.pow(dec110, 12)).toLocaleString()}. Those are assumed prices, not slip odds.`}</p>
-          <p className="muted">{'Sources: ' + Object.values(data.sources).join(' · ')}</p>
-          <p className="muted">{'Excluded: ' + data.excluded.map((x) => `${x.what} (${x.why})`).join('; ')}</p>
+          <p>{`At -110 a leg, $10 on 11 legs pays about $${Math.round(10 * Math.pow(dec110, 11)).toLocaleString()}; 12 legs about $${Math.round(10 * Math.pow(dec110, 12)).toLocaleString()}.`}</p>
         </div>
       </section>
     </>

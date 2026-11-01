@@ -143,12 +143,12 @@ function LeagueTape() {
   return (
     <div className="two">
       <section className="card">
-        <div className="card__head"><h2>2025 PF</h2><span className="sub">Fantasy points for · DJ has no 2025 season</span></div>
-        <div className="card__body"><Meters rows={pfRows} max={maxPf} fmt={(r) => r.pf.toFixed(1)} /><p className="muted">Source: ESPN 182263 via league-lore.json. Jarn led PF; Hoss won the title.</p></div>
+        <div className="card__head"><h2>2025 PF</h2><span className="sub">Fantasy points for</span></div>
+        <div className="card__body"><Meters rows={pfRows} max={maxPf} fmt={(r) => r.pf.toFixed(1)} /></div>
       </section>
       <section className="card">
         <div className="card__head"><h2>Titles, current 12</h2><span className="sub">Championships 2010–2025</span></div>
-        <div className="card__body"><Meters rows={titleRows} max={maxT} fmt={(r) => String(r.n)} /><p className="muted">Heller 3, then Jarn / Hoss / Chas with 2, Brad 1. Six more titles belong to departed owners.</p></div>
+        <div className="card__body"><Meters rows={titleRows} max={maxT} fmt={(r) => String(r.n)} /></div>
       </section>
     </div>
   );
@@ -167,13 +167,12 @@ function SeasonElo({ selected, onSelect }) {
   const noSeason = ident.people.filter((p) => !seasonRows(p).length);
   return (
     <section className="card half">
-      <div className="card__head"><h2>Season Elo</h2><span className="sub">Final place among current managers · start 1500</span></div>
+      <div className="card__head"><h2>Season Elo</h2><span className="sub">From final place · start 1500</span></div>
       <div className="card__body">
         <div className="elo-now">{elo.now.map((r, i) => (
           <button key={r.id} className={'elo-now__item' + (r.name === selected ? ' on' : '')} type="button" onClick={() => onSelect(r.name)}>{(i + 1) + '. ' + r.nick + ' '}<b>{fmtElo(r.rating)}</b></button>))}</div>
         <canvas ref={canvasRef} className="elo-chart" role="img" aria-label="Season Elo by year, 2010 to 2025. Lower on the table is a worse rating." />
-        <p className="muted">Season Elo from final place among current managers who played that year. Start 1500, K = 8 split across the field (each pairwise update ÷ n−1), no offseason regression. Gaps = seasons sat out between a manager’s first and last year. Not weekly head-to-head. Source: league-lore.json, ESPN 182263, 2010–2025.</p>
-        <div className="tablewrap"><table>
+        <div className="tablewrap hide-m"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r">Elo</th><th className="r hide-m">Seasons</th><th className="r hide-m">Peak</th><th className="r hide-m">Low</th></tr></thead>
           <tbody>{elo.now.map((r, i) => (
             <tr key={r.id} className={r.name === selected ? 'me' : ''} onClick={() => onSelect(r.name)}>
@@ -204,18 +203,17 @@ function KpiIdeas() {
   };
   return (
     <section className="card half">
-      <div className="card__head"><h2>Propose a KPI</h2><span className="sub">Saved on this phone · localStorage</span></div>
+      <div className="card__head"><h2>Propose a KPI</h2><span className="sub">Saved on this device</span></div>
       <div className="card__body form">
-        <p className="muted">Name it and write the formula. Values stay blank until someone can actually count them from public lore. No 2026 auction intel.</p>
         <div className="field"><label htmlFor="kpi-name">Name</label><input id="kpi-name" type="text" placeholder="Title rate, playoff conversion…" value={name} onChange={(e) => setName(e.target.value)} /></div>
-        <div className="field"><label htmlFor="kpi-def">Definition</label><textarea id="kpi-def" placeholder="Formula: what you would count, over which seasons, who is eligible. We will not invent a leaderboard." value={def} onChange={(e) => setDef(e.target.value)} /></div>
+        <div className="field"><label htmlFor="kpi-def">Definition</label><textarea id="kpi-def" placeholder="What you would count, over which seasons" value={def} onChange={(e) => setDef(e.target.value)} /></div>
         <button className="btn btn--secondary" type="button" onClick={save}>Save idea</button>
         {ideas.length ? (
           <div className="tablewrap"><table>
-            <thead><tr><th>Idea</th><th>Definition (no fake result)</th></tr></thead>
+            <thead><tr><th>Idea</th><th>Definition</th></tr></thead>
             <tbody>{ideas.map((x, i) => <tr key={i}><td>{x.name}</td><td>{x.def}</td></tr>)}</tbody>
           </table></div>
-        ) : <p className="muted">Park a definition here. Known tape (titles, avg finish, last place, PF) is already on this tab — this box is for metrics we have not computed.</p>}
+        ) : null}
       </div>
     </section>
   );
@@ -228,7 +226,7 @@ export default function LeagueView() {
   useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
   const lore = ident.lore;
   const title = 'League';
-  const sub = lore ? `${lore.span} · ${lore.seasonCount} seasons of Holm League history` : 'Career records and championships';
+  const sub = lore ? `${lore.span} · ${lore.seasonCount} seasons` : 'Career records and championships';
   if (!state.ready) return <Page title={title} />;
   if (!lore) return <Page title={title} sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
   const k = lore.kpis || {};
@@ -278,7 +276,7 @@ export default function LeagueView() {
       <KpiIdeas />
 
       <section className="card half">
-        <div className="card__head"><h2>The table</h2><span className="sub">Current 12 · avg finish is all-time. Tap a name.</span></div>
+        <div className="card__head"><h2>The table</h2><span className="sub">Tap a name</span></div>
         <div className="tablewrap"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Yrs</th><th className="r">Titles</th><th className="r">Avg finish</th><th className="r hide-m">Last place</th><th className="r hide-m">W–L</th></tr></thead>
           <tbody>{table.map((p, i) => {
@@ -325,11 +323,10 @@ export default function LeagueView() {
               <td className="r num hide-m">{String(c.lastPlaceCount || 0)}</td>
             </tr>))}</tbody>
         </table></div>
-        <p className="notice">{`Years is first to last season played; ${allTimeCareers(lore).filter((c) => c.seasons < (c.last - c.first + 1)).length} owners sat seasons out in between. DJ has no season on file yet. Source: league-lore.json, ESPN 182263.`}</p>
       </section>
 
       <section className="card">
-        <div className="card__head"><h2>Seasons that broke the scale</h2><span className="sub">PF furthest from that year’s average · z-score</span></div>
+        <div className="card__head"><h2>Seasons that broke the scale</h2><span className="sub">PF vs that year’s average</span></div>
         <div className="tablewrap"><table>
           <thead><tr><th>Yr</th><th>Manager</th><th className="hide-m">Team</th><th className="r">PF</th><th className="r">z</th><th className="r">Finish</th></tr></thead>
           <tbody>{pfOutliers(lore).map((o) => (
@@ -342,11 +339,7 @@ export default function LeagueView() {
               <td className="r num">{o.champ ? 'Champ' : String(o.rank)}</td>
             </tr>))}</tbody>
         </table></div>
-        <p className="notice">{'+2 means about two standard deviations above the year’s average PF. A high score did not always win: Jarn’s 2025 1,830 finished 2nd, and Heller’s 2016 1,123 still finished 2nd.'}</p>
       </section>
-
-      {k.mostLastPlaces ? <p className="rules">{`Toilet-bowl energy: ${k.mostLastPlaces.owner} has finished last ${k.mostLastPlaces.count} times (${(k.mostLastPlaces.years || []).join(', ')}). Weekly 2026 payer is still last place the week before — entered on the ticket.`}</p> : null}
-
 
       <div className="two">
         <section className="card">
