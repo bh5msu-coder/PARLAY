@@ -424,12 +424,33 @@ table td.rank:not(.num){white-space:nowrap;min-width:40px}
 .glance__legend{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:var(--space-4);font-size:13px;color:var(--ink-muted)}
 .glance__legend .glance__seg{width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 
-/* League page: the weekly parlay as one compact card. */
-.parlay-glance{padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;border-left:4px solid var(--teal-deep)}
-.glance__main{display:flex;flex-direction:column;gap:2px;min-width:0}
-.glance__state{font:700 24px/28px var(--font-display);text-transform:uppercase;color:var(--cream)}
-.glance__side{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.glance__side .paychips{margin-top:0}
+/* League page hero: this week's parlay first, colored by how it stands, with the way in. */
+.hero{padding:20px 22px;display:grid;gap:14px 24px;border-left:4px solid var(--teal-deep);background:linear-gradient(100deg,var(--hero-tint,transparent),transparent 70%),var(--surface-100)}
+.hero--win{--hero-tint:var(--win-tint);border-left-color:var(--win)}
+.hero--loss{--hero-tint:var(--loss-tint);border-left-color:var(--loss)}
+.hero--live{border-left-color:var(--pending)}
+.hero__main{display:flex;flex-direction:column;gap:4px;min-width:0}
+.hero__state{font:700 44px/1 var(--font-display);text-transform:uppercase;letter-spacing:.01em;color:var(--cream);margin-top:2px}
+.hero--win .hero__state{color:var(--win)}
+.hero--loss .hero__state{color:var(--loss)}
+.hero__line{color:var(--ink-muted);font-size:15px}
+.hero__bar{display:flex;gap:2px;height:10px;margin-top:8px;max-width:420px}
+.hero__seg{border-radius:2px;min-width:6px}
+.hero__seg--win{background:var(--win)}.hero__seg--loss{background:var(--loss)}.hero__seg--live,.hero__seg--pending{background:var(--pending)}.hero__seg--push{background:var(--push)}
+.hero__side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.hero__side .paychips{margin-top:0}
+.hero__ctas{display:flex;flex-wrap:wrap;gap:8px}
+@media (min-width:900px){.hero{grid-template-columns:minmax(0,1fr) minmax(0,auto);align-items:center;padding:24px 28px}.hero__side{align-items:flex-end}.hero__side .paychips{justify-content:flex-end}.hero__state{font-size:56px}}
+@media (max-width:719px){.hero{padding:16px}.hero__state{font-size:40px}.hero__ctas .btn{flex:1 1 0;justify-content:center}}
+
+/* Season Elo: chart and ranking beside the table on a wide screen. */
+@media (min-width:1200px){.elo-body{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:24px;align-items:start}.elo-body__note{grid-column:1/-1}.elo-body .tablewrap{margin:0}}
+
+/* Propose a KPI: folded to its header at the foot of the page. */
+.kpi-ideas > summary{cursor:pointer;list-style:none}
+.kpi-ideas > summary::-webkit-details-marker{display:none}
+.kpi-ideas > summary h2::before{content:'+ ';color:var(--brand)}
+.kpi-ideas[open] > summary h2::before{content:'– '}
 
 /* Page body: even spacing between cards everywhere; on a wide screen, cards marked .half sit two to a row
    and the page runs wider, so tables and the season ribbon fit without scrolling sideways. */
