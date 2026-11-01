@@ -425,6 +425,8 @@ main#view > *{min-width:0;margin-top:0;margin-bottom:0}
   main#view{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px;align-items:start}
   main#view > *{grid-column:1/-1}
   main#view > .half{grid-column:auto}
+  .rivalries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rivalries > .card__head{grid-column:1/-1}
   .ribbon{grid-template-columns:repeat(8,minmax(0,1fr))}
   td{padding:9px 10px}
   th{padding:8px 10px}

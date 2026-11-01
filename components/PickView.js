@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
+import RulesCard from './RulesCard';
 import { ident, whoLabel } from '../lib/ident.mjs';
 import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
 import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
@@ -212,6 +213,7 @@ export default function PickView() {
           <ImportReport report={state.pick.importReport} />
         </div>
       </section>
+      <RulesCard config={state.config} />
     </Page>
   );
 }

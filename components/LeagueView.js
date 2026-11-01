@@ -13,7 +13,6 @@ import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
 import Achievements from './Achievements';
 import { cachedHistory, historyLegs, loadHistory } from '../lib/history.mjs';
 import { weeklyLegs } from '../lib/stats.mjs';
-import { allRules } from '../lib/rules.mjs';
 import { allTimeCareers, loreHeadlines, pfOutliers } from '../lib/lore-summary.mjs';
 
 function fmtPct(p) { return p == null ? '–' : (p * 100).toFixed(1) + '%'; }
@@ -81,28 +80,9 @@ function OwnerCard({ name }) {
   );
 }
 
-const RULE_NAMES = {
-  payoutSplit: 'Winnings', lastPlaceTie: 'Tie for last', splitStake: 'Split stake', rollover: 'Unplaced week',
-  pickDeadline: 'Deadline', editsAndLocks: 'Edits', pushHandling: 'Pushes', voidHandling: 'Voids & postponements',
-  missingPicks: 'Missing picks', eligibility: 'Opting out', disputes: 'Disputes', placementProof: 'Who places it',
-  books: 'Books', contributionTiming: 'Paying in', importConflict: 'Conflicting picks',
-};
-
-function RulesCard({ config }) {
-  return (
-    <section className="card half">
-      <div className="card__head"><h2>House rules</h2><span className="sub">As decided by the league · the commissioner can change any of these</span></div>
-      <div className="tablewrap"><table>
-        <tbody>{allRules(config).map((r) => (
-          <tr key={r.key}><td style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{RULE_NAMES[r.key] || r.key}</td><td className="wraptext">{r.text}</td></tr>))}</tbody>
-      </table></div>
-    </section>
-  );
-}
-
 function RivalriesCard() {
   return (
-    <section className="card half">
+    <section className="card rivalries">
       <div className="card__head"><h2>Rivalries</h2><span className="sub">Public 2010–2025 tape · overlap ranks, not weekly H2H</span></div>
       {RIVALRIES.map((r) => (
         <article key={r.title} className="rivalry">
@@ -269,7 +249,6 @@ export default function LeagueView() {
         { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
       ]} />
 
-      <RulesCard config={state.config} />
       <RivalriesCard />
       <LeagueTape />
       <SeasonElo selected={selected} onSelect={select} />
