@@ -37,7 +37,7 @@ The site is a Next.js App Router app written in JavaScript, with no TypeScript a
 
 | Path | What it holds |
 |---|---|
-| `app/<page>/page.js` | One route per tab: `/week`, `/pick`, `/standings`, `/league`, `/bets`, `/chat`, `/commissioner`. `/` redirects to `/week` and maps old `#hash` links (`#history` → `/bets`, `#admin` → `/commissioner`). |
+| `app/<page>/page.js` | One route per tab: `/week`, `/pick`, `/standings`, `/league`, `/bets`, `/chat`, `/commissioner`. `/` redirects to `/league` and maps old `#hash` links (`#history` → `/bets`, `#admin` → `/commissioner`). |
 | `components/*View.js` | The client component for each page. `LeagueProvider` and `Topbar` are shared by every page. |
 | `lib/*.mjs` | Pure logic shared by the pages, the API routes and the tests: grading, standings, Elo, history stats, the NFL clock, the pick form and the league store. |
 | `pages/api/*.js` | Serverless API routes: `espn`, `pick` and `health`. |
