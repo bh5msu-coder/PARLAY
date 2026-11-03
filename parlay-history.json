@@ -1003,9 +1003,11 @@
       "PIT"
      ],
      "kickoff": "2026-11-01T18:00Z",
-     "result": "pending",
+     "result": "win",
      "side": "under",
-     "line": 39.5
+     "line": 39.5,
+     "actual": "33 total (PIT 27, CLE 6)",
+     "confidence": "espn-final"
     },
     {
      "who": "Jace Clark",
@@ -1016,9 +1018,11 @@
       "DAL"
      ],
      "kickoff": "2026-11-01T18:00Z",
-     "result": "pending",
+     "result": "win",
      "side": "over",
-     "line": 54.5
+     "line": 54.5,
+     "actual": "63 total (ARI 33, DAL 30)",
+     "confidence": "espn-final"
     },
     {
      "who": "Adam Meltser",
@@ -1029,12 +1033,15 @@
       "DET"
      ],
      "kickoff": "2026-11-01T18:00Z",
-     "result": "pending",
+     "result": "loss",
      "line": 29.5,
      "side": "over",
      "player": "Jahmyr Gibbs",
      "stat": "recYds",
-     "sgp": "MIN/DET 2 pick SGP"
+     "sgp": "MIN/DET 2 pick SGP",
+     "actual": "15 rec yds (2 rec)",
+     "confidence": "espn-final",
+     "missBy": "14.5 rec yds"
     },
     {
      "who": "Kyle McFadden",
@@ -1045,10 +1052,12 @@
       "DET"
      ],
      "kickoff": "2026-11-01T18:00Z",
-     "result": "pending",
+     "result": "win",
      "player": "Justin Jefferson",
      "stat": "anyTD",
-     "sgp": "MIN/DET 2 pick SGP"
+     "sgp": "MIN/DET 2 pick SGP",
+     "actual": "1 rec TD",
+     "confidence": "espn-final"
     },
     {
      "who": "Ryan Hoffman",
@@ -1059,9 +1068,11 @@
       "NYJ"
      ],
      "kickoff": "2026-11-01T18:00Z",
-     "result": "pending",
+     "result": "win",
      "team": "LV",
-     "line": 1.5
+     "line": 1.5,
+     "actual": "LV 38, NYJ 33",
+     "confidence": "espn-final"
     },
     {
      "who": "Nick Curtis",
@@ -1072,9 +1083,11 @@
       "BUF"
      ],
      "kickoff": "2026-11-01T18:00Z",
-     "result": "pending",
+     "result": "win",
      "team": "BUF",
-     "line": -2.5
+     "line": -2.5,
+     "actual": "BUF 36, BAL 10",
+     "confidence": "espn-final"
     },
     {
      "who": "Kevin Sack",
@@ -1085,8 +1098,10 @@
       "DEN"
      ],
      "kickoff": "2026-11-01T21:25Z",
-     "result": "pending",
-     "team": "DEN"
+     "result": "win",
+     "team": "DEN",
+     "actual": "DEN 28, KC 24",
+     "confidence": "espn-final"
     },
     {
      "who": "DJ Dangerous",
@@ -1114,12 +1129,14 @@
       "MIA"
      ],
      "kickoff": "2026-11-01T21:25Z",
-     "result": "pending",
+     "result": "win",
      "side": "over",
      "player": "Ollie Gordon II",
      "stat": "rushYds",
      "line": 61.5,
-     "sgp": "NE/MIA 2 pick SGP"
+     "sgp": "NE/MIA 2 pick SGP",
+     "actual": "69 rush yds",
+     "confidence": "espn-final"
     },
     {
      "who": "Jarn Sachs",
@@ -1130,10 +1147,12 @@
       "MIA"
      ],
      "kickoff": "2026-11-01T21:25Z",
-     "result": "pending",
+     "result": "win",
      "team": "MIA",
      "line": 7.5,
-     "sgp": "NE/MIA 2 pick SGP"
+     "sgp": "NE/MIA 2 pick SGP",
+     "actual": "NE 24, MIA 19",
+     "confidence": "espn-final"
     },
     {
      "who": "Chas Rossman",
@@ -1144,19 +1163,21 @@
       "SEA"
      ],
      "kickoff": "2026-11-03T01:20Z",
-     "result": "pending",
+     "result": "loss",
      "team": "SEA",
-     "note": "Recorded as \"Seahawks\". The DraftKings receipt shows SEA moneyline, Mon 8:20 PM ET."
+     "note": "Recorded as \"Seahawks\". The DraftKings receipt shows SEA moneyline, Mon 8:20 PM ET.",
+     "actual": "CHI 34, SEA 17",
+     "confidence": "espn-final"
     }
    ],
    "stake": 10,
    "source": "Parent brief (final 11/11 list); chat L958-962 partial; DraftKings receipt screenshot 10/29 7:03 PM (11 Pick Parlay SGPx, $10 wager, total payout $7,967.80)",
-   "notes": "Busted Thursday: Panthers/Packers went under 46.5 (46 total). The other 10 legs are pending. Lines and Chas's Seahawks ML from the DraftKings receipt.",
+   "notes": "Busted Thursday: Panthers/Packers went under 46.5 (46 total). All 11 legs final 11/2: 8-3. Gibbs (15 rec yds) and the Seahawks ML (CHI 34, SEA 17) also lost. Lines and Chas's Seahawks ML from the DraftKings receipt.",
    "record": {
-    "win": 0,
-    "loss": 1,
+    "win": 8,
+    "loss": 3,
     "unknown": 0,
-    "pending": 10
+    "pending": 0
    },
    "result": "loss",
    "odds": 79578,
