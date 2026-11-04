@@ -10,6 +10,9 @@ import { settleWeek } from '../lib/iou.mjs';
 import { ident, RIVALRIES, seasonRows, whoLabel } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
 import SeasonChart from './SeasonChart';
+import LegTracker from './LegTracker';
+import NudgeButton from './NudgeButton';
+import { missingPickers } from '../lib/nudge.mjs';
 import LeagueTabs, { useTab } from './LeagueTabs';
 import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
 import Achievements from './Achievements';
@@ -31,6 +34,13 @@ function LeagueHero({ store }) {
   const f = heroFacts(g && g.summary, deriveTicket(week), whoLabel);
   const payers = store.weekPayers(week);
   const { shares } = settleWeek(week.week, week.stake || 10, payers, week.contributions || state.payments.filter((p) => p.week === week.week));
+  const legs = g && g.graded ? g.graded : [];
+  // Picks still coming in for this week: who has not saved one yet.
+  const pickWeek = state.pick && state.pick.week === week.week;
+  const missing = f.wantsPicks && pickWeek && !legs.length
+    ? missingPickers(ident.parlayRoster(), (state.pick.rows || []).map((p) => ({ who: ident.canonical(p.who) })))
+    : [];
+  const kick = state.nfl && state.nfl.active === week.week ? state.nfl.firstKickLabel || '' : '';
   return (
     <section className={'card hero hero--' + f.tone}>
       <div className="hero__main">
@@ -46,8 +56,11 @@ function LeagueHero({ store }) {
         <div className="hero__ctas">
           {f.wantsPicks ? <Link className="btn btn--primary" href="/pick">Make your pick</Link> : null}
           <Link className={'btn ' + (f.wantsPicks ? 'btn--secondary' : 'btn--primary')} href="/week">Open this week</Link>
+          <NudgeButton className="hero__nudge" week={week.week} missing={missing} kick={kick} />
         </div>
+        {missing.length ? <span className="muted hero__missing">{`${ident.parlayRoster().length - missing.length} of ${ident.parlayRoster().length} picks in`}</span> : null}
       </div>
+      {legs.length ? <div className="hero__track"><LegTracker graded={legs} you={state.config.you} /></div> : null}
     </section>
   );
 }

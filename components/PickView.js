@@ -9,6 +9,8 @@ import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, placedTicketPicks, STAT_OPTS
 import { PICK_API, toast } from '../lib/clients.mjs';
 import { rule } from '../lib/rules.mjs';
 import LineBoard from './LineBoard';
+import NudgeButton from './NudgeButton';
+import { missingPickers } from '../lib/nudge.mjs';
 
 const POLICY_TEXT = {
   flag: 'Conflicting picks are flagged and nothing is overwritten (the commissioner has not set a rule).',
@@ -217,7 +219,9 @@ export default function PickView() {
       </>)}
 
       <section className="card">
-        <div className="card__head"><h2>The 11</h2><span className="sub">H-Bomb sits</span></div>
+        <div className="card__head"><h2>The 11</h2>{placed ? <span className="sub">H-Bomb sits</span> : (
+          <NudgeButton className="btn--sm" week={week} missing={missingPickers(roster, submissions)}
+            kick={state.nfl && state.nfl.active === week ? state.nfl.firstKickLabel || '' : ''} />)}</div>
         <div className="card__body"><div className="slots">{roster.map((name) => {
           const row = submissions.find((s) => s.who === name);
           return (
