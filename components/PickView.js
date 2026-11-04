@@ -8,6 +8,7 @@ import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
 import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, placedTicketPicks, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
 import { PICK_API, toast } from '../lib/clients.mjs';
 import { rule } from '../lib/rules.mjs';
+import LineBoard from './LineBoard';
 
 const POLICY_TEXT = {
   flag: 'Conflicting picks are flagged and nothing is overwritten (the commissioner has not set a rule).',
@@ -155,30 +156,25 @@ export default function PickView() {
 
       {(placed ? [] : ticket.issues || []).map((iss, i) => <p key={i} className={'rules rules--' + iss.level}>{iss.names ? `${iss.lead} ${iss.names.map((n) => whoLabel(n)).join(', ')}` : iss.text}</p>)}
 
-      <section className="card">
-        <div className="card__head"><h2>The 11</h2><span className="sub">H-Bomb sits</span></div>
-        <div className="card__body"><div className="slots">{roster.map((name) => {
-          const row = submissions.find((s) => s.who === name);
-          return (
-            <div key={name} className={'slot' + (row ? ' slot--in' : '')}>
-              <div className="slot__who">{whoLabel(name)}</div>
-              <div className="slot__pick">{row ? (row.leg.label || 'In') : 'Waiting'}</div>
-              {row && row.source === 'ticket' ? null : <div className="muted">{row ? (row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>}
-            </div>);
-        })}</div></div>
-      </section>
-
       {placed ? null : (<>
       <section className="card">
-        <div className="card__head"><h2>Enter your bet</h2><span className="sub">Website · remembered on this phone</span></div>
+        <div className="card__head"><h2>Enter your bet</h2><span className="sub">Tap a line · change it any time before kickoff</span></div>
         <div className="card__body form">
           <div className="row">
-            <div className="field"><label>I am</label>
+            <div className="field field--who"><label>I am</label>
               <select value={ident.canonical(f.who) || ''} onChange={(e) => setF('who', e.target.value)}>
                 <option value="">Select yourself</option>
                 {roster.map((n) => <option key={n} value={n}>{whoLabel(n)}</option>)}
               </select>
             </div>
+          </div>
+          <LineBoard games={state.pick.games} form={f} submissions={submissions} you={ident.canonical(f.who)}
+            onTap={(next) => { Object.assign(state.pick.form, next, { who: f.who }); store.emit(); }}
+            onClear={() => { store.resetPickForm(); store.emit(); }}
+            onSave={() => submitPick('web')} />
+          <details className="manual">
+          <summary>Player prop or custom line</summary>
+          <div className="row">
             <div className="field"><label>Game</label>
               <select value={gameValue} onChange={(e) => { const [away, home] = e.target.value.split('|'); state.pick.form.gameAway = away || ''; setF('gameHome', home || ''); }}>
                 <option value="">Select NFL game</option>
@@ -214,9 +210,26 @@ export default function PickView() {
             <button className="btn btn--primary" type="button" onClick={() => submitPick('web')}>Save my pick</button>
             <button className="btn btn--secondary" type="button" onClick={shareToWhatsApp}>Share to WhatsApp</button>
           </div>
+          </details>
         </div>
       </section>
 
+      </>)}
+
+      <section className="card">
+        <div className="card__head"><h2>The 11</h2><span className="sub">H-Bomb sits</span></div>
+        <div className="card__body"><div className="slots">{roster.map((name) => {
+          const row = submissions.find((s) => s.who === name);
+          return (
+            <div key={name} className={'slot' + (row ? ' slot--in' : '')}>
+              <div className="slot__who">{whoLabel(name)}</div>
+              <div className="slot__pick">{row ? (row.leg.label || 'In') : 'Waiting'}</div>
+              {row && row.source === 'ticket' ? null : <div className="muted">{row ? (row.source === 'whatsapp' ? 'WhatsApp' : 'Website') : '—'}</div>}
+            </div>);
+        })}</div></div>
+      </section>
+
+      {placed ? null : (<>
       <section className="card">
         <div className="card__head"><h2>From WhatsApp</h2><span className="sub">No bot required — paste the thread, we parse the 11</span></div>
         <div className="card__body form">
