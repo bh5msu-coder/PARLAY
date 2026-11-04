@@ -1,15 +1,16 @@
 'use client';
 import Fold from './Fold';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
-import { useLeague } from './LeagueProvider';
+import { useEffect, useState } from 'react';
+import { useLeague, useReady } from './LeagueProvider';
 import { Page } from './Topbar';
 import { KpiCard } from './ui';
 import { fmtElo, fmtFinish, fmtMoney } from '../lib/format.mjs';
 import { settleWeek } from '../lib/iou.mjs';
 import { ident, RIVALRIES, seasonRows, whoLabel } from '../lib/ident.mjs';
 import { calcSeasonElo } from '../lib/elo.mjs';
-import { drawSeasonElo } from '../lib/tape.mjs';
+import SeasonChart from './SeasonChart';
+import LeagueTabs, { useTab } from './LeagueTabs';
 import { KPI_LS, lsGet, lsSet, toast } from '../lib/clients.mjs';
 import Achievements from './Achievements';
 import { cachedHistory, historyLegs, loadHistory } from '../lib/history.mjs';
@@ -47,6 +48,14 @@ function LeagueHero({ store }) {
           <Link className={'btn ' + (f.wantsPicks ? 'btn--secondary' : 'btn--primary')} href="/week">Open this week</Link>
         </div>
       </div>
+    </section>
+  );
+}
+
+function HeroSkeleton() {
+  return (
+    <section className="card hero skel" aria-busy="true" aria-label="Loading this week">
+      <div className="hero__main"><div className="skel__bar skel__bar--short" /><div className="skel__bar skel__bar--tall" /><div className="skel__bar" /></div>
     </section>
   );
 }
@@ -138,32 +147,25 @@ function LeagueTape() {
 }
 
 function SeasonElo({ selected, onSelect }) {
-  const canvasRef = useRef(null);
   const elo = calcSeasonElo(ident.people);
-  useEffect(() => {
-    const c = canvasRef.current;
-    if (!c || !elo.now.length) return;
-    drawSeasonElo(c, elo, selected);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (c.isConnected) drawSeasonElo(c, elo, selected); });
-  });
   if (!elo.now.length) return <section className="card"><div className="empty">No seasons on file to rate.</div></section>;
   const noSeason = ident.people.filter((p) => !seasonRows(p).length);
   return (
     <section className="card">
-      <div className="card__head"><h2>Season Elo</h2><span className="sub">From final place · start 1500</span></div>
+      <div className="card__head"><h2>Season by season</h2><span className="sub">Finish and Elo · start 1500</span></div>
       <div className="card__body elo-body">
         <div className="elo-body__chart">
-        <div className="elo-now">{elo.now.map((r, i) => (
-          <button key={r.id} className={'elo-now__item' + (r.name === selected ? ' on' : '')} type="button" onClick={() => onSelect(r.name)}>{(i + 1) + '. ' + r.nick + ' '}<b>{fmtElo(r.rating)}</b></button>))}</div>
-        <canvas ref={canvasRef} className="elo-chart" role="img" aria-label="Season Elo by year, 2010 to 2025. Lower on the table is a worse rating." />
+          <div className="picker">{elo.now.map((r) => (
+            <button key={r.id} className={'chip' + (r.name === selected ? ' on' : '')} type="button" onClick={() => onSelect(r.name)}>{r.nick}</button>))}</div>
+          <SeasonChart elo={elo} selected={selected} onSelect={onSelect} />
         </div>
         <div className="tablewrap hide-m"><table>
-          <thead><tr><th>#</th><th>Manager</th><th className="r">Elo</th><th className="r hide-m">Seasons</th><th className="r hide-m">Peak</th><th className="r hide-m">Low</th></tr></thead>
+          <thead><tr><th>#</th><th>Manager</th><th className="r">Elo</th><th className="r">Seasons</th><th className="r">Peak</th><th className="r">Low</th></tr></thead>
           <tbody>{elo.now.map((r, i) => (
             <tr key={r.id} className={r.name === selected ? 'me' : ''} onClick={() => onSelect(r.name)}>
               <td className="rank">{String(i + 1)}</td><td>{r.nick}</td><td className="r num">{fmtElo(r.rating)}</td>
-              <td className="r num hide-m">{String(r.seasons) + (r.gaps.length ? ' · gap ' + r.gaps.join(', ') : '')}</td>
-              <td className="r num hide-m">{fmtElo(r.peak)}</td><td className="r num hide-m">{fmtElo(r.low)}</td>
+              <td className="r num">{String(r.seasons) + (r.gaps.length ? ' · gap ' + r.gaps.join(', ') : '')}</td>
+              <td className="r num">{fmtElo(r.peak)}</td><td className="r num">{fmtElo(r.low)}</td>
             </tr>))}</tbody>
         </table></div>
         {noSeason.length ? <p className="muted elo-body__note">{noSeason.map((p) => (p.nick || p.name)).join(', ') + ': no season finishes yet, so no Elo.'}</p> : null}
@@ -233,27 +235,34 @@ function AllManagers({ lore, departedTitles, you }) {
 }
 
 export default function LeagueView() {
+  // Lore is loaded by the root layout, so every tab except the live hero paints from the server.
   const store = useLeague();
   const { state } = store;
+  const ready = useReady();
+  const [tab, setTab] = useTab();
   const [history, setHistory] = useState(cachedHistory());
   useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
   const lore = ident.lore;
   const title = 'League';
   const sub = lore ? `${lore.span} · ${lore.seasonCount} seasons` : 'Career records and championships';
-  if (!state.ready) return <Page title={title} />;
-  if (!lore) return <Page title={title} sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
+  if (!lore) return <Page title={title} sub={sub}>{ready ? <div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div> : null}</Page>;
   const k = lore.kpis || {};
   const h = loreHeadlines(lore);
-  const selected = state.selectedOwner || state.config.you || ident.people[0].name;
+  const you = ready ? state.config.you : '';
+  const selected = state.selectedOwner || you || ident.people[0].name;
   const select = (n) => { state.selectedOwner = n; store.emit(); };
   const table = ident.people.slice().sort((a, b) => (a.career && a.career.avgFinish || 99) - (b.career && b.career.avgFinish || 99) || a.name.localeCompare(b.name));
   const valueRows = (list, cls) => (list || []).slice(0, 6).map((v, i) => (
     <tr key={i}><td className="num">{String(v.season)}</td><td>{whoLabel(v.owner)}</td><td>{v.player}</td><td className="r num">{'$' + v.price}</td><td className={'r num ' + cls}>{String(v.ppd)}</td></tr>));
+  const panel = (id, children) => (tab === id ? (
+    <div className="lpanel" role="tabpanel" id={'lpanel-' + id} aria-labelledby={'ltab-' + id} key={id}>{children}</div>) : null);
 
   return (
-    <Page title={title} sub={sub}>
-      <LeagueHero store={store} />
+    <Page title={title} sub={sub} early>
+      {ready ? <LeagueHero store={store} /> : <HeroSkeleton />}
+      <LeagueTabs tab={tab} onChange={setTab} />
 
+      {panel('overview', <>
       <h2 className="stats__group">Champions and skill</h2>
       <section className="stats stats--feature">
         <KpiCard size="feature" champ label="Reigning champ" value={k.reigningChamp ? whoLabel(k.reigningChamp.owner) : '–'} note={k.reigningChamp ? String(k.reigningChamp.year) : ''} />
@@ -274,12 +283,15 @@ export default function LeagueView() {
       <section className="card">
         <div className="card__head"><h2>Championship lineage</h2><span className="sub">Who actually finished the job</span></div>
         <div className="ribbonwrap"><div className="ribbon">{(lore.champions || []).map((c) => (
-          <div key={c.year} className="champ"><div className="champ__y">{String(c.year)}</div><div className="champ__n">{whoLabel(c.owner)}</div></div>))}</div></div>
+          <div key={c.year} className="champ"><div className="champ__y">{String(c.year)}</div><div className="champ__n"><span className="champ__full">{whoLabel(c.owner)}</span><span className="champ__nick">{ident.nick(c.owner)}</span></div></div>))}</div></div>
       </section>
+      </>)}
 
-      <section className="card half">
+      {panel('managers', <>
+      <div className="two two--managers">
+      <section className="card">
         <div className="card__head"><h2>The table</h2><span className="sub">Tap a name</span></div>
-        <Fold max={380}><div className="tablewrap"><table>
+        <div className="tablewrap"><table>
           <thead><tr><th>#</th><th>Manager</th><th className="r hide-m">Yrs</th><th className="r">Titles</th><th className="r">Avg finish</th><th className="r hide-m">Last place</th><th className="r hide-m">W–L</th></tr></thead>
           <tbody>{table.map((p, i) => {
             const c = p.career || {};
@@ -287,7 +299,7 @@ export default function LeagueView() {
             if (p.abstain) badges.push(<span key="sit" className="pill">H-Bomb sits</span>);
             if (p.firstYear) badges.push(<span key="first" className="pill">First year</span>);
             return (
-              <tr key={p.id} className={p.name === state.config.you ? 'me' : ''} onClick={() => select(p.name)}>
+              <tr key={p.id} className={p.name === you ? 'me' : ''} onClick={() => select(p.name)}>
                 <td className="rank">{String(i + 1)}</td>
                 <td><div className="who-cell"><span style={{ fontWeight: 600 }}>{whoLabel(p.name)}</span>{badges.length ? <span className="pills">{badges}</span> : null}</div></td>
                 <td className="r num hide-m">{String(c.seasons || 0)}</td>
@@ -297,10 +309,10 @@ export default function LeagueView() {
                 <td className="r num hide-m">{`${c.wins || 0}–${c.losses || 0}`}</td>
               </tr>);
           })}</tbody>
-        </table></div></Fold>
+        </table></div>
       </section>
 
-      <section className="card half">
+      <section className="card">
         <div className="card__head"><h2>Owner card</h2></div>
         <div className="card__body">
           <div className="picker">{ident.people.map((p) => (
@@ -308,17 +320,14 @@ export default function LeagueView() {
           <OwnerCard name={selected} />
         </div>
       </section>
+      </div>
+      <AllManagers lore={lore} departedTitles={h.departedTitles} you={you} />
+      </>)}
 
+      {panel('history', <>
       <SeasonElo selected={selected} onSelect={select} />
-
-      <Achievements groups={[
-        ...(history ? [{ title: 'Season so far', source: 'parlay-history.json', legs: historyLegs(history) }] : []),
-        { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
-      ]} />
-
       <RivalriesCard />
       <LeagueTape />
-      <AllManagers lore={lore} departedTitles={h.departedTitles} you={state.config.you} />
 
       <section className="card">
         <div className="card__head"><h2>Seasons that broke the scale</h2><span className="sub">PF vs that year’s average</span></div>
@@ -347,7 +356,21 @@ export default function LeagueView() {
         </section>
       </div>
 
+      </>)}
+
+      {panel('parlay', <>
+      {ready ? (
+        <Achievements groups={[
+          ...(history ? [{ title: 'Season so far', source: 'parlay-history.json', legs: historyLegs(history) }] : []),
+          { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
+        ]} />) : <section className="card skel" aria-busy="true"><div className="skel__bar" /><div className="skel__bar skel__bar--short" /></section>}
+      <div className="inline lpanel__links">
+        <Link className="btn btn--primary" href="/pick">Make your pick</Link>
+        <Link className="btn btn--secondary" href="/week">This week</Link>
+        <Link className="btn btn--secondary" href="/standings">Parlay standings</Link>
+      </div>
       <KpiIdeas />
+      </>)}
     </Page>
   );
 }

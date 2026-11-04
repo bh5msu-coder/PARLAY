@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { HOME_PATH, ROUTES, routeFor, useLeague } from './LeagueProvider';
+import { HOME_PATH, ROUTES, routeFor, useHydrated, useLeague } from './LeagueProvider';
 import { GearIcon, ParlayMenu } from './NavMenus';
 import { ident } from '../lib/ident.mjs';
 
@@ -63,12 +63,14 @@ function YouPicker() {
  *  Parlay menu, Commissioner, theme), then the page title over a gold rule with its subtitle. */
 export default function Topbar({ title, sub }) {
   const { state } = useLeague();
+  const hydrated = useHydrated();
+  const ready = hydrated && state.ready;
   const current = routeFor(usePathname() || HOME_PATH);
   const clock = state.nfl;
   const clockBit = clock
     ? `NFL Week ${clock.active}${clock.firstKick && Date.parse(clock.firstKick) <= Date.now() ? '' : clock.wednesday ? ' · Wednesday kickoff' : clock.firstKickLabel ? ' · ' + clock.firstKickLabel : ''}`
     : '';
-  const subText = state.bootError || (state.ready ? [sub || '', clockBit].filter(Boolean).join(' · ') : 'Loading…');
+  const subText = (hydrated && state.bootError) || (ready ? [sub || '', clockBit].filter(Boolean).join(' · ') : 'Loading…');
   const lore = ident.lore;
   const est = lore && lore.champions && lore.champions.length ? lore.champions[0].year : null;
   const eyebrow = [est ? 'Est. ' + est : '', lore ? `${lore.seasonCount} seasons` : ''].filter(Boolean).join(' · ');
@@ -80,7 +82,7 @@ export default function Topbar({ title, sub }) {
           <LockupMark />
           <span className="lockup__type">
             {eyebrow ? <span className="lockup__eyebrow">{eyebrow}</span> : null}
-            <span className="lockup__name">{state.config.leagueName || 'Our Holm League'}</span>
+            <span className="lockup__name">{(hydrated && state.config.leagueName) || 'Our Holm League'}</span>
           </span>
         </Link>
         <div className="tools">
@@ -92,14 +94,14 @@ export default function Topbar({ title, sub }) {
             <ParlayMenu current={current} className="more--down navlink" />
             <Link className="navlink navlink--icon" href={top('admin').path} aria-label="Commissioner" aria-current={current === 'admin' ? 'page' : undefined}><GearIcon /><span>Commissioner</span></Link>
           </nav>
-          {state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
-          {state.ready ? <YouPicker /> : null}
+          {hydrated && state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
+          {ready ? <YouPicker /> : null}
           <ThemeButton />
         </div>
       </div>
       {/* On League the wordmark already says it, so the page title is kept for screen readers only. */}
       <div className={'titles' + (current === 'league' ? ' titles--home' : '')}>
-        <h1 className={current === 'league' ? 'sr-only' : undefined}>{state.ready ? title : 'Our Holm League'}</h1>
+        <h1 className={current === 'league' ? 'sr-only' : undefined}>{ready ? title : 'Our Holm League'}</h1>
         <span className="sub">{subText}</span>
       </div>
     </header>
@@ -107,12 +109,14 @@ export default function Topbar({ title, sub }) {
 }
 
 /** Wraps a page: renders the Topbar and, once data is loaded, the page body. */
-export function Page({ title, sub, children }) {
+/** `early`: the page can paint before the store boots (League renders its lore from the server). */
+export function Page({ title, sub, children, early }) {
   const { state } = useLeague();
+  const hydrated = useHydrated();
   return (
     <>
       <Topbar title={title} sub={sub} />
-      <main id="view">{state.ready ? children : null}</main>
+      <main id="view">{(hydrated && state.ready) || early ? children : null}</main>
     </>
   );
 }

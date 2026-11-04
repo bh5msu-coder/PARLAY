@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import { createLeagueStore } from '../lib/league-store.mjs';
+import { ident } from '../lib/ident.mjs';
 
 const Ctx = createContext(null);
 let singleton = null;
@@ -26,7 +27,10 @@ export function routeFor(pathname) {
   return hit ? hit.route : 'league';
 }
 
-export function LeagueProvider({ children }) {
+/** `lore` comes from the root layout (server), so every page renders with the same league
+ *  history on the server and on the client, and boot skips fetching it. */
+export function LeagueProvider({ children, lore }) {
+  if (lore && !ident.lore) ident.load(lore);
   if (!singleton) singleton = createLeagueStore();
   const store = singleton;
   const pathname = usePathname() || HOME_PATH;
@@ -47,4 +51,18 @@ export function useLeague() {
   const store = useContext(Ctx);
   useSyncExternalStore(store.subscribe, store.getVersion, () => 0);
   return store;
+}
+
+const noopSubscribe = () => () => {};
+/** False during server render and hydration, true after. Lets pages gate store-driven content
+ *  (which the server never has) without hydration mismatches, even if boot finishes first. */
+export function useHydrated() {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
+/** The store is booted and this tree has hydrated. */
+export function useReady() {
+  const hydrated = useHydrated();
+  const store = useLeague();
+  return hydrated && store.state.ready;
 }

@@ -7,6 +7,9 @@ import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
+// Service role key is server-only (never NEXT_PUBLIC_). Used for the one privileged call: the 11/11
+// auto-commit. Without it, the publishable key is used, as before migration 004.
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const SEASON = 2026;
 
 const headers = {
@@ -155,7 +158,7 @@ async function maybeCommit(week, roster) {
     delete payload.week;
     const rpc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/holm_parlay_upsert_week_open`, {
       method: 'POST',
-      headers,
+      headers: SERVICE_KEY ? Object.assign({}, headers, { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY }) : headers,
       body: JSON.stringify({ p_season: SEASON, p_week: week, p_data: payload }),
     });
     committed = rpc.ok;
