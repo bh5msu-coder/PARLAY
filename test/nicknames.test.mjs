@@ -33,6 +33,18 @@ test("rejects a nickname that already points at another manager", () => {
   assert.match(errs.join('\n'), /already points at sachs/);
 });
 
+test("rejects a nickname that matches another manager's team name", () => {
+  const errs = validateNicknames(file({ brad: { nickname: 'Jarn Jarnson', why: 'Borrowing the 2025 runner-up team name.' } }), lore.people);
+  assert.match(errs.join('\n'), /already points at sachs/);
+  const own = validateNicknames(file({ brad: { nickname: 'Holm Field Advantage', why: 'His own team name since the 2023 title.' } }), lore.people);
+  assert.deepEqual(own, []);
+  const l = withNicknames(lore, file({ brad: { nickname: 'Jarn Jarnson', why: 'Would collide if it slipped through.' } }));
+  assert.ok(!l.people.find((x) => x.id === 'brad').aliases.includes('Jarn Jarnson'));
+  ident.load(l);
+  assert.equal(ident.canonical('Jarn Jarnson'), 'John Sachs');
+  ident.load(lore);
+});
+
 test('rejects two managers with the same nickname and blocked words', () => {
   const two = validateNicknames(file({ brad: { nickname: 'The Lock', why: 'Hit three straight legs.' }, sack: { nickname: 'the lock', why: 'Also hit three straight.' } }), lore.people);
   assert.match(two.join('\n'), /same as brad/);
