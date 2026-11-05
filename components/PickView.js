@@ -5,10 +5,12 @@ import { Page } from './Topbar';
 import RulesCard from './RulesCard';
 import { ident, whoLabel } from '../lib/ident.mjs';
 import { assembleTicket, slipText, validatePick } from '../lib/ticket.mjs';
-import { DEFAULT_CHAT_URL, formToLeg, openPickWeek, placedTicketPicks, STAT_OPTS, waBlock } from '../lib/pick-form.mjs';
+import { formToLeg, openPickWeek, placedTicketPicks, STAT_OPTS } from '../lib/pick-form.mjs';
 import { PICK_API, toast } from '../lib/clients.mjs';
 import { rule } from '../lib/rules.mjs';
 import LineBoard from './LineBoard';
+import { MyPick, PendingPick } from './MyPick';
+import { clearPending, keepPending, readPending, shouldKeep } from '../lib/pick-share.mjs';
 import NudgeButton from './NudgeButton';
 import { missingPickers } from '../lib/nudge.mjs';
 
@@ -59,6 +61,46 @@ export default function PickView() {
   const ticket = assembleTicket(submissions, roster);
   const setF = (key, val, rerender) => { state.pick.form[key] = val; if (rerender !== false) store.emit(); };
 
+  const storage = typeof window !== 'undefined' ? window.localStorage : null;
+  if (storage && state.pick.pendingWeek !== week) { state.pick.pending = readPending(storage, week); state.pick.pendingWeek = week; }
+
+  /** Send one pick. On a network or server failure the pick is kept on the phone for retry;
+   *  on a rule rejection (bad pick, locked game) it is not, since a retry would fail the same way. */
+  const sendPick = async (who, leg, source, quiet) => {
+    let r = null;
+    let data = {};
+    try {
+      r = await fetch(PICK_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ week, who, source, leg }) });
+      data = await r.json().catch(() => ({}));
+    } catch (e) { r = null; }
+    if (!r || !r.ok) {
+      const status = r ? r.status : 0;
+      if (storage && shouldKeep(status)) {
+        keepPending(storage, { week, who, leg, source });
+        state.pick.pending = readPending(storage, week);
+        if (!quiet) toast('No connection to the board. Your pick is kept on this phone and will retry');
+      } else {
+        if (storage) clearPending(storage);
+        state.pick.pending = null;
+        toast(data.error || 'Submit failed');
+        if (data.error && status === 412) state.pick.setupError = data.error;
+      }
+      store.emit();
+      return false;
+    }
+    if (storage) clearPending(storage);
+    state.pick.pending = null;
+    toast(data.committed ? 'You are in. All 11 saved, ticket built' : 'Pick saved to the board');
+    state.pick.rows = data.picks || state.pick.rows;
+    state.pick.ticket = data.ticket || null;
+    state.pick.committed = !!data.committed;
+    store.resetPickForm();
+    state.pick.form.who = who;
+    if (data.committed) await store.loadData();
+    store.emit();
+    return true;
+  };
+
   const submitPick = async (source) => {
     const who = ident.canonical(f.who);
     const leg = formToLeg(f);
@@ -66,25 +108,20 @@ export default function PickView() {
     if (errs.length) { toast(errs[0]); return; }
     try { localStorage.setItem('hp_who', who); } catch (e) { /* ignore */ }
     state.config.you = who;
-    const r = await fetch(PICK_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ week, who, source, leg }) });
-    const data = await r.json().catch(() => ({}));
-    if (!r.ok) { toast(data.error || 'Submit failed'); if (data.error) state.pick.setupError = data.error; store.emit(); return; }
-    toast(data.committed ? 'You are in — ticket saved. 11/11.' : 'Pick saved');
-    state.pick.rows = data.picks || state.pick.rows;
-    state.pick.ticket = data.ticket || null;
-    state.pick.committed = !!data.committed;
-    if (data.committed) await store.loadData();
-    store.emit();
+    await sendPick(who, leg, source, false);
   };
 
-  const shareToWhatsApp = () => {
-    const who = ident.canonical(f.who);
-    const leg = formToLeg(f);
-    if (!who || !leg.game[0]) { toast('Fill in who + game first'); return; }
-    const text = waBlock(week, who, leg);
-    const url = state.config.chat || DEFAULT_CHAT_URL;
-    window.open('https://wa.me/?text=' + encodeURIComponent(text + '\n\nDrop this in the Holm chat: ' + url), '_blank');
+  const retryPending = async (quiet) => {
+    const p = state.pick.pending;
+    if (!p) return;
+    if (quiet && typeof navigator !== 'undefined' && navigator.onLine === false) return;
+    await sendPick(p.who, p.leg, p.source || 'web', quiet);
   };
+
+  const you = ident.canonical(f.who) || ident.canonical(state.config.you || '');
+  const myRow = (state.pick.rows || []).map((p) => ({ ...p, who: ident.canonical(p.who) })).find((p) => p.who === you) || null;
+  const myGame = myRow && myRow.leg && state.pick.games.find((g) => (myRow.leg.game || []).includes(g.home) && (myRow.leg.game || []).includes(g.away));
+  const myLocked = !!(myGame && !myGame.pre);
 
   const importPaste = async () => {
     const text = state.pick.waText || '';
@@ -117,6 +154,10 @@ export default function PickView() {
           <p className="rules">{state.pick.setupError}</p>
           <p className="muted">Bradley: run supabase/picks.sql once in the Supabase SQL editor, then this board goes live for the group.</p>
         </div></section>) : null}
+
+      {placed ? null : <PendingPick pending={state.pick.pending} onRetry={retryPending}
+        onDiscard={() => { if (storage) clearPending(storage); state.pick.pending = null; store.emit(); }} />}
+      {placed ? null : <MyPick week={week} row={myRow} locked={myLocked} />}
 
       <section className="stats">
         <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{placed ? 'Ticket placed' : ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>
@@ -160,7 +201,7 @@ export default function PickView() {
 
       {placed ? null : (<>
       <section className="card">
-        <div className="card__head"><h2>Enter your bet</h2><span className="sub">Tap a line · change it any time before kickoff</span></div>
+        <div className="card__head"><h2>{myRow ? 'Change your bet' : 'Enter your bet'}</h2><span className="sub">Tap a line · change it any time before kickoff</span></div>
         <div className="card__body form">
           <div className="row">
             <div className="field field--who"><label>I am</label>
@@ -210,7 +251,6 @@ export default function PickView() {
           </div>
           <div className="inline">
             <button className="btn btn--primary" type="button" onClick={() => submitPick('web')}>Save my pick</button>
-            <button className="btn btn--secondary" type="button" onClick={shareToWhatsApp}>Share to WhatsApp</button>
           </div>
           </details>
         </div>

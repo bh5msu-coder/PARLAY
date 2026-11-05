@@ -658,3 +658,11 @@ details.manual>.row{margin-bottom:12px}
 .track__foot{display:flex;gap:8px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.track__pulse{animation:none}}
 @media (max-width:719px){.hero__ctas .hero__nudge{flex-basis:100%}}
+/* Your pick: what the board has stored, with a user-tapped share */
+.mypick{border-left:3px solid var(--brand)}
+.mypick__leg{font-size:1.35rem;margin:0 0 .25rem}
+.mypick__leg strong{font-weight:700}
+.mypick__stored{margin:.5rem 0 .75rem;color:var(--ink)}
+.mypick .inline .btn{flex:1 1 0}
+@media (min-width:720px){.mypick .inline .btn{flex:0 0 auto}}
+.pending p{margin:0 0 .6rem}.pending .inline{margin:0}
