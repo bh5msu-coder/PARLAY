@@ -89,6 +89,9 @@ function OwnerCard({ name }) {
   return (
     <div className="ocard">
       <div className="ohead"><h3 className="ohead__n">{whoLabel(p.name)}</h3><span className="pill">{titles}</span></div>
+      {p.title ? (
+        <p className="oread onick"><span className="label">Goes by</span>{' '}<b>{p.title}</b>{p.titleWhy ? <span className="muted">{' · ' + p.titleWhy}</span> : null}
+          {(p.pastTitles || []).length ? <span className="muted">{' · Formerly ' + p.pastTitles.slice(0, 3).join(', ')}</span> : null}</p>) : null}
       {bits.length ? <p className="oread">{bits.join(' ')}</p> : null}
       {c.seasons ? (
         <div className="stats" style={{ margin: '12px 0' }}>

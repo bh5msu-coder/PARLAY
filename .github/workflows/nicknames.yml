@@ -1,0 +1,113 @@
+# Claude refreshes the league nicknames twice a month and opens a pull request. Nothing ships
+# until Brad merges it. Claude may only edit data/nicknames.json; the job checks that, validates
+# the file, runs the tests and the build, then opens the PR.
+#
+# Needs one repo secret: ANTHROPIC_API_KEY (console.anthropic.com) or CLAUDE_CODE_OAUTH_TOKEN
+# (run `claude setup-token` with a Claude Pro/Max plan). Run it any time from Actions → nicknames.
+name: nicknames
+on:
+  schedule:
+    - cron: "0 14 1,15 * *" # 1st and 15th, 8 AM Central (9 AM in summer)
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+concurrency:
+  group: nicknames
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Skip if a nickname PR is already open
+        id: open
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh pr list --state open --search "head:nicknames/" --json number --jq length)
+          echo "count=$n" >> "$GITHUB_OUTPUT"
+          if [ "$n" != "0" ]; then echo "A nickname PR is already open; skipping."; fi
+
+      - name: Gather facts
+        if: steps.open.outputs.count == '0'
+        run: |
+          node scripts/nickname-facts.mjs > "$RUNNER_TEMP/nickname-facts.md"
+          cp data/nicknames.json "$RUNNER_TEMP/nicknames-before.json"
+          cat "$RUNNER_TEMP/nickname-facts.md"
+
+      - name: Claude writes new nicknames
+        if: steps.open.outputs.count == '0'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          claude_args: |
+            --max-turns 8
+            --allowedTools "Read,Edit,Write"
+          prompt: |
+            You write nicknames for Our Holm League, a 12-person fantasy football league of longtime friends.
+            Read ${{ runner.temp }}/nickname-facts.md (the only facts you may use) and data/nicknames.json.
+            Then edit data/nicknames.json and nothing else.
+
+            Rules:
+            - Give every manager in the facts file (use the id after "##") a nickname. Keep a current
+              nickname if it still fits; replace it if the facts have moved on (new streak, a bust,
+              a hot run, a title chase). Aim to change about half of them each run.
+            - Ground each one in a real fact from the file: a streak, a busted leg, a title, last-place
+              finishes, a team name, a bet type they love or miss. Never invent results.
+            - Funny, ribbing, family-friendly. No profanity, slurs, or jokes about looks, family,
+              health, jobs or money trouble. 3–28 characters; letters, numbers, spaces and ' . & ! ? - only.
+            - Do not reuse anyone else's name, short handle or alias, and no two managers may share a nickname.
+            - "why" is one short sentence (10–160 characters) citing the fact.
+            - When a nickname changes, put the old one at the front of "past" (keep at most 6) and set
+              "since" to today's date. Set top-level "updated" to today's date (YYYY-MM-DD).
+            - Keep this exact shape:
+              {"version":1,"updated":"YYYY-MM-DD","people":{"<id>":{"nickname":"","why":"","since":"YYYY-MM-DD","past":[]}}}
+
+      - name: Only the nickname file changed
+        if: steps.open.outputs.count == '0'
+        run: |
+          changed=$(git status --porcelain | awk '{print $2}')
+          echo "$changed"
+          if [ -z "$changed" ]; then echo "Claude made no changes."; exit 0; fi
+          if [ "$changed" != "data/nicknames.json" ]; then echo "Claude touched files other than data/nicknames.json"; exit 1; fi
+
+      - name: Validate, test and build
+        if: steps.open.outputs.count == '0'
+        run: |
+          node scripts/check-nicknames.mjs
+          npm test
+          npm run build
+
+      - name: Open the pull request
+        if: steps.open.outputs.count == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet; then echo "Nothing to propose."; exit 0; fi
+          day=$(date -u +%Y-%m-%d)
+          branch="nicknames/$day"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add data/nicknames.json
+          git commit -m "Nicknames: refresh for $day"
+          git push origin "$branch"
+          {
+            echo "Claude's nickname refresh for $day. Merge to put them on the site (Owner card on the League page); close it to skip this round."
+            echo
+            node scripts/check-nicknames.mjs --summary "$RUNNER_TEMP/nicknames-before.json"
+            echo
+            echo "Checked: only data/nicknames.json changed, the nickname rules pass, tests and the build pass."
+          } > "$RUNNER_TEMP/body.md"
+          gh pr create --base main --head "$branch" --title "Nicknames: refresh for $day" --body-file "$RUNNER_TEMP/body.md"

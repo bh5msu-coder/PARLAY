@@ -204,3 +204,12 @@ Wins and losses live only in `data/bets.json`. That file is the only place a wee
 Side bets and singles are never attributed to anyone.
 
 **Season Elo change:** each pairwise update is now divided by `n − 1`, so field size doesn't inflate swings. The table also labels gap years, and managers with no season finishes yet (DJ) get a note.
+
+## Nicknames (Claude, twice a month)
+
+`.github/workflows/nicknames.yml` runs on the 1st and 15th at 8 AM Central (or from Actions → nicknames → Run workflow).
+`scripts/nickname-facts.mjs` gathers facts from `league-lore.json` and `parlay-history.json`; Claude Code edits only
+`data/nicknames.json`; `scripts/check-nicknames.mjs` enforces the rules (real manager ids, 3–28 characters, family-friendly,
+no clash with anyone else's name or alias); tests and the build run; then the job opens a `nicknames/<date>` PR. Nothing
+ships until it is merged. The nickname shows on the League page Owner card and joins the roster lookup; the short handle
+(`nick`) the tables use never changes. Needs the repo secret `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`.
