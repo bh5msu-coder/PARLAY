@@ -18,6 +18,36 @@ const headers = {
   'Content-Type': 'application/json',
   Prefer: 'return=representation',
 };
+// Writes (picks, import log, auto-commit) go out with the server-only key when Vercel has it, so the
+// tables can be closed to direct browser writes (migration 005). Reads stay on the public key.
+const writeHeaders = SERVICE_KEY
+  ? Object.assign({}, headers, { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY })
+  : headers;
+
+/** POST with the server key; if Supabase rejects that key (wrong project, revoked), fall back to the
+ *  public key so picks keep saving exactly as before. extra = per-call headers such as Prefer. */
+let serviceRejected = false;
+async function writeFetch(url, extra, body) {
+  const send = (base) => fetch(url, { method: 'POST', headers: Object.assign({}, base, extra || {}), body });
+  if (SERVICE_KEY && !serviceRejected) {
+    const r = await send(writeHeaders);
+    if (r.status !== 401 && r.status !== 403) return r;
+    serviceRejected = true; // the service role is never refused for permissions, so this is a bad key
+  }
+  return send(headers);
+}
+
+/** Does the server key work? Reads a table the public key cannot see (holm_parlay_auth_fails), so
+ *  'ok' means a real service key for this project. Never returns the key itself. */
+async function serviceKeyHealth() {
+  if (!SERVICE_KEY) return 'missing';
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/holm_parlay_auth_fails?select=ip&limit=1`, { headers: writeHeaders });
+    if (r.ok) return 'ok';
+    if (r.status === 401 || r.status === 403) { serviceRejected = true; return 'rejected'; }
+    return 'error ' + r.status;
+  } catch (e) { return 'unreachable'; }
+}
 
 function allowBrowser(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -61,6 +91,11 @@ export default async function handler(req, res) {
   }
   const week = Number(req.query.week || req.body && req.body.week);
   try {
+    if (req.method === 'GET' && req.query.health != null) {
+      res.setHeader('Cache-Control', 'no-store');
+      json(res, 200, { serviceKey: await serviceKeyHealth(), writesWith: SERVICE_KEY && !serviceRejected ? 'server key' : 'public key' });
+      return;
+    }
     if (req.method === 'GET') {
       const picks = await loadPicks(week || 0);
       if (!picks.ok) {
@@ -112,11 +147,9 @@ export default async function handler(req, res) {
 
 async function upsertOne(week, who, leg, source, roster) {
   who = canonicalWho(who, roster);
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/holm_parlay_picks?on_conflict=season,week,who`, {
-    method: 'POST',
-    headers: Object.assign({}, headers, { Prefer: 'resolution=merge-duplicates,return=representation' }),
-    body: JSON.stringify({ season: SEASON, week, who, source, leg, updated_at: new Date().toISOString() }),
-  });
+  const r = await writeFetch(`${SUPABASE_URL}/rest/v1/holm_parlay_picks?on_conflict=season,week,who`,
+    { Prefer: 'resolution=merge-duplicates,return=representation' },
+    JSON.stringify({ season: SEASON, week, who, source, leg, updated_at: new Date().toISOString() }));
   const text = await r.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
@@ -156,11 +189,8 @@ async function maybeCommit(week, roster) {
       submissions: Object.fromEntries((picks.data || []).map((p) => [canonicalWho(p.who, roster), { source: p.source, at: p.updated_at }])),
     });
     delete payload.week;
-    const rpc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/holm_parlay_upsert_week_open`, {
-      method: 'POST',
-      headers: SERVICE_KEY ? Object.assign({}, headers, { apikey: SERVICE_KEY, Authorization: 'Bearer ' + SERVICE_KEY }) : headers,
-      body: JSON.stringify({ p_season: SEASON, p_week: week, p_data: payload }),
-    });
+    const rpc = await writeFetch(`${SUPABASE_URL}/rest/v1/rpc/holm_parlay_upsert_week_open`, null,
+      JSON.stringify({ p_season: SEASON, p_week: week, p_data: payload }));
     committed = rpc.ok;
     if (!rpc.ok) {
       const t = await rpc.text();
@@ -246,11 +276,8 @@ async function importPicks(week, body, roster) {
 /** Best-effort audit log. Returns 'saved', 'table-missing' (run supabase/migrations/002) or an error. */
 async function logImports(rows) {
   if (!rows.length) return 'nothing to log';
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/holm_import_records?on_conflict=kind,raw_hash,season,week`, {
-    method: 'POST',
-    headers: Object.assign({}, headers, { Prefer: 'resolution=ignore-duplicates,return=minimal' }),
-    body: JSON.stringify(rows),
-  });
+  const r = await writeFetch(`${SUPABASE_URL}/rest/v1/holm_import_records?on_conflict=kind,raw_hash,season,week`,
+    { Prefer: 'resolution=ignore-duplicates,return=minimal' }, JSON.stringify(rows));
   if (r.ok) return 'saved';
   if (r.status === 404) return 'table-missing';
   return 'error ' + r.status;
