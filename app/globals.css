@@ -217,6 +217,7 @@ textarea{min-height:120px;font-family:var(--font-mono);font-size:13px}
 .ohead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px}
 .ohead__n{margin:0;font:700 28px/32px var(--font-display);text-transform:uppercase}
 .oread{margin:0;color:var(--ink-muted);font-size:14px;line-height:20px;border-left:3px solid var(--brand);padding-left:12px}
+.onick{margin-bottom:8px;overflow-wrap:anywhere}
 .finrow{display:flex;gap:5px;flex-wrap:wrap}
 .finpair{display:flex;gap:8px;align-items:flex-start}
 .finpair+.finpair{margin-top:8px}

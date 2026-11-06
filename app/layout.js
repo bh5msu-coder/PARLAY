@@ -3,7 +3,11 @@ import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
-import lore from '../league-lore.json';
+import rawLore from '../league-lore.json';
+import nicknames from '../data/nicknames.json';
+import { withNicknames } from '../lib/nicknames.mjs';
+
+const lore = withNicknames(rawLore, nicknames);
 
 const SITE = process.env.VERCEL_PROJECT_PRODUCTION_URL ? 'https://' + process.env.VERCEL_PROJECT_PRODUCTION_URL : 'https://holm-parlay.vercel.app';
 
