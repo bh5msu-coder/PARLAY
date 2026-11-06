@@ -1,4 +1,5 @@
-# Claude refreshes the league nicknames twice a month and opens a pull request. Nothing ships
+# Claude refreshes the league nicknames only when Brad asks (Actions → nicknames → Run workflow)
+# and opens a pull request. Managers with a commissioner nickname are skipped. Nothing ships
 # until Brad merges it. Claude may only edit data/nicknames.json; the job checks that, validates
 # the file, runs the tests and the build, then opens the PR.
 #
@@ -6,9 +7,7 @@
 # (run `claude setup-token` with a Claude Pro/Max plan). Run it any time from Actions → nicknames.
 name: nicknames
 on:
-  schedule:
-    - cron: "0 14 1,15 * *" # 1st and 15th, 8 AM Central (9 AM in summer)
-  workflow_dispatch:
+  workflow_dispatch: # on request only; no schedule, so nicknames never rotate on their own
 permissions:
   contents: write
   pull-requests: write
@@ -60,7 +59,9 @@ jobs:
             Then edit data/nicknames.json and nothing else.
 
             Rules:
-            - Give every manager in the facts file (use the id after "##") a nickname. Keep a current
+            - Skip any manager marked "Commissioner nickname (locked)": leave their entry in
+              data/nicknames.json exactly as it is, or leave them out if they have none.
+            - Give every other manager in the facts file (use the id after "##") a nickname. Keep a current
               nickname if it still fits; replace it if the facts have moved on (new streak, a bust,
               a hot run, a title chase). Aim to change about half of them each run.
             - Ground each one in a real fact from the file: a streak, a busted leg, a title, last-place

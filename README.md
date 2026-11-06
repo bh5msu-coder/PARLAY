@@ -205,9 +205,12 @@ Side bets and singles are never attributed to anyone.
 
 **Season Elo change:** each pairwise update is now divided by `n − 1`, so field size doesn't inflate swings. The table also labels gap years, and managers with no season finishes yet (DJ) get a note.
 
-## Nicknames (Claude, twice a month)
+## Nicknames (commissioner first; Claude on request)
 
-`.github/workflows/nicknames.yml` runs on the 1st and 15th at 8 AM Central (or from Actions → nicknames → Run workflow).
+Commish → Nicknames saves to league settings; those show everywhere and never rotate. Claude's job
+runs only from Actions → nicknames → Run workflow and skips anyone with a commissioner nickname.
+
+`.github/workflows/nicknames.yml` runs only from Actions → nicknames → Run workflow.
 `scripts/nickname-facts.mjs` gathers facts from `league-lore.json` and `parlay-history.json`; Claude Code edits only
 `data/nicknames.json`; `scripts/check-nicknames.mjs` enforces the rules (real manager ids, 3–28 characters, family-friendly,
 no clash with anyone else's name or alias); tests and the build run; then the job opens a `nicknames/<date>` PR. Nothing

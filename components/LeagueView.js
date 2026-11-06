@@ -89,8 +89,8 @@ function OwnerCard({ name }) {
   return (
     <div className="ocard">
       <div className="ohead"><h3 className="ohead__n">{whoLabel(p.name)}</h3><span className="pill">{titles}</span></div>
-      {p.title ? (
-        <p className="oread onick"><span className="label">Goes by</span>{' '}<b>{p.title}</b>{p.titleWhy ? <span className="muted">{' · ' + p.titleWhy}</span> : null}
+      {(ident.override(p.name) || p.title) ? (
+        <p className="oread onick"><span className="label">Goes by</span>{' '}<b>{ident.override(p.name) || p.title}</b>{ident.override(p.name) ? <span className="muted">{' · Commish’s call'}</span> : p.titleWhy ? <span className="muted">{' · ' + p.titleWhy}</span> : null}
           {(p.pastTitles || []).length ? <span className="muted">{' · Formerly ' + p.pastTitles.slice(0, 3).join(', ')}</span> : null}</p>) : null}
       {bits.length ? <p className="oread">{bits.join(' ')}</p> : null}
       {c.seasons ? (

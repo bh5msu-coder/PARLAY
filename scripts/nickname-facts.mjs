@@ -10,6 +10,14 @@ const lore = read('league-lore.json');
 const history = read('parlay-history.json');
 const nicknames = read('data/nicknames.json');
 ident.load(lore);
+// Commissioner nicknames (league settings, public read). Claude must leave these managers alone.
+let commish = {};
+try {
+  const r = await fetch('https://ivucfpduvaiyxjcqbsqa.supabase.co/rest/v1/holm_parlay_weeks?season=eq.2026&week=eq.0&select=data',
+    { headers: { apikey: 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D' } });
+  const rows = r.ok ? await r.json() : [];
+  commish = (rows[0] && rows[0].data && rows[0].data.nicknames) || {};
+} catch (e) { commish = {}; }
 const stats = calcParlayStats(history, (n) => n);
 const byName = Object.fromEntries(stats.rows.map((r) => [ident.canonical(r.name), r]));
 
@@ -21,6 +29,7 @@ for (const p of lore.people) {
   const r = byName[p.name];
   const cur = nicknames.people[p.id];
   out.push(`## ${p.id} — ${p.name}`);
+  if (commish[p.name]) out.push(`- Commissioner nickname (locked): "${commish[p.name]}". Do not change this manager.`);
   out.push(`- Short handle (do not change): ${p.nick}. Existing aliases: ${(p.aliases || []).join(', ') || 'none'}.`);
   if (p.abstain) out.push('- Sits out the weekly parlay.');
   if (p.firstYear) out.push('- First season in the league.');
