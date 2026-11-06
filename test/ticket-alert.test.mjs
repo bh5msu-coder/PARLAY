@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shouldAlert, ticketMessage, alertPayload, sendTicketAlert } from '../lib/ticket-alert.mjs';
+import { alertSequenceId, shouldAlert, ticketMessage, alertPayload, sendTicketAlert } from '../lib/ticket-alert.mjs';
 
 const ticket = {
   complete: true, count: 2, need: 2, groups: {},
@@ -50,4 +50,13 @@ test('send posts JSON to ntfy with an optional token', async () => {
   assert.equal(seen.url, 'https://n.test');
   assert.equal(seen.init.headers.Authorization, 'Bearer tk');
   assert.equal(JSON.parse(seen.init.body).topic, 'abc');
+});
+
+test('same week always gets the same sequence id, so racing sends collapse into one alert', () => {
+  const a = alertPayload('t', ticket, 9);
+  const b = alertPayload('t', ticket, 9);
+  assert.equal(a.sequence_id, 'holm-ticket-2026-w9');
+  assert.equal(a.sequence_id, b.sequence_id);
+  assert.notEqual(alertPayload('t', ticket, 10).sequence_id, a.sequence_id);
+  assert.equal(alertSequenceId(9), 'holm-ticket-2026-w9');
 });
