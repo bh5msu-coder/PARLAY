@@ -213,3 +213,12 @@ Side bets and singles are never attributed to anyone.
 no clash with anyone else's name or alias); tests and the build run; then the job opens a `nicknames/<date>` PR. Nothing
 ships until it is merged. The nickname shows on the League page Owner card and joins the roster lookup; the short handle
 (`nick`) the tables use never changes. Needs the repo secret `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`.
+
+## "Ticket's full" push
+
+When the save that completes the 11-pick ticket lands (web pick or WhatsApp import), `/api/pick` sends one push
+through [ntfy](https://ntfy.sh) (`lib/ticket-alert.mjs`). Tapping it opens WhatsApp with the whole ticket written
+out; pick the group and press send. Edits after the ticket is full don't ping again. The send gives up after 4
+seconds and never fails a save. Set `NTFY_TOPIC` (a long random name, treat it like a password) in Vercel →
+holm-parlay → Settings → Environment Variables, then subscribe to the same topic in the ntfy app.
+Optional: `NTFY_SERVER`, `NTFY_TOKEN` for a private ntfy server.
