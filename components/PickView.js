@@ -157,7 +157,7 @@ export default function PickView() {
 
       {placed ? null : <PendingPick pending={state.pick.pending} onRetry={retryPending}
         onDiscard={() => { if (storage) clearPending(storage); state.pick.pending = null; store.emit(); }} />}
-      {placed ? null : <MyPick week={week} row={myRow} locked={myLocked} />}
+      {placed ? null : <MyPick week={week} row={myRow} locked={myLocked} games={state.pick.games || []} />}
 
       <section className="stats">
         <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{placed ? 'Ticket placed' : ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>

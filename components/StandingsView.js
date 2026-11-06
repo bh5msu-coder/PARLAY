@@ -11,6 +11,7 @@ import { DiscrepancyCard, SelectionCharts, TicketSection } from './Dashboard';
 import { weeklyLegs, weeklyTickets, ticketTotals } from '../lib/stats.mjs';
 import { cachedHistory, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
+import SeasonMoney from './SeasonMoney';
 
 function ParlayExtras({ weeks, graded }) {
   const { types, fav, dog, killList } = parlayExtras(weeks, graded);
@@ -126,6 +127,7 @@ export default function StandingsView() {
 
       <ParlayExtras weeks={weeks} graded={graded} />
 
+      <SeasonMoney store={store} />
       <div id="data-checks"><DiscrepancyCard result={disc} /></div>
     </Page>
   );

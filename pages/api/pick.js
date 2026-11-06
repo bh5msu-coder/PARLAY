@@ -83,6 +83,18 @@ async function loadPicks(week) {
   return { ok: true, data: r.data || [] };
 }
 
+/** Pick history (migration 005) for the Week page's Pick changes card. Only the server key can read it;
+ *  any other answer means the card falls back to save times from the current picks. */
+async function loadHistory(week) {
+  if (!SERVICE_KEY || serviceRejected) return { available: false, reason: SERVICE_KEY ? 'server key rejected' : 'server key missing' };
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/holm_parlay_pick_history?season=eq.${SEASON}&week=eq.${week}&select=who,source,leg,op,saved_at&order=saved_at.asc&limit=500`, { headers: writeHeaders });
+    if (r.status === 401 || r.status === 403) { serviceRejected = true; return { available: false, reason: 'server key rejected' }; }
+    if (!r.ok) return { available: false, reason: r.status === 404 ? 'history table not created yet' : 'history read failed ' + r.status };
+    return { available: true, rows: await r.json() };
+  } catch (e) { return { available: false, reason: 'history unreachable' }; }
+}
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     allowBrowser(res);
@@ -94,6 +106,11 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && req.query.health != null) {
       res.setHeader('Cache-Control', 'no-store');
       json(res, 200, { serviceKey: await serviceKeyHealth(), writesWith: SERVICE_KEY && !serviceRejected ? 'server key' : 'public key' });
+      return;
+    }
+    if (req.method === 'GET' && req.query.history != null) {
+      res.setHeader('Cache-Control', 'no-store');
+      json(res, 200, Object.assign({ week: week || 0 }, await loadHistory(week || 0)));
       return;
     }
     if (req.method === 'GET') {
