@@ -9,6 +9,7 @@ import { SEASON, toast } from '../lib/clients.mjs';
 import { matchSlip, parseSlip, slipEvidence } from '../lib/import/slip.mjs';
 import { whoLabel } from '../lib/ident.mjs';
 import { recapFacts } from '../lib/recap-facts.mjs';
+import { mergeSettings, mergeNicknames, changedNicknames, NICK_MAX } from '../lib/league-config.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -92,6 +93,56 @@ function LegEditor({ leg, idx, roster, onRemove, onLayout }) {
   );
 }
 
+/** Commissioner nicknames. Saved in league settings; they show everywhere (tables, chips, the Owner
+ *  card) and win over Claude's. Nothing rotates them: they change only when saved here. */
+function NicknameEditor({ store }) {
+  const { state } = store;
+  const saved = state.config.nicknames || {};
+  const people = ident.people.filter((p) => p && p.name);
+  const [draft, setDraft] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const d = draft || Object.fromEntries(people.map((p) => [p.name, saved[p.name] || '']));
+  const changed = changedNicknames(saved, d);
+  const n = Object.keys(changed).length;
+  const save = async () => {
+    if (!n) { toast('No nickname changes'); return; }
+    setBusy(true);
+    try {
+      const fresh = await store.sb.config();
+      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeNicknames(fresh, changed) });
+      await store.loadData();
+      const after = (store.state.config.nicknames) || {};
+      const missed = Object.entries(changed).filter(([k, v]) => (after[k] || '') !== v);
+      toast(missed.length ? `Saved, but ${missed.length} did not stick. Try again.` : `${n} nickname${n === 1 ? '' : 's'} saved`);
+      setDraft(null); store.emit();
+    } catch (e) { toast('Save failed: ' + e.message); }
+    setBusy(false);
+  };
+  return (
+    <section className="card">
+      <div className="card__head"><h2>Nicknames</h2><span className="sub">Yours stay put until you change them here. They beat Claude’s.</span></div>
+      <div className="card__body form">
+        <ul className="nicks">
+          {people.map((p) => (
+            <li key={p.id || p.name}>
+              <label htmlFor={'nick-' + (p.id || p.name)} className="nicks__who">{p.name}</label>
+              <input id={'nick-' + (p.id || p.name)} type="text" maxLength={NICK_MAX} value={d[p.name] || ''}
+                placeholder={p.title || p.nick || ''} aria-label={`Nickname for ${p.name}`}
+                onChange={(e) => setDraft(Object.assign({}, d, { [p.name]: e.target.value }))} />
+              {saved[p.name] ? <span className="muted small">saved</span> : <span className="muted small">{p.title ? 'Claude’s for now' : 'none'}</span>}
+            </li>
+          ))}
+        </ul>
+        <div className="inline">
+          <button className="btn btn--primary btn--sm" type="button" onClick={save} disabled={busy || !n}>{busy ? 'Saving…' : n ? `Save ${n} change${n === 1 ? '' : 's'}` : 'Saved'}</button>
+          {n ? <button className="btn btn--ghost btn--sm" type="button" onClick={() => setDraft(null)}>Undo edits</button> : null}
+        </div>
+        <p className="muted small">Clear a box and save to go back to Claude’s nickname. Claude only writes new ones when you ask for a refresh.</p>
+      </div>
+    </section>
+  );
+}
+
 function LeagueSettings({ store }) {
   const { state } = store;
   const cfgRef = useRef(null);
@@ -106,9 +157,9 @@ function LeagueSettings({ store }) {
       out.abstain = (out.abstainText != null ? out.abstainText : (out.abstain || []).join(', ')).split(',').map((s) => ident.canonical(s.trim()) || s.trim()).filter(Boolean);
       out.roster = uniq((out.roster || []).map((s) => ident.canonical(s)));
       out.you = ident.canonical(out.you) || out.you;
-      if (state.config.nicknames) out.nicknames = state.config.nicknames; // saved from the Claude recap card
-      delete out.abstainText;
-      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: out });
+      // Re-read the saved row and change only these fields, so nicknames saved elsewhere stay.
+      const fresh = await store.sb.config();
+      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeSettings(fresh, out) });
       toast('Settings saved'); await store.loadData(); cfgRef.current = null; store.emit();
     } catch (e) { toast('Save failed: ' + e.message); }
   };
@@ -336,6 +387,7 @@ export default function CommissionerView() {
       {!state.admin.pass ? <Unlock store={store} /> : (
         <>
           <WeekEditor store={store} />
+          <NicknameEditor store={store} />
           <ClaudeRecap store={store} />
           <LeagueSettings store={store} />
         </>)}
@@ -370,11 +422,10 @@ function ClaudeRecap({ store }) {
     const picked = nicks.filter((n) => n.ok && n.nick.trim());
     if (!picked.length) { toast('Tick the nicknames to keep'); return; }
     try {
-      const nicknames = Object.assign({}, state.config.nicknames || {});
-      for (const n of picked) nicknames[n.who] = n.nick.trim();
-      const out = Object.assign({}, state.config, { nicknames });
-      delete out.abstainText;
-      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: out });
+      const edits = {};
+      for (const n of picked) edits[n.who] = n.nick.trim();
+      const fresh = await store.sb.config();
+      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeNicknames(fresh, edits) });
       toast(`${picked.length} nickname${picked.length === 1 ? '' : 's'} saved`); await store.loadData(); store.emit();
     } catch (e) { toast('Save failed: ' + e.message); }
   };
