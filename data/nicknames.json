@@ -1,5 +1,78 @@
 {
   "version": 1,
-  "updated": null,
-  "people": {}
+  "updated": "2026-11-06",
+  "people": {
+    "brad": {
+      "nickname": "Holm Field Disadvantage",
+      "why": "Three straight years as Holm Field Advantage, yet 4 of his 2026 legs have busted a ticket.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "sachs": {
+      "nickname": "From 12th to 26-2",
+      "why": "Finished 12th in 2023 and 2024, then went 26-2 in 2025 and is 5-1 on parlay legs this year.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "hoffman": {
+      "nickname": "Mr. Back-to-Back",
+      "why": "Won the 2024 and 2025 titles and is riding a 4-leg win streak in the 2026 parlay.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "sack": {
+      "nickname": "Props Not Included",
+      "why": "Player props are 0 for 3 this year while his moneylines are a perfect 2 for 2.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "mckeon": {
+      "nickname": "The Under Lord",
+      "why": "Lives on game totals, 3 for 5, and cashed the Browns/Steelers under 39.5 in Week 8.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "curtis": {
+      "nickname": "No RaGarretts No Glory",
+      "why": "Ran No RaGarretts for two seasons and has 3 legs that busted a ticket in 2026.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "chas": {
+      "nickname": "Hot Dog Down Three",
+      "why": "hot dog Downs the Hall-way finished 12th in 2025 and he is on a 3-leg losing streak.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "mcfadden": {
+      "nickname": "Anytime TD Sometimes",
+      "why": "Derrick Henry anytime TD missed in Week 6; Justin Jefferson anytime TD hit in Week 8.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "heller": {
+      "nickname": "Three-Ring Waddle",
+      "why": "Three titles (2011, 2021, 2022) and a Waddle team name three seasons running.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "jace": {
+      "nickname": "The Over Achiever",
+      "why": "Totals are 4 for 5, with three straight overs cashing in Weeks 6 through 8.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "meltser": {
+      "nickname": "Beast Mode Buffering",
+      "why": "BEAST MODE three seasons running, but his parlay legs are on a 4-game losing streak.",
+      "since": "2026-11-06",
+      "past": []
+    },
+    "dj": {
+      "nickname": "Skipping Record",
+      "why": "First season in the league and 1-5 on parlay legs with a 4-leg losing streak.",
+      "since": "2026-11-06",
+      "past": []
+    }
+  }
 }
