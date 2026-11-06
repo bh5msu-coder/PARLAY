@@ -8,6 +8,7 @@ import { blankLeg, newWeek, nextUnusedWeek, STAT_OPTS } from '../lib/pick-form.m
 import { SEASON, toast } from '../lib/clients.mjs';
 import { matchSlip, parseSlip, slipEvidence } from '../lib/import/slip.mjs';
 import { whoLabel } from '../lib/ident.mjs';
+import { recapFacts } from '../lib/recap-facts.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -105,6 +106,7 @@ function LeagueSettings({ store }) {
       out.abstain = (out.abstainText != null ? out.abstainText : (out.abstain || []).join(', ')).split(',').map((s) => ident.canonical(s.trim()) || s.trim()).filter(Boolean);
       out.roster = uniq((out.roster || []).map((s) => ident.canonical(s)));
       out.you = ident.canonical(out.you) || out.you;
+      if (state.config.nicknames) out.nicknames = state.config.nicknames; // saved from the Claude recap card
       delete out.abstainText;
       await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: out });
       toast('Settings saved'); await store.loadData(); cfgRef.current = null; store.emit();
@@ -334,8 +336,78 @@ export default function CommissionerView() {
       {!state.admin.pass ? <Unlock store={store} /> : (
         <>
           <WeekEditor store={store} />
+          <ClaudeRecap store={store} />
           <LeagueSettings store={store} />
         </>)}
     </Page>
+  );
+}
+
+/** Claude recap: draft a weekly recap and fresh nicknames from recorded results. Nothing is posted;
+ *  the commissioner edits the text, shares it by hand, and approves any nickname before it saves. */
+function ClaudeRecap({ store }) {
+  const { state } = store;
+  const settled = state.weeks.filter((w) => (w.legs || []).length).map((w) => w.week).sort((a, b) => b - a);
+  const [week, setWeek] = useState(settled[0] || 0);
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [nicks, setNicks] = useState([]);
+  const [err, setErr] = useState('');
+  const generate = async () => {
+    setBusy(true); setErr('');
+    try {
+      const facts = recapFacts(state.weeks, state.graded, Number(week), (n) => whoLabel(n));
+      const r = await fetch('/api/recap', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pass: state.admin.pass, facts }) });
+      const d = await r.json();
+      if (!r.ok) { setErr(d.error || 'Recap failed'); if (facts) setDraft(facts.templateRecap); return; }
+      setDraft(d.recap || '');
+      setNicks((d.nicknames || []).map((n) => Object.assign({ ok: false }, n, { who: ident.canonical(n.who) })));
+    } catch (e) { setErr('Recap failed: ' + e.message); } finally { setBusy(false); }
+  };
+  const share = () => window.open('https://wa.me/?text=' + encodeURIComponent(draft), '_blank');
+  const copy = async () => { try { await navigator.clipboard.writeText(draft); toast('Recap copied'); } catch (e) { toast('Copy failed'); } };
+  const saveNicks = async () => {
+    const picked = nicks.filter((n) => n.ok && n.nick.trim());
+    if (!picked.length) { toast('Tick the nicknames to keep'); return; }
+    try {
+      const nicknames = Object.assign({}, state.config.nicknames || {});
+      for (const n of picked) nicknames[n.who] = n.nick.trim();
+      const out = Object.assign({}, state.config, { nicknames });
+      delete out.abstainText;
+      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: out });
+      toast(`${picked.length} nickname${picked.length === 1 ? '' : 's'} saved`); await store.loadData(); store.emit();
+    } catch (e) { toast('Save failed: ' + e.message); }
+  };
+  return (
+    <section className="card">
+      <div className="card__head"><h2>Claude recap</h2><span className="sub">Draft from recorded results · you review before anything is shared</span></div>
+      <div className="card__body form">
+        <div className="inline">
+          <select aria-label="Week" value={week} onChange={(e) => setWeek(Number(e.target.value))}>{settled.map((n) => <option key={n} value={n}>{'Week ' + n}</option>)}</select>
+          <button className="btn btn--primary" type="button" onClick={generate} disabled={busy || !week}>{busy ? 'Writing…' : 'Write recap'}</button>
+        </div>
+        {err ? <p className="rules rules--warn">{err + (draft ? ' Showing the built-in recap instead.' : '')}</p> : null}
+        {draft ? <>
+          <textarea rows={7} value={draft} onChange={(e) => setDraft(e.target.value)} aria-label="Recap draft" />
+          <div className="inline">
+            <button className="btn btn--secondary btn--sm" type="button" onClick={share}>Share to WhatsApp</button>
+            <button className="btn btn--ghost btn--sm" type="button" onClick={copy}>Copy</button>
+          </div>
+        </> : null}
+        {nicks.length ? <>
+          <h3 className="label">Nickname ideas</h3>
+          <ul className="nicks">
+            {nicks.map((n, i) => (
+              <li key={n.who + i}>
+                <label><input type="checkbox" checked={n.ok} onChange={(e) => setNicks(nicks.map((x, j) => (j === i ? Object.assign({}, x, { ok: e.target.checked }) : x)))} /> {whoLabel(n.who)} →</label>
+                <input value={n.nick} maxLength={24} aria-label={`New nickname for ${n.who}`} onChange={(e) => setNicks(nicks.map((x, j) => (j === i ? Object.assign({}, x, { nick: e.target.value }) : x)))} />
+                <span className="muted small">{n.why}</span>
+              </li>
+            ))}
+          </ul>
+          <div><button className="btn btn--secondary btn--sm" type="button" onClick={saveNicks}>Save ticked nicknames</button></div>
+        </> : null}
+      </div>
+    </section>
   );
 }

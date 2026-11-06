@@ -16,6 +16,13 @@ import { buildRecap } from '../lib/recap.mjs';
 import { weeklyLegs, weeklyTickets } from '../lib/stats.mjs';
 import { toast } from '../lib/clients.mjs';
 import { DEFAULT_CHAT_URL } from '../lib/pick-form.mjs';
+import SweatBar from './SweatBar';
+import PickChanges from './PickChanges';
+import LineAlerts from './LineAlerts';
+import TicketImageButton from './TicketImageButton';
+import { sweatOn } from '../lib/sweat.mjs';
+
+const TONE = { won: 'win', lost: 'loss', live: 'live', push: 'push' };
 
 /** Recap of a settled week (busted or cashed). Open or unrecorded weeks get no recap. */
 function RecapCard({ week, state }) {
@@ -290,14 +297,35 @@ export default function WeekView() {
         ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
         : null}
 
-      {pending ? null : <LegDots graded={graded} />}
+      {pending ? null : sweatOn(graded) ? <SweatBar graded={graded} /> : <LegDots graded={graded} />}
 
       <ThisWeekCard store={store} week={week} pending={pending} s={s} payers={payers} need={participants} hold={hold} />
+
+      {pending && savedRows && savedRows.length ? (
+        <div className="inline">
+          <TicketImageButton filename={`holm-week-${week.week}-picks.png`} label="Share picks image" opts={{
+            eyebrow: 'Our Holm League · picks in', title: `Week ${week.week} picks`,
+            status: `${savedRows.length} of ${participants} in`, statusTone: 'pending',
+            legs: savedRows.map((r) => ({ who: whoLabel(r.who), label: (r.leg && r.leg.label) || '', odds: r.leg && r.leg.odds, tone: 'pending' })),
+            footer: 'Picks: holm-parlay.vercel.app/pick',
+          }} />
+        </div>) : null}
+      {pending && savedRows ? <LineAlerts rows={savedRows} games={state.pick.games || []} /> : null}
+      {savedRows ? <PickChanges week={week.week} rows={savedRows} /> : null}
 
       {pending ? null : (
         <section className="card" id="legs">
           <div className="card__head"><h2>Legs</h2><span className="sub">{gr && gr.error ? 'Live scores unavailable' : 'Live during games'}</span></div>
           <ol className="legs">{rows}</ol>
+          <div className="card__body inline">
+            <TicketImageButton filename={`holm-week-${week.week}-ticket.png`} opts={{
+              eyebrow: 'Our Holm League', title: `Week ${week.week} parlay`,
+              status: s ? (s.state === 'busted' ? 'BUSTED' : s.state === 'cashed' ? 'CASHED' : `${s.won} of ${s.total} hit`) : '',
+              statusTone: s ? (s.state === 'busted' ? 'loss' : s.state === 'cashed' ? 'win' : s.live ? 'live' : 'pending') : 'pending',
+              legs: graded.map((g) => ({ who: whoLabel(g.leg.who), label: g.leg.label, odds: g.leg.odds, tone: TONE[g.state] || 'pending' })),
+              footer: `${week.odds ? fmtOdds(week.odds) + " parlay · " : ""}holm-parlay.vercel.app/week`,
+            }} />
+          </div>
           {week.book ? <div className="notice"><span>{`Book: ${week.book}`}</span></div> : null}
         </section>)}
 

@@ -3,11 +3,13 @@ import { useEffect, useRef } from 'react';
 import { whoLabel } from '../lib/ident.mjs';
 import { savedAtLabel, savedPickText, waShareHref } from '../lib/pick-share.mjs';
 import { toast } from '../lib/clients.mjs';
+import { lineMove } from '../lib/line-move.mjs';
 
 /** Your saved pick, read back from the board (so it shows what is actually stored), with a
  *  Post to WhatsApp button. WhatsApp opens with the text filled in; the user picks the chat and sends. */
-export function MyPick({ week, row, locked }) {
+export function MyPick({ week, row, locked, games }) {
   if (!row || !row.leg) return null;
+  const move = locked ? null : lineMove(row.leg, games);
   const text = savedPickText(week, row);
   const game = (row.leg.game || []).filter(Boolean).join(' at ');
   const copy = async () => { try { await navigator.clipboard.writeText(text); toast('Pick copied. Paste it in the Holm chat'); } catch (e) { toast('Copy failed'); } };
@@ -17,6 +19,7 @@ export function MyPick({ week, row, locked }) {
       <div className="card__body">
         <p className="mypick__leg"><strong>{row.leg.label}</strong>{row.leg.odds ? <span className="muted">{' ' + (row.leg.odds > 0 ? '+' : '') + row.leg.odds}</span> : null}</p>
         <p className="muted">{[game, savedAtLabel(row.updated_at), row.source === 'whatsapp' ? 'from WhatsApp' : 'on the website'].filter(Boolean).join(' · ')}</p>
+        {move && move.status === 'moved' ? <p className="rules rules--warn mypick__move">{move.text + (move.book ? ` on ${move.book}` : '') + '. Re-save it if you want the new number.'}</p> : null}
         <p className="mypick__stored">{locked ? 'Stored on the league board. This game has kicked off, so the pick is locked.' : 'Stored on the league board. Change it any time before kickoff.'}</p>
         <div className="inline">
           <a className="btn btn--primary" href={waShareHref(text)} target="_blank" rel="noopener">Post to WhatsApp</a>

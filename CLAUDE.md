@@ -25,8 +25,9 @@ npx next start -p 3125   # check a build locally (pkill -f next-server first)
 
 1. A branch and one PR per round of changes. Tests and the build pass before the PR is opened.
 2. Check the page at 375px and 1440px: no sideways scroll, nothing cut off.
-3. Never merge until Brad says "merge it". Then `gh pr merge <n> --merge` and poll `/api/health` until it reports the
-   merge commit.
+3. Auto-merge (Brad, 2026-11-05): once tests and the build pass, open the PR with `gh pr merge <n> --auto --merge` so it
+   merges itself when CI (`verify`) and the Vercel preview are green. No need to wait for "merge it". Then poll
+   `/api/health` until it reports the merge commit. Database migrations and secret changes still need Brad's go-ahead.
 
 ## League rules the code must keep
 
