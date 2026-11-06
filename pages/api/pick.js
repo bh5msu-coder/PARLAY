@@ -4,6 +4,7 @@ import { dedupePicks } from '../../lib/import/dedupe.mjs';
 import { rawHash } from '../../lib/import/hash.mjs';
 import { rule } from '../../lib/rules.mjs';
 import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
+import { shouldAlert, sendTicketAlert, alertClaimRow, claimWon } from '../../lib/ticket-alert.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
@@ -155,7 +156,7 @@ export default async function handler(req, res) {
 
     const result = await upsertOne(wk, who, Object.assign({}, leg, { source: { kind: source === 'whatsapp' ? 'whatsapp' : 'web', savedAt: new Date().toISOString() } }), source, roster);
     if (!result.ok) { json(res, result.status, result); return; }
-    const committed = await maybeCommit(wk, roster);
+    const committed = await maybeCommit(wk, roster, current.ok ? current.data : null);
     json(res, 200, { row: result.row, lockChecked: lock.checked, ...committed });
   } catch (e) {
     json(res, 500, { error: e.message || 'pick failed' });
@@ -183,10 +184,16 @@ async function upsertOne(week, who, leg, source, roster) {
   return { ok: true, row: Array.isArray(data) ? data[0] : data };
 }
 
-async function maybeCommit(week, roster) {
+async function maybeCommit(week, roster, beforePicks) {
   const picks = await loadPicks(week);
   if (!picks.ok) return { picks: [], ticket: null };
   const ticket = assembleTicket(picks.data, roster);
+  // The save that fills the ticket pings Brad's phone once (see lib/ticket-alert.mjs).
+  const before = Array.isArray(beforePicks) ? assembleTicket(beforePicks, roster) : null;
+  let alert = null;
+  if (before && shouldAlert(before, ticket) && process.env.NTFY_TOPIC) {
+    alert = (await claimTicketAlert(week)) ? await sendTicketAlert(ticket, week) : { sent: false, skipped: 'already sent for this week' };
+  }
   let committed = false;
   if (ticket.complete) {
     const existing = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data`);
@@ -214,7 +221,7 @@ async function maybeCommit(week, roster) {
       ticket.commitError = t;
     }
   }
-  return { picks: picks.data, ticket, committed };
+  return { picks: picks.data, ticket, committed, ...(alert ? { alert } : {}) };
 }
 
 /** Import a WhatsApp paste: parse → validate → dedupe against saved picks → save accepted → log.
@@ -273,7 +280,7 @@ async function importPicks(week, body, roster) {
   parsed.errors.forEach((e) => rec('error', { who: e.who, line: e.line, text: e.text, leg: e.leg, source: { lineNo: e.line, rawHash: rawHash(['error', week, e.line, e.text].join('|')) } }, e.reason));
   const importLog = await logImports(log);
 
-  const committed = saved.length ? await maybeCommit(week, roster) : { picks: (await loadPicks(week)).data || [], ticket: null, committed: false };
+  const committed = saved.length ? await maybeCommit(week, roster, existing.ok ? existing.data : null) : { picks: (await loadPicks(week)).data || [], ticket: null, committed: false };
   return {
     body: {
       policy,
@@ -288,6 +295,19 @@ async function importPicks(week, body, roster) {
       ...committed,
     },
   };
+}
+
+/** One push per week: whichever request inserts the claim row sends it (see alertClaimRow). */
+async function claimTicketAlert(week) {
+  try {
+    const r = await writeFetch(`${SUPABASE_URL}/rest/v1/holm_import_records?on_conflict=kind,raw_hash,season,week`,
+      { Prefer: 'resolution=ignore-duplicates,return=representation' }, JSON.stringify(alertClaimRow(week, SEASON)));
+    let rows = null;
+    try { rows = await r.json(); } catch (e) { rows = null; }
+    return claimWon(r.status, rows);
+  } catch (e) {
+    return true;
+  }
 }
 
 /** Best-effort audit log. Returns 'saved', 'table-missing' (run supabase/migrations/002) or an error. */
