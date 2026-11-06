@@ -4,7 +4,7 @@ import { dedupePicks } from '../../lib/import/dedupe.mjs';
 import { rawHash } from '../../lib/import/hash.mjs';
 import { rule } from '../../lib/rules.mjs';
 import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
-import { shouldAlert, sendTicketAlert } from '../../lib/ticket-alert.mjs';
+import { shouldAlert, sendTicketAlert, alertClaimRow, claimWon } from '../../lib/ticket-alert.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
@@ -190,7 +190,10 @@ async function maybeCommit(week, roster, beforePicks) {
   const ticket = assembleTicket(picks.data, roster);
   // The save that fills the ticket pings Brad's phone once (see lib/ticket-alert.mjs).
   const before = Array.isArray(beforePicks) ? assembleTicket(beforePicks, roster) : null;
-  const alert = before && shouldAlert(before, ticket) ? await sendTicketAlert(ticket, week) : null;
+  let alert = null;
+  if (before && shouldAlert(before, ticket) && process.env.NTFY_TOPIC) {
+    alert = (await claimTicketAlert(week)) ? await sendTicketAlert(ticket, week) : { sent: false, skipped: 'already sent for this week' };
+  }
   let committed = false;
   if (ticket.complete) {
     const existing = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data`);
@@ -292,6 +295,19 @@ async function importPicks(week, body, roster) {
       ...committed,
     },
   };
+}
+
+/** One push per week: whichever request inserts the claim row sends it (see alertClaimRow). */
+async function claimTicketAlert(week) {
+  try {
+    const r = await writeFetch(`${SUPABASE_URL}/rest/v1/holm_import_records?on_conflict=kind,raw_hash,season,week`,
+      { Prefer: 'resolution=ignore-duplicates,return=representation' }, JSON.stringify(alertClaimRow(week, SEASON)));
+    let rows = null;
+    try { rows = await r.json(); } catch (e) { rows = null; }
+    return claimWon(r.status, rows);
+  } catch (e) {
+    return true;
+  }
 }
 
 /** Best-effort audit log. Returns 'saved', 'table-missing' (run supabase/migrations/002) or an error. */

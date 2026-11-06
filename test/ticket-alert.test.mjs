@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { alertSequenceId, shouldAlert, ticketMessage, alertPayload, sendTicketAlert } from '../lib/ticket-alert.mjs';
+import { alertClaimRow, claimWon, alertSequenceId, shouldAlert, ticketMessage, alertPayload, sendTicketAlert } from '../lib/ticket-alert.mjs';
 
 const ticket = {
   complete: true, count: 2, need: 2, groups: {},
@@ -59,4 +59,14 @@ test('same week always gets the same sequence id, so racing sends collapse into 
   assert.equal(a.sequence_id, b.sequence_id);
   assert.notEqual(alertPayload('t', ticket, 10).sequence_id, a.sequence_id);
   assert.equal(alertSequenceId(9), 'holm-ticket-2026-w9');
+});
+
+test('claim row is the same for racing requests, so the unique key lets only one send', () => {
+  assert.deepEqual(alertClaimRow(9), alertClaimRow(9));
+  assert.equal(alertClaimRow(9).raw_hash, 'ticket-full-alert');
+  assert.notEqual(alertClaimRow(10).week, alertClaimRow(9).week);
+  assert.equal(claimWon(201, [{ id: 1 }]), true, 'won the insert');
+  assert.equal(claimWon(201, []), false, 'someone else already claimed it');
+  assert.equal(claimWon(404, null), true, 'table missing: fail open');
+  assert.equal(claimWon(401, { message: 'rls' }), true, 'no permission: fail open');
 });
