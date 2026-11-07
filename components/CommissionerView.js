@@ -278,14 +278,10 @@ function WeekEditor({ store }) {
       }
       const week = Number(payload.week);
       delete payload.week;
-      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_data: payload });
-      // Keep the database copy (holm_tickets + holm_legs) in step. A failure here is reported, not fatal.
-      let mirrored = true;
-      try {
-        const rows = weekToRows(SEASON, Object.assign({}, payload, { week }));
-        await store.sb.rpc('holm_week_put_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_ticket: rows.ticket, p_legs: rows.legs });
-      } catch (e) { mirrored = false; }
-      toast((lock ? `Week ${week} locked` : `Week ${week} saved`) + (mirrored ? '' : ' (database not updated; see Weeks database)'));
+      // Weeks live in holm_tickets + holm_legs (the old weeks table is frozen for weeks above 0).
+      const rows = weekToRows(SEASON, Object.assign({}, payload, { week }));
+      await store.sb.rpc('holm_week_put_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_ticket: rows.ticket, p_legs: rows.legs });
+      toast(lock ? `Week ${week} locked` : `Week ${week} saved`);
       state.shadow = null;
       state.admin.editing = null; state.selectedWeek = week;
       await store.loadData(); await store.refreshScores(true); store.emit();
@@ -294,8 +290,7 @@ function WeekEditor({ store }) {
   const remove = async () => {
     if (!confirm(`Delete Week ${wk.week}?`)) return;
     try {
-      await store.sb.rpc('holm_parlay_delete_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) });
-      try { await store.sb.rpc('holm_week_delete_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) }); } catch (e) { toast('Database not updated: ' + e.message); }
+      await store.sb.rpc('holm_week_delete_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) });
       state.shadow = null;
       state.admin.editing = null; await store.loadData(); store.emit();
     } catch (e) { toast(e.message); }
@@ -533,7 +528,7 @@ function DatabaseCopy({ store }) {
                   <ul className="small">{sh.diffs.map((d) => <li key={d.week}>{describe(d)}</li>)}</ul>
                 </>)}
         <p className="muted small">{onDb
-          ? 'The site reads weeks from the database. If it cannot be read, pages fall back to the old sources (data/bets.json and the picks database). You can switch this phone to the old sources to compare.'
+          ? 'The site reads weeks from the database. If it cannot be read, pages fall back to the old sources (data/bets.json and the old weeks table), which stopped taking week saves on Nov 7, so weeks saved since then differ there. You can switch this phone to the old sources to compare.'
           : 'This phone reads the old sources (data/bets.json and the picks database). Everyone else reads the database.'}</p>
         {state.weeksSourceError ? <p className="rules rules--error">{'Database read failed, showing the old sources: ' + state.weeksSourceError}</p> : null}
         <div className="inline">

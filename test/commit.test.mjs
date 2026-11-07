@@ -113,7 +113,7 @@ test('the API refuses pick saves and imports for a week whose ticket is placed',
     const u = String(url);
     calls.push({ u, method: (opts && opts.method) || 'GET' });
     const ok = (d) => ({ ok: true, status: 200, async json() { return d; }, async text() { return JSON.stringify(d); } });
-    if (u.includes('holm_parlay_weeks') && u.includes('week=eq.9')) return ok([{ data: { ticket: { state: 'placed', evidence: 'DK slip' }, legs: [] }, updated_at: ROW_AT }]);
+    if (u.includes('holm_tickets') && u.includes('week=eq.9')) return ok([{ season: 2026, week: 9, state: 'placed', evidence: 'DK slip', updated_at: ROW_AT }]);
     return ok([]);
   };
   const kc = { type: 'ml', team: 'KC', label: 'Chiefs ML', game: ['KC', 'LV'] };
