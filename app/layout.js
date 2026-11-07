@@ -7,6 +7,7 @@ import BookingHost from '../components/BookingHost';
 import rawLore from '../league-lore.json';
 import nicknames from '../data/nicknames.json';
 import { withNicknames } from '../lib/nicknames.mjs';
+import { THEME_COLORS, THEME_SCRIPT } from '../lib/theme.mjs';
 
 const lore = withNicknames(rawLore, nicknames);
 
@@ -28,15 +29,15 @@ export const viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#070d14',
+  // No-JS fallback; the theme script replaces these with the color of the chosen theme.
+  themeColor: [{ media: '(prefers-color-scheme: light)', color: THEME_COLORS.light }, { media: '(prefers-color-scheme: dark)', color: THEME_COLORS.dark }],
 };
 
 const sans = Barlow({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--f-sans', display: 'swap' });
 const display = Barlow_Condensed({ subsets: ['latin'], weight: ['600', '700'], variable: '--f-display', display: 'swap' });
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--f-mono', display: 'swap' });
 
-// Apply the saved theme before first paint so light mode does not flash dark.
-const THEME_SCRIPT = "try{document.documentElement.dataset.theme=localStorage.getItem('hp_theme')||'dark'}catch(e){document.documentElement.dataset.theme='dark'}";
+// The saved theme (THEME_SCRIPT, lib/theme.mjs) is applied before first paint so light mode does not flash dark.
 
 export default function RootLayout({ children }) {
   return (

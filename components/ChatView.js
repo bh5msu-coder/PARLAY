@@ -45,7 +45,7 @@ export default function ChatView() {
     }
   });
 
-  if (!state.ready) return <Page title="Chat" />;
+  if (!state.ready) return <Page title="Chat" skeleton="chat" />;
   const sub = 'Receipts from real tape · share to WhatsApp';
   if (!ident.lore) return <Page title="Chat" sub={sub}><div className="card"><div className="empty">League history did not load. Refresh and try again.</div></div></Page>;
 

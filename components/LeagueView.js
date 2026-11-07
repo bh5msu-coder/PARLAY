@@ -171,7 +171,7 @@ function SeasonElo({ selected, onSelect }) {
       <div className="card__head"><h2>Season by season</h2><span className="sub">Finish and Elo · start 1500</span></div>
       <div className="card__body elo-body">
         <div className="elo-body__chart">
-          <div className="picker">{elo.now.map((r) => (
+          <div className="picker hide-m">{elo.now.map((r) => (
             <button key={r.id} className={'chip' + (r.name === selected ? ' on' : '')} type="button" onClick={() => onSelect(r.name)}>{r.nick}</button>))}</div>
           <SeasonChart elo={elo} selected={selected} onSelect={onSelect} />
         </div>
