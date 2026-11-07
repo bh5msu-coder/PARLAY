@@ -10,6 +10,7 @@ import { matchSlip, parseSlip, slipEvidence } from '../lib/import/slip.mjs';
 import { whoLabel } from '../lib/ident.mjs';
 import { recapFacts } from '../lib/recap-facts.mjs';
 import { mergeSettings, mergeNicknames, changedNicknames, NICK_MAX } from '../lib/league-config.mjs';
+import { withoutMergedPayments } from '../lib/payments.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -230,6 +231,9 @@ function WeekEditor({ store }) {
       delete payload.__rev;
       payload.payer = ident.canonical(payload.payer);
       payload.placedBy = ident.canonical(payload.placedBy);
+      // Payments shown on the week come from holm_payments; saving them into the week would double them.
+      if (Array.isArray(payload.contributions)) payload.contributions = withoutMergedPayments(payload.contributions);
+      delete payload.source;
       payload.overrides = {};
       for (const l of payload.legs || []) {
         l.who = ident.canonical(l.who);
