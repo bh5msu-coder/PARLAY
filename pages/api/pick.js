@@ -1,4 +1,5 @@
-import { assembleTicket, validatePick, PARLAY_11, canonicalWho } from '../../lib/ticket.mjs';
+import { assembleTicket, validatePick, PARLAY_11, canonicalWho, nicknameAliases } from '../../lib/ticket.mjs';
+import titles from '../../data/nicknames.json' with { type: 'json' };
 import { parseWhatsAppExport } from '../../lib/import/whatsapp.mjs';
 import { dedupePicks } from '../../lib/import/dedupe.mjs';
 import { rawHash } from '../../lib/import/hash.mjs';
@@ -71,12 +72,11 @@ async function sbGet(path) {
   return { ok: r.ok, status: r.status, data };
 }
 
-async function loadRoster() {
+/** League settings (week 0) and the nicknames that work as names: the commissioner's and Claude's. */
+async function loadSettings() {
   const r = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.0&select=data`);
-  const cfg = r.data && r.data[0] && r.data[0].data;
-  const roster = (cfg && cfg.roster) || [];
-  const abstain = (cfg && cfg.abstain) || ['Kyle Heller'];
-  return { roster, abstain, cfg };
+  const cfg = (r.data && r.data[0] && r.data[0].data) || {};
+  return { cfg, aliases: nicknameAliases(cfg.nicknames, titles) };
 }
 
 /** The stored week row (data and when it was last written), or null. */
@@ -152,16 +152,16 @@ export default async function handler(req, res) {
 
     const roster = PARLAY_11;
 
-    const stored = await loadWeekRow(wk);
+    const [stored, { cfg, aliases }] = await Promise.all([loadWeekRow(wk), loadSettings()]);
     if (stored && frozenWeek(stored.data)) { json(res, 409, { error: frozenMessage(wk, stored.data), placed: true }); return; }
 
     if (body.import) {
-      const result = await importPicks(wk, body, roster);
+      const result = await importPicks(wk, body, roster, cfg, aliases);
       json(res, result.status || 200, result.body);
       return;
     }
 
-    const who = canonicalWho(String(body.who || '').trim(), roster);
+    const who = canonicalWho(String(body.who || '').trim(), roster, aliases);
     const source = body.source || 'web';
     const leg = body.leg || {};
     const errors = validatePick(leg, who, roster.length ? roster : null);
@@ -231,19 +231,17 @@ async function maybeCommit(week, roster, beforePicks) {
 
 /** Import a WhatsApp paste: parse → validate → dedupe against saved picks → save accepted → log.
  *  Body: { week, import: true, text } (raw paste, preferred) or { week, import: true, picks: [...] }. */
-async function importPicks(week, body, roster) {
-  const cfgRow = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.0&select=data`);
-  const cfg = (cfgRow.data && cfgRow.data[0] && cfgRow.data[0].data) || {};
+async function importPicks(week, body, roster, cfg, aliases) {
   const policy = rule(cfg, 'importConflict').value;
 
   let parsed;
   if (typeof body.text === 'string') {
-    parsed = parseWhatsAppExport(body.text, { roster, week, season: SEASON });
+    parsed = parseWhatsAppExport(body.text, { roster, week, season: SEASON, aliases });
   } else if (Array.isArray(body.picks)) {
     // legacy clients send pre-parsed picks: validate each one, and give it a source
     parsed = { picks: [], errors: [], skipped: [] };
     body.picks.forEach((p, i) => {
-      const who = canonicalWho(p && p.who, roster);
+      const who = canonicalWho(p && p.who, roster, aliases);
       const leg = Object.assign({}, (p && p.leg) || {});
       const errs = validatePick(leg, who, roster);
       if (errs.length) { parsed.errors.push({ line: i + 1, text: (leg.label || ''), reason: errs.join('; '), who }); return; }

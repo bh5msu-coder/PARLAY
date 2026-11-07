@@ -144,21 +144,46 @@ function NicknameEditor({ store }) {
   );
 }
 
+/** Lines naming a manager -> full names; anything else comes back in `bad`. */
+function managersIn(lines) {
+  const names = [];
+  const bad = [];
+  for (const raw of lines) {
+    const t = String(raw || '').trim();
+    if (!t) continue;
+    const p = ident.person(t);
+    if (p) names.push(p.name); else bad.push(t);
+  }
+  return { names: uniq(names), bad };
+}
+
 function LeagueSettings({ store }) {
   const { state } = store;
   const cfgRef = useRef(null);
   if (!cfgRef.current) {
     cfgRef.current = clone(state.config);
     cfgRef.current.abstainText = (cfgRef.current.abstain || []).join(', ');
+    cfgRef.current.rosterText = (cfgRef.current.roster || ident.parlayRoster()).join('\n');
+    cfgRef.current.edited = {};
   }
   const cfg = cfgRef.current;
+  const problems = (state.config.rosterProblems || []).concat(state.config.abstainProblems || []);
   const save = async () => {
     try {
-      const out = clone(cfg);
-      out.abstain = (out.abstainText != null ? out.abstainText : (out.abstain || []).join(', ')).split(',').map((s) => ident.canonical(s.trim()) || s.trim()).filter(Boolean);
-      out.roster = uniq((out.roster || []).map((s) => ident.canonical(s)));
-      out.you = ident.canonical(out.you) || out.you;
-      // Re-read the saved row and change only these fields, so nicknames saved elsewhere stay.
+      // Only the fields edited here are sent; the row is re-read and every other key kept (mergeSettings).
+      const out = { leagueName: cfg.leagueName, chat: cfg.chat };
+      const bad = [];
+      if (cfg.edited.roster) {
+        const r = managersIn(cfg.rosterText.split('\n'));
+        bad.push(...r.bad);
+        out.roster = r.names;
+      }
+      if (cfg.edited.abstain) {
+        const a = managersIn(cfg.abstainText.split(','));
+        bad.push(...a.bad);
+        out.abstain = a.names;
+      }
+      if (bad.length) { toast(`Not a manager: ${bad.join(', ')}. Use full names; nicknames go in the Nicknames card.`); return; }
       const fresh = await store.sb.config();
       await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeSettings(fresh, out) });
       toast('Settings saved'); await store.loadData(); cfgRef.current = null; store.emit();
@@ -168,14 +193,16 @@ function LeagueSettings({ store }) {
     <section className="card">
       <div className="card__head"><h2>League settings</h2></div>
       <div className="card__body form">
+        {problems.length ? (
+          <p className="rules rules--warn">{`Saved settings have lines that are not a manager, so the site ignores them: ${problems.join(' · ')}. Edit the roster below to clear them, and put nicknames in the Nicknames card.`}</p>
+        ) : null}
         <div className="row">
           <div className="field"><label>League name</label><Bound obj={cfg} k="leagueName" /></div>
           <div className="field"><label>Chat link</label><Bound obj={cfg} k="chat" placeholder="https://chat.whatsapp.com/…" /></div>
-          <div className="field"><label>Abstains (comma separated)</label><Bound obj={cfg} k="abstainText" /></div>
-          <div className="field"><label>Highlight as “you”</label><Bound obj={cfg} k="you" /></div>
+          <div className="field"><label>Abstains (comma separated)</label><Bound obj={cfg} k="abstainText" onChange={() => { cfg.edited.abstain = true; }} /></div>
         </div>
-        <div className="field"><label>Roster, one per line (full names; nicknames like Hoss / Jarn still map)</label>
-          <textarea defaultValue={(cfg.roster || ident.parlayRoster()).join('\n')} onInput={(e) => { cfg.roster = e.target.value.split('\n').map((s) => ident.canonical(s.trim()) || s.trim()).filter(Boolean); }} />
+        <div className="field"><label>Roster, one per line (full names; Hoss, Jarn and other nicknames still map)</label>
+          <textarea defaultValue={cfg.rosterText} onInput={(e) => { cfg.rosterText = e.target.value; cfg.edited.roster = true; }} />
         </div>
         <div><button className="btn btn--primary" type="button" onClick={save}>Save settings</button></div>
       </div>
@@ -455,7 +482,7 @@ function ClaudeRecap({ store }) {
             {nicks.map((n, i) => (
               <li key={n.who + i}>
                 <label><input type="checkbox" checked={n.ok} onChange={(e) => setNicks(nicks.map((x, j) => (j === i ? Object.assign({}, x, { ok: e.target.checked }) : x)))} /> {whoLabel(n.who)} →</label>
-                <input value={n.nick} maxLength={24} aria-label={`New nickname for ${n.who}`} onChange={(e) => setNicks(nicks.map((x, j) => (j === i ? Object.assign({}, x, { nick: e.target.value }) : x)))} />
+                <input value={n.nick} maxLength={NICK_MAX} aria-label={`New nickname for ${n.who}`} onChange={(e) => setNicks(nicks.map((x, j) => (j === i ? Object.assign({}, x, { nick: e.target.value }) : x)))} />
                 <span className="muted small">{n.why}</span>
               </li>
             ))}
