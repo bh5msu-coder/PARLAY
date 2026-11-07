@@ -1,6 +1,7 @@
 import './globals.css';
 import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 import BookingHost from '../components/BookingHost';
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
           <BookingHost />
         </LeagueProvider>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
