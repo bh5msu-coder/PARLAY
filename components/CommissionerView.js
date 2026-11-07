@@ -11,6 +11,7 @@ import { whoLabel } from '../lib/ident.mjs';
 import { recapFacts } from '../lib/recap-facts.mjs';
 import { mergeSettings, mergeNicknames, changedNicknames, NICK_MAX } from '../lib/league-config.mjs';
 import { withoutMergedPayments } from '../lib/payments.mjs';
+import { weekToRows } from '../lib/week-rows.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -278,7 +279,14 @@ function WeekEditor({ store }) {
       const week = Number(payload.week);
       delete payload.week;
       await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_data: payload });
-      toast(lock ? `Week ${week} locked` : `Week ${week} saved`);
+      // Keep the database copy (holm_tickets + holm_legs) in step. A failure here is reported, not fatal.
+      let mirrored = true;
+      try {
+        const rows = weekToRows(SEASON, Object.assign({}, payload, { week }));
+        await store.sb.rpc('holm_week_put_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_ticket: rows.ticket, p_legs: rows.legs });
+      } catch (e) { mirrored = false; }
+      toast((lock ? `Week ${week} locked` : `Week ${week} saved`) + (mirrored ? '' : ' (database copy not updated; see Database copy)'));
+      state.shadow = null;
       state.admin.editing = null; state.selectedWeek = week;
       await store.loadData(); await store.refreshScores(true); store.emit();
     } catch (e) { toast('Save failed: ' + e.message); }
@@ -287,6 +295,8 @@ function WeekEditor({ store }) {
     if (!confirm(`Delete Week ${wk.week}?`)) return;
     try {
       await store.sb.rpc('holm_parlay_delete_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) });
+      try { await store.sb.rpc('holm_week_delete_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) }); } catch (e) { toast('Database copy not updated: ' + e.message); }
+      state.shadow = null;
       state.admin.editing = null; await store.loadData(); store.emit();
     } catch (e) { toast(e.message); }
   };
