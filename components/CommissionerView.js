@@ -1,5 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
 import { ident } from '../lib/ident.mjs';
@@ -419,6 +419,7 @@ export default function CommissionerView() {
         <>
           <WeekEditor store={store} />
           <NicknameEditor store={store} />
+          <DatabaseCopy store={store} />
           <ClaudeRecap store={store} />
           <LeagueSettings store={store} />
         </>)}
@@ -489,6 +490,46 @@ function ClaudeRecap({ store }) {
           </ul>
           <div><button className="btn btn--secondary btn--sm" type="button" onClick={saveNicks}>Save ticked nicknames</button></div>
         </> : null}
+      </div>
+    </section>
+  );
+}
+
+/** The move to Supabase (OUTPUTS/holm-parlay/week-data-audit.md): the weeks are copied into holm_tickets +
+ *  holm_legs. This card compares that copy with what the site shows, and lets this phone read from it. */
+function DatabaseCopy({ store }) {
+  const { state } = store;
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (!state.shadow) store.checkShadow(); }, [store, state.shadow]);
+  const sh = state.shadow;
+  const onDb = state.weeksSource === 'db';
+  const toggle = async () => {
+    setBusy(true);
+    try { await store.setWeeksSource(onDb ? 'site' : 'db'); toast(onDb ? 'This phone reads the usual weeks again' : 'This phone now reads weeks from the database'); } finally { setBusy(false); }
+  };
+  const describe = (d) => d.kind === 'missing-db' ? `Week ${d.week}: not in the database copy`
+    : d.kind === 'missing-site' ? `Week ${d.week}: only in the database copy`
+      : `Week ${d.week}: ${[d.fields.length ? d.fields.join(', ') : '', d.legs.length ? 'legs for ' + d.legs.join(', ') : ''].filter(Boolean).join('; ')} differ`;
+  return (
+    <section className="card">
+      <div className="card__head"><h2>Database copy</h2><span className="sub">Weeks in Supabase, checked against what the site shows</span></div>
+      <div className="card__body form">
+        {!sh ? <p className="muted">Checking…</p>
+          : sh.error ? <p className="rules rules--warn">{'Could not read the database copy: ' + sh.error}</p>
+            : !sh.diffs.length ? <p className="rules rules--info">{`All ${state.siteWeeksRaw.length} weeks match the database copy.`}</p>
+              : (
+                <>
+                  <p className="rules rules--warn">{`${sh.diffs.length} week${sh.diffs.length === 1 ? '' : 's'} differ from the database copy:`}</p>
+                  <ul className="small">{sh.diffs.map((d) => <li key={d.week}>{describe(d)}</li>)}</ul>
+                </>)}
+        <p className="muted small">{onDb
+          ? 'This phone reads weeks from the database. Everyone else still sees the usual weeks.'
+          : 'Everyone, this phone included, reads the usual weeks (data/bets.json and the picks database). Switch this phone to the database copy to check every page with it.'}</p>
+        {state.weeksSourceError ? <p className="rules rules--error">{'Database read failed, showing the usual weeks: ' + state.weeksSourceError}</p> : null}
+        <div className="inline">
+          <button className="btn btn--secondary btn--sm" type="button" disabled={busy} onClick={toggle}>{onDb ? 'Read the usual weeks' : 'Read from the database on this phone'}</button>
+          <button className="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => store.checkShadow()}>Check again</button>
+        </div>
       </div>
     </section>
   );
