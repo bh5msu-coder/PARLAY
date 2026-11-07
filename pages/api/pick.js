@@ -5,6 +5,7 @@ import { rawHash } from '../../lib/import/hash.mjs';
 import { rule } from '../../lib/rules.mjs';
 import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
 import { shouldAlert, sendTicketAlert, alertClaimRow, claimWon } from '../../lib/ticket-alert.mjs';
+import { commitPayload, frozenWeek } from '../../lib/commit.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
@@ -78,6 +79,21 @@ async function loadRoster() {
   return { roster, abstain, cfg };
 }
 
+/** The stored week row (data and when it was last written), or null. */
+async function loadWeekRow(week) {
+  const r = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data,updated_at`);
+  const row = r.ok && Array.isArray(r.data) ? r.data[0] : null;
+  return row ? { data: row.data || {}, updatedAt: row.updated_at || null } : null;
+}
+
+/** Once a week's ticket is placed (or the week is locked), its legs are what the book took, so the
+ *  week's picks are final. Changing one would leave the board showing a ticket nobody bet. */
+function frozenMessage(week, data) {
+  return data && data.locked
+    ? `Week ${week} is locked. Picks are final.`
+    : `Week ${week}'s ticket is placed. Picks are final; ask the commissioner to fix a leg.`;
+}
+
 async function loadPicks(week) {
   const r = await sbGet(`/rest/v1/holm_parlay_picks?season=eq.${SEASON}&week=eq.${week}&select=who,source,leg,updated_at`);
   if (!r.ok) return { ok: false, status: r.status, data: r.data };
@@ -123,7 +139,7 @@ export default async function handler(req, res) {
         });
         return;
       }
-      json(res, 200, { week, picks: picks.data, ticket: assembleTicket(picks.data, PARLAY_11) });
+      json(res, 200, { week, picks: picks.data, ticket: assembleTicket(picks.data, PARLAY_11, { week }) });
       return;
     }
     if (req.method !== 'POST') {
@@ -135,6 +151,9 @@ export default async function handler(req, res) {
     if (!wk) { json(res, 400, { error: 'week required' }); return; }
 
     const roster = PARLAY_11;
+
+    const stored = await loadWeekRow(wk);
+    if (stored && frozenWeek(stored.data)) { json(res, 409, { error: frozenMessage(wk, stored.data), placed: true }); return; }
 
     if (body.import) {
       const result = await importPicks(wk, body, roster);
@@ -187,32 +206,18 @@ async function upsertOne(week, who, leg, source, roster) {
 async function maybeCommit(week, roster, beforePicks) {
   const picks = await loadPicks(week);
   if (!picks.ok) return { picks: [], ticket: null };
-  const ticket = assembleTicket(picks.data, roster);
+  const ticket = assembleTicket(picks.data, roster, { week });
   // The save that fills the ticket pings Brad's phone once (see lib/ticket-alert.mjs).
-  const before = Array.isArray(beforePicks) ? assembleTicket(beforePicks, roster) : null;
+  const before = Array.isArray(beforePicks) ? assembleTicket(beforePicks, roster, { week }) : null;
   let alert = null;
   if (before && shouldAlert(before, ticket) && process.env.NTFY_TOPIC) {
     alert = (await claimTicketAlert(week)) ? await sendTicketAlert(ticket, week) : { sent: false, skipped: 'already sent for this week' };
   }
   let committed = false;
   if (ticket.complete) {
-    const existing = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data`);
-    const prev = existing.data && existing.data[0] && existing.data[0].data || {};
-    if (prev.locked) return { picks: picks.data, ticket, committed: false, locked: true };
-    const payload = Object.assign({}, prev, {
-      week,
-      stake: prev.stake || 10,
-      book: prev.book || 'DraftKings (MI)',
-      // A full set of saved picks is a proposed ticket. It is not placed until someone records the slip.
-      ticket: prev.ticket && prev.ticket.state && prev.ticket.state !== 'proposed'
-        ? prev.ticket
-        : { state: 'proposed', evidence: 'Auto-built from 11 saved picks. Not placed at a sportsbook yet.' },
-      note: prev.note || 'Auto-built from 11 unique manager picks. Same-game bets grouped as SGPs so one Michigan book ticket can take the whole parlay.',
-      legs: ticket.legs,
-      groups: ticket.groups,
-      submissions: Object.fromEntries((picks.data || []).map((p) => [canonicalWho(p.who, roster), { source: p.source, at: p.updated_at }])),
-    });
-    delete payload.week;
+    const stored = await loadWeekRow(week);
+    const payload = commitPayload(stored && stored.data, stored && stored.updatedAt, ticket, picks.data);
+    if (!payload) return { picks: picks.data, ticket, committed: false, locked: !!(stored && stored.data.locked), placed: true };
     const rpc = await writeFetch(`${SUPABASE_URL}/rest/v1/rpc/holm_parlay_upsert_week_open`, null,
       JSON.stringify({ p_season: SEASON, p_week: week, p_data: payload }));
     committed = rpc.ok;
