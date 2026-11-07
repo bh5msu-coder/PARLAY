@@ -2,12 +2,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { ident } from '../lib/ident.mjs';
 import { fmtElo } from '../lib/format.mjs';
+import { finishLabel, seasonTableRows } from '../lib/season-table.mjs';
 
 /** Season chart as SVG, so it renders on the server and stays sharp at any width.
  *  Two views: finishing place by season (1 at the top) and season Elo on an auto-fit scale.
- *  One manager is in focus; everyone else is a faint line you can tap to switch focus. */
+ *  One manager is in focus; pick another from the Manager menu or tap a faint line. "View data" shows the
+ *  focused manager's numbers as a table, which reads better than the lines on a phone. */
 export default function SeasonChart({ elo, selected, onSelect }) {
   const [mode, setMode] = useState('finish');
+  const [showData, setShowData] = useState(false);
   const [w, setW] = useState(720);
   const box = useRef(null);
   useEffect(() => {
@@ -77,6 +80,15 @@ export default function SeasonChart({ elo, selected, onSelect }) {
           <button type="button" className="seg__btn" aria-pressed={mode === 'finish'} onClick={() => setMode('finish')}>Finish</button>
           <button type="button" className="seg__btn" aria-pressed={mode === 'elo'} onClick={() => setMode('elo')}>Elo</button>
         </div>
+        <label className="schart__pick">
+          <span className="schart__picklab">Manager</span>
+          <select value={focus.name} onChange={(e) => onSelect(e.target.value)} aria-label="Manager shown on the chart">
+            {people.map((p) => <option key={p.id} value={p.name}>{p.nick}</option>)}
+          </select>
+        </label>
+        <button type="button" className="btn btn--secondary btn--sm schart__databtn" aria-expanded={showData} aria-controls="schart-data" onClick={() => setShowData((v) => !v)}>
+          {showData ? 'Hide data' : 'View data'}
+        </button>
         <span className="muted schart__sum">{summary}</span>
       </div>
       <svg className="schart__svg" width={w} height={H} viewBox={`0 0 ${w} ${H}`} role="img"
@@ -102,7 +114,18 @@ export default function SeasonChart({ elo, selected, onSelect }) {
         {lastIdx >= 0 ? (
           <text className="schart__end" x={x(lastIdx) + 10} y={y(fv[lastIdx]) + 5}>{(narrow ? '' : focus.nick + ' ') + fmt(fv[lastIdx])}</text>) : null}
       </svg>
-      {mode === 'finish' ? <p className="muted schart__key"><span className="schart__swatch" /> Gold dot = title season. Tap any faint line to switch.</p> : <p className="muted schart__key">Scale fits the data: the whole league sits within about 40 points of 1500.</p>}
+      {showData ? (
+        <div className="tablewrap schart__data" id="schart-data">
+          <table>
+            <caption className="sr-only">{`${focus.nick}, season by season`}</caption>
+            <thead><tr><th>Season</th><th className="r">Finish</th><th className="r">Elo</th></tr></thead>
+            <tbody>{seasonTableRows(years, focus).map((r) => (
+              <tr key={r.year} className={r.champ ? 'me' : ''}><td className="num">{String(r.year)}</td><td className="r">{finishLabel(r)}</td><td className="r num">{r.elo == null ? '–' : fmtElo(r.elo)}</td></tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : null}
+      {mode === 'finish' ? <p className="muted schart__key"><span className="schart__swatch" /> Gold dot = title season. Pick a manager above or tap any faint line to switch.</p> : <p className="muted schart__key">Scale fits the data: the whole league sits within about 40 points of 1500.</p>}
     </div>
   );
 }
