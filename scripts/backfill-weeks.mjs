@@ -5,7 +5,11 @@
 // not in the file (the file wins for a week in both). This script applies the same rule, maps each
 // week with lib/week-rows.mjs and prints SQL. It never runs anything itself.
 //
-//   node scripts/backfill-weeks.mjs --supabase rows.json        # SQL to stdout, summary to stderr
+//   node scripts/backfill-weeks.mjs --supabase rows.json --overwrite-db   # SQL to stdout, summary to stderr
+//
+// Since 2026-11-07 the site reads weeks FROM these tables: they are the record and data/bets.json is the
+// archive. Running this SQL now would overwrite commissioner saves and auto-commits with the archive,
+// so the script refuses unless --overwrite-db is passed.
 //
 // rows.json: [{ "week": 9, "data": { ... } }, ...] exported from holm_parlay_weeks (season 2026, week > 0).
 // The SQL is idempotent: re-running it rewrites the same rows, and the audit trigger skips no-op saves.
@@ -63,6 +67,10 @@ export function backfillSql(weeks, season = SEASON) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  if (!process.argv.includes('--overwrite-db')) {
+    console.error('Refusing: holm_tickets + holm_legs are the record now (since 2026-11-07). This SQL would overwrite them with data/bets.json. Pass --overwrite-db only if that is what you want.');
+    process.exit(2);
+  }
   const at = process.argv.indexOf('--supabase');
   if (at < 0 || !process.argv[at + 1]) { console.error('usage: node scripts/backfill-weeks.mjs --supabase rows.json'); process.exit(2); }
   const file = JSON.parse(readFileSync(new URL('../data/bets.json', import.meta.url), 'utf8'));

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { weekToRows, weeksFromRows, compareWeekSets } from '../lib/week-rows.mjs';
 import { loadDbWeeks } from '../pages/api/weeks.js';
 import handler from '../pages/api/weeks.js';
-import { createLeagueStore, WEEKS_SOURCE_LS } from '../lib/league-store.mjs';
+import { createLeagueStore, WEEKS_SOURCE_LS, DEFAULT_WEEKS_SOURCE } from '../lib/league-store.mjs';
 
 const file = JSON.parse(readFileSync(new URL('../data/bets.json', import.meta.url), 'utf8'));
 const asDb = (weeks) => {
@@ -34,7 +34,7 @@ test('the comparison names a week the database lacks, has extra, or holds differ
   assert.deepEqual(d8.legs, ['Adam Meltser']);
 });
 
-const okJson = (d, status = 200) => ({ ok: status < 400, status, async json() { return d; } });
+const okJson = (d, status = 200) => ({ ok: status < 400, status, headers: { get: () => 'application/json' }, async json() { return d; } });
 
 test('/api/weeks reads both tables with the public key and returns weeks; a failed read is a 502', async () => {
   const { tickets, legs } = asDb(file.weeks.slice(0, 2));
@@ -56,31 +56,44 @@ function storeWith(dbResponse) {
   return createLeagueStore({ fetch: async (url) => {
     const u = String(url);
     if (u.includes('/data/bets.json')) return okJson(file);
-    if (u.includes('/api/weeks')) return dbResponse ? dbResponse(dbWeeks) : okJson({ weeks: dbWeeks });
+    // A fresh copy per call, like a real fetch: the store tidies names in place after loading.
+    if (u.includes('/api/weeks')) return dbResponse ? dbResponse(dbWeeks) : okJson({ weeks: JSON.parse(JSON.stringify(dbWeeks)) });
     return okJson([]);
   } });
 }
 
-test('a phone set to the database reads its weeks from /api/weeks; everyone else is unchanged', async () => {
+test('everyone reads weeks from the database; a phone can opt back to the old sources; a failed read falls back', async () => {
   const mem = {};
   global.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
   try {
+    assert.equal(DEFAULT_WEEKS_SOURCE, 'db');
     const plain = storeWith();
     await plain.loadData();
-    assert.equal(plain.state.weeksSource, 'site');
+    assert.equal(plain.state.weeksSource, 'db', 'the database by default');
+    assert.ok(plain.state.weeks.every((w) => w.source === 'db'));
     await plain.checkShadow();
-    assert.deepEqual(plain.state.shadow.diffs, [], 'the copy matches what the site shows');
+    assert.deepEqual(plain.state.shadow.diffs, [], 'the database matches the old sources');
 
-    mem[WEEKS_SOURCE_LS] = 'db';
-    const onDb = storeWith();
-    await onDb.loadData();
-    assert.equal(onDb.state.weeksSource, 'db');
-    assert.ok(onDb.state.weeks.every((w) => w.source === 'db'));
-    assert.deepEqual(onDb.state.weeks.map((w) => w.week), plain.state.weeks.map((w) => w.week));
+    mem[WEEKS_SOURCE_LS] = 'site';
+    const old = storeWith();
+    await old.loadData();
+    assert.equal(old.state.weeksSource, 'site');
+    assert.deepEqual(old.state.weeks.map((w) => w.week), plain.state.weeks.map((w) => w.week));
 
+    delete mem[WEEKS_SOURCE_LS];
     const broken = storeWith(() => okJson({ error: 'down' }, 502));
     await broken.loadData();
-    assert.equal(broken.state.weeksSource, 'site', 'falls back to the usual weeks');
+    assert.equal(broken.state.weeksSource, 'site', 'falls back to the old sources');
     assert.match(broken.state.weeksSourceError, /down/);
+    assert.deepEqual(broken.state.weeks.map((w) => w.week), plain.state.weeks.map((w) => w.week));
+
+    try {
+      await plain.setWeeksSource('site');
+      assert.equal(mem[WEEKS_SOURCE_LS], 'site');
+      assert.equal(plain.state.weeksSource, 'site');
+      await plain.setWeeksSource('db');
+      assert.equal(mem[WEEKS_SOURCE_LS], undefined, 'back on the default leaves nothing stored');
+      assert.equal(plain.state.weeksSource, 'db');
+    } finally { clearTimeout(plain.state.timer); }  // the switch re-grades and schedules the next refresh
   } finally { delete global.localStorage; }
 });

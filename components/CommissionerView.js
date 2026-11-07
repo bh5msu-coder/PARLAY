@@ -285,7 +285,7 @@ function WeekEditor({ store }) {
         const rows = weekToRows(SEASON, Object.assign({}, payload, { week }));
         await store.sb.rpc('holm_week_put_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_ticket: rows.ticket, p_legs: rows.legs });
       } catch (e) { mirrored = false; }
-      toast((lock ? `Week ${week} locked` : `Week ${week} saved`) + (mirrored ? '' : ' (database copy not updated; see Database copy)'));
+      toast((lock ? `Week ${week} locked` : `Week ${week} saved`) + (mirrored ? '' : ' (database not updated; see Weeks database)'));
       state.shadow = null;
       state.admin.editing = null; state.selectedWeek = week;
       await store.loadData(); await store.refreshScores(true); store.emit();
@@ -295,7 +295,7 @@ function WeekEditor({ store }) {
     if (!confirm(`Delete Week ${wk.week}?`)) return;
     try {
       await store.sb.rpc('holm_parlay_delete_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) });
-      try { await store.sb.rpc('holm_week_delete_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) }); } catch (e) { toast('Database copy not updated: ' + e.message); }
+      try { await store.sb.rpc('holm_week_delete_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) }); } catch (e) { toast('Database not updated: ' + e.message); }
       state.shadow = null;
       state.admin.editing = null; await store.loadData(); store.emit();
     } catch (e) { toast(e.message); }
@@ -515,29 +515,29 @@ function DatabaseCopy({ store }) {
   const onDb = state.weeksSource === 'db';
   const toggle = async () => {
     setBusy(true);
-    try { await store.setWeeksSource(onDb ? 'site' : 'db'); toast(onDb ? 'This phone reads the usual weeks again' : 'This phone now reads weeks from the database'); } finally { setBusy(false); }
+    try { await store.setWeeksSource(onDb ? 'site' : 'db'); toast(onDb ? 'This phone now reads the old sources' : 'This phone reads the database again'); } finally { setBusy(false); }
   };
-  const describe = (d) => d.kind === 'missing-db' ? `Week ${d.week}: not in the database copy`
-    : d.kind === 'missing-site' ? `Week ${d.week}: only in the database copy`
+  const describe = (d) => d.kind === 'missing-db' ? `Week ${d.week}: not in the database`
+    : d.kind === 'missing-site' ? `Week ${d.week}: only in the database`
       : `Week ${d.week}: ${[d.fields.length ? d.fields.join(', ') : '', d.legs.length ? 'legs for ' + d.legs.join(', ') : ''].filter(Boolean).join('; ')} differ`;
   return (
     <section className="card">
-      <div className="card__head"><h2>Database copy</h2><span className="sub">Weeks in Supabase, checked against what the site shows</span></div>
+      <div className="card__head"><h2>Weeks database</h2><span className="sub">Checked against the old sources</span></div>
       <div className="card__body form">
         {!sh ? <p className="muted">Checking…</p>
-          : sh.error ? <p className="rules rules--warn">{'Could not read the database copy: ' + sh.error}</p>
-            : !sh.diffs.length ? <p className="rules rules--info">{`All ${state.siteWeeksRaw.length} weeks match the database copy.`}</p>
+          : sh.error ? <p className="rules rules--warn">{'Could not read the weeks database: ' + sh.error}</p>
+            : !sh.diffs.length ? <p className="rules rules--info">{`All ${state.siteWeeksRaw.length} weeks match the old sources.`}</p>
               : (
                 <>
-                  <p className="rules rules--warn">{`${sh.diffs.length} week${sh.diffs.length === 1 ? '' : 's'} differ from the database copy:`}</p>
+                  <p className="rules rules--warn">{`${sh.diffs.length} week${sh.diffs.length === 1 ? '' : 's'} differ from the old sources:`}</p>
                   <ul className="small">{sh.diffs.map((d) => <li key={d.week}>{describe(d)}</li>)}</ul>
                 </>)}
         <p className="muted small">{onDb
-          ? 'This phone reads weeks from the database. Everyone else still sees the usual weeks.'
-          : 'Everyone, this phone included, reads the usual weeks (data/bets.json and the picks database). Switch this phone to the database copy to check every page with it.'}</p>
-        {state.weeksSourceError ? <p className="rules rules--error">{'Database read failed, showing the usual weeks: ' + state.weeksSourceError}</p> : null}
+          ? 'The site reads weeks from the database. If it cannot be read, pages fall back to the old sources (data/bets.json and the picks database). You can switch this phone to the old sources to compare.'
+          : 'This phone reads the old sources (data/bets.json and the picks database). Everyone else reads the database.'}</p>
+        {state.weeksSourceError ? <p className="rules rules--error">{'Database read failed, showing the old sources: ' + state.weeksSourceError}</p> : null}
         <div className="inline">
-          <button className="btn btn--secondary btn--sm" type="button" disabled={busy} onClick={toggle}>{onDb ? 'Read the usual weeks' : 'Read from the database on this phone'}</button>
+          <button className="btn btn--secondary btn--sm" type="button" disabled={busy} onClick={toggle}>{onDb ? 'Read the old sources on this phone' : 'Read from the database'}</button>
           <button className="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => store.checkShadow()}>Check again</button>
         </div>
       </div>
