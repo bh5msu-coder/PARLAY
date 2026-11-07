@@ -115,6 +115,13 @@ These are built only from recorded results, with no new rules:
 
 **Migration.** Run `node scripts/migrate-bets-v2.mjs` (or `--check` in CI). It's idempotent and only adds fields: `schemaVersion`, `ticket`, and empty `contributions` and `payouts` arrays. It never changes a leg, result, stake or payer, and it never reads `parlay-history.json`. For Supabase, run `supabase/picks.sql` and then `supabase/migrations/002_expanded_model.sql`. Both files were applied to the live database on 2026-10-31 (002 as written; `picks.sql` as the guard fix only, since the rest already existed).
 
+**Moving weeks to Supabase (in progress).** The plan is in `OUTPUTS/holm-parlay/week-data-audit.md`. Done so far:
+- Migration 007 (applied 2026-11-07) lets `holm_tickets` and `holm_legs` hold a whole week. Writes are limited to the server key, and every change is logged in `holm_week_audit`.
+- `lib/week-rows.mjs` maps a week to these rows and back, and a test round-trips every week in this file.
+- `scripts/backfill-weeks.mjs` copied the weeks the site shows (the file's, plus Supabase-only Week 9) into the tables. All 79 legs and 7 tickets were checked against the source.
+
+**The site does not read these tables yet.** Until the read path is switched over, this file and `holm_parlay_weeks` stay the records, so re-run the backfill after changing either one.
+
 **Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
 
 ## Importing picks and slips
