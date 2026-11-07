@@ -302,10 +302,11 @@ function fakeSupabase(savedPicks) {
     const body = opts && opts.body ? JSON.parse(opts.body) : null;
     calls.push({ url: u, method, body });
     if (u.includes('holm_parlay_weeks') && method === 'GET') return ok([]);
+    if ((u.includes('holm_tickets') || u.includes('holm_legs')) && method === 'GET') return ok([]);
     if (u.includes('holm_parlay_picks') && method === 'GET') return ok(rows);
     if (u.includes('holm_parlay_picks') && method === 'POST') { rows.push(body); return ok([body]); }
     if (u.includes('holm_import_records')) return ok([]);
-    if (u.includes('rpc/holm_parlay_upsert_week_open')) return ok(null);
+    if (u.includes('rpc/holm_week_put_auto')) return ok(1);
     return { ok: false, status: 404, async text() { return '{}'; } };
   };
   return { calls, impl, rows };
@@ -359,10 +360,11 @@ test('auto-commit proposes the ticket; it never claims it was placed', async () 
   const res = mockRes();
   try { await handler({ method: 'POST', query: {}, body: { week: 9, who: last.who, leg: last.leg } }, res); } finally { global.fetch = prev; }
   assert.equal(res.body.committed, true);
-  const rpc = sb.calls.find((c) => c.url.includes('rpc/holm_parlay_upsert_week_open'));
-  assert.equal(rpc.body.p_data.ticket.state, 'proposed');
-  assert.match(rpc.body.p_data.ticket.evidence, /Not placed/);
-  assert.equal(rpc.body.p_data.placedBy, undefined);
+  const rpc = sb.calls.find((c) => c.url.includes('rpc/holm_week_put_auto'));
+  assert.equal(rpc.body.p_ticket.state, 'proposed');
+  assert.match(rpc.body.p_ticket.evidence, /Not placed/);
+  assert.equal(rpc.body.p_ticket.placed_by, null);
+  assert.ok(!sb.calls.some((c) => c.url.includes('holm_parlay_upsert_week_open')), 'the old weeks table is not written');
 });
 
 test('a placed week counts its legs as picks, not the empty site submissions', () => {

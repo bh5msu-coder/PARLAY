@@ -8,6 +8,7 @@ import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
 import { shouldAlert, sendTicketAlert, alertClaimRow, claimWon } from '../../lib/ticket-alert.mjs';
 import { commitPayload, frozenWeek } from '../../lib/commit.mjs';
 import { weekToRows } from '../../lib/week-rows.mjs';
+import { loadDbWeek } from '../../lib/db-weeks.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
@@ -80,11 +81,11 @@ async function loadSettings() {
   return { cfg, aliases: nicknameAliases(cfg.nicknames, titles) };
 }
 
-/** The stored week row (data and when it was last written), or null. */
+/** The stored week (data and when it was last written), or null. Weeks live in holm_tickets + holm_legs
+ *  since 2026-11-07; holm_parlay_weeks keeps only league settings (week 0). A failed read throws, so a
+ *  save never goes ahead on a week whose placed or locked state could not be checked. */
 async function loadWeekRow(week) {
-  const r = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.${week}&select=data,updated_at`);
-  const row = r.ok && Array.isArray(r.data) ? r.data[0] : null;
-  return row ? { data: row.data || {}, updatedAt: row.updated_at || null } : null;
+  return loadDbWeek(SEASON, week);
 }
 
 /** Once a week's ticket is placed (or the week is locked), its legs are what the book took, so the
@@ -215,28 +216,25 @@ async function maybeCommit(week, roster, beforePicks) {
     alert = (await claimTicketAlert(week)) ? await sendTicketAlert(ticket, week) : { sent: false, skipped: 'already sent for this week' };
   }
   let committed = false;
-  let mirror = null;
   if (ticket.complete) {
-    const stored = await loadWeekRow(week);
+    let stored;
+    try { stored = await loadWeekRow(week); } catch (e) {
+      // The pick itself is saved; only the ticket rebuild waits for the next save.
+      ticket.commitError = e.message || 'week read failed';
+      return { picks: picks.data, ticket, committed: false, ...(alert ? { alert } : {}) };
+    }
     const payload = commitPayload(stored && stored.data, stored && stored.updatedAt, ticket, picks.data);
     if (!payload) return { picks: picks.data, ticket, committed: false, locked: !!(stored && stored.data.locked), placed: true };
-    const rpc = await writeFetch(`${SUPABASE_URL}/rest/v1/rpc/holm_parlay_upsert_week_open`, null,
-      JSON.stringify({ p_season: SEASON, p_week: week, p_data: payload }));
-    committed = rpc.ok;
-    if (!rpc.ok) {
-      const t = await rpc.text();
-      ticket.commitError = t;
-    } else {
-      mirror = await mirrorWeek(week, payload);
-    }
+    const result = await writeWeek(week, payload);
+    committed = result === 'ok';
+    if (!committed) ticket.commitError = result;
   }
-  return { picks: picks.data, ticket, committed, ...(mirror ? { mirror } : {}), ...(alert ? { alert } : {}) };
+  return { picks: picks.data, ticket, committed, ...(alert ? { alert } : {}) };
 }
 
-/** Copy the week just committed into holm_tickets + holm_legs (migration 008), so the database copy
- *  stays current while the site still reads holm_parlay_weeks. Never fails the save: the result is
- *  reported as `mirror` ('ok' or why not) and the Commissioner page's comparison shows any gap. */
-async function mirrorWeek(week, data) {
+/** Write the auto-built week to holm_tickets + holm_legs (holm_week_put_auto, migration 008: server key
+ *  only; it refuses a placed, settled or locked week). Returns 'ok' or why not. */
+async function writeWeek(week, data) {
   try {
     const { ticket, legs } = weekToRows(SEASON, Object.assign({}, data, { week }));
     const r = await writeFetch(`${SUPABASE_URL}/rest/v1/rpc/holm_week_put_auto`, null,
