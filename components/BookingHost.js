@@ -6,7 +6,7 @@ import { useLeague, useReady } from './LeagueProvider';
 import { ident } from '../lib/ident.mjs';
 import { weeklyLegs } from '../lib/stats.mjs';
 import { toast } from '../lib/clients.mjs';
-import { HOST_NAME, hostBriefing, hostIntro, hostReply, markSeen, shouldAutoOpen } from '../lib/host.mjs';
+import { HOST_NAME, hostBriefing, hostFacts, hostIntro, hostReply, markSeen, shouldAutoOpen } from '../lib/host.mjs';
 
 /** Quick asks. Each one is answered from the store with lib/host.mjs; nothing here calls a model. */
 const CHIPS = [
@@ -43,6 +43,9 @@ function briefingFrom(store) {
     clock,
     pickWeek: active,
     lastPlace: s.lastPlace,
+    priorMatchups: s.lastPlace && s.lastPlace.matchups,
+    currentMatchups: s.hostMatchups && s.hostMatchups.week === active ? s.hostMatchups.matchups : null,
+    currentRows: s.hostMatchups && s.hostMatchups.week === active && s.hostMatchups.rows.length ? s.hostMatchups.rows : null,
     currentWeek,
     payers: currentWeek ? store.weekPayers(currentWeek) : [],
     payerNote: currentWeek ? store.weekPayerNote(currentWeek) : '',
@@ -92,6 +95,9 @@ export default function BookingHost() {
     } catch (e) { /* storage blocked: stay closed */ }
   }, [active]);
 
+  // This week's pairings are read only once the panel is open (one cached ESPN read per week).
+  useEffect(() => { if (open && active && store.loadHostMatchups) store.loadHostMatchups(active); }, [open, active, store]);
+
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
@@ -108,8 +114,17 @@ export default function BookingHost() {
     const q = String(text || '').trim();
     if (!q) return;
     const r = hostReply(q, b, { roster: store.state.config.roster });
-    setThread((t) => t.concat([{ from: 'you', lines: [q] }, { from: 'host', lines: r.lines, bet: r.bet }]).slice(-20));
     setInput('');
+    // The model is only asked when the built-in answers can't route the question.
+    if (r.intent === 'unknown' && store.askHost) {
+      const id = Date.now() + Math.random();
+      setThread((t) => t.concat([{ from: 'you', lines: [q] }, { from: 'host', lines: ['Checking with the pit boss...'], pending: id }]).slice(-20));
+      store.askHost(q, hostFacts(b)).then((reply) => {
+        setThread((t) => t.map((m) => (m.pending === id ? { from: 'host', lines: reply ? [reply] : r.lines } : m)));
+      });
+      return;
+    }
+    setThread((t) => t.concat([{ from: 'you', lines: [q] }, { from: 'host', lines: r.lines, bet: r.bet }]).slice(-20));
   };
   const submit = (e) => { e.preventDefault(); ask(input); };
 
