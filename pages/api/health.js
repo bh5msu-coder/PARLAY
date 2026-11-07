@@ -29,6 +29,8 @@ export function healthReport() {
       commit: process.env.VERCEL_GIT_COMMIT_SHA || null,
       branch: process.env.VERCEL_GIT_COMMIT_REF || null,
     },
+    // The Host's AI fallback is optional, so it never affects "ok".
+    host: { anthropic: has('ANTHROPIC_API_KEY') },
     problems,
   };
 }

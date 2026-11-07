@@ -57,7 +57,7 @@ function memberName(m) {
   return [m.firstName, m.lastName].filter(Boolean).join(' ') || m.displayName || '';
 }
 
-function slimFfl(data, scoringPeriodId) {
+export function slimFfl(data, scoringPeriodId) {
   const sp = Number(scoringPeriodId);
   const members = {};
   for (const m of data.members || []) members[String(m.id)] = memberName(m);
@@ -74,9 +74,21 @@ function slimFfl(data, scoringPeriodId) {
       points: fromPeriod == null || fromPeriod === '' ? null : Number(fromPeriod),
     };
   }
+  // Head-to-head pairings for this period (additive field; awayId is null on a bye).
+  const matchups = [];
+  const num = (v) => (v == null || v === '' || Number.isNaN(Number(v)) ? null : Number(v));
   for (const mu of data.schedule || []) {
     const period = mu.matchupPeriodId != null ? mu.matchupPeriodId : mu.scoringPeriodId;
     if (period != null && Number(period) !== sp) continue;
+    if (mu.home && mu.home.teamId != null) {
+      const side = (x) => (x ? num(x.totalPointsLive != null && x.totalPointsLive !== '' ? x.totalPointsLive : x.totalPoints) : null);
+      matchups.push({
+        homeId: mu.home.teamId,
+        awayId: mu.away && mu.away.teamId != null ? mu.away.teamId : null,
+        homePoints: side(mu.home),
+        awayPoints: side(mu.away),
+      });
+    }
     for (const side of ['home', 'away']) {
       const s = mu[side];
       if (!s || s.teamId == null) continue;
@@ -97,7 +109,7 @@ function slimFfl(data, scoringPeriodId) {
     return a.points - b.points || String(a.owner).localeCompare(String(b.owner));
   });
   const last = standings.find((t) => t.points != null) || null;
-  return { scoringPeriodId: sp, last, standings };
+  return { scoringPeriodId: sp, last, standings, matchups };
 }
 
 export default async function handler(req, res) {
