@@ -25,7 +25,7 @@ function memStore() {
 }
 
 test('host: the name is the one the league asked for', () => {
-  assert.equal(HOST_NAME, 'Casino Sports Book Host');
+  assert.equal(HOST_NAME, 'Sarge');
 });
 
 test('host: last week recap ranks the manager from ESPN points and names the low man', () => {
@@ -161,7 +161,7 @@ test('host: typing a bet back builds a HOLM PICK block the importer reads, and s
 test('host: the intro greets by nickname and leads with the week, or asks who you are', () => {
   const b = hostBriefing({ you: 'Brad Holm', nick: 'Brad', hour: 19, clock, lastPlace, payers: ['DJ Dangerous'], currentWeek: { week: 10, stake: 10 }, now: tuesday });
   const intro = hostIntro(b);
-  assert.equal(intro[0], "Evening, Brad. I'm your Casino Sports Book Host.");
+  assert.equal(intro[0], "Evening, Brad. I'm Sarge, your sports book host.");
   assert.match(intro[1], /you put up 102.4, 2nd of 3/);
   assert.match(intro.join(' '), /You're clear for Week 10/);
   assert.match(intro[intro.length - 1], /by Thursday/);
