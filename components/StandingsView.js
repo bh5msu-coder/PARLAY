@@ -63,7 +63,9 @@ export default function StandingsView() {
   useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
   if (!state.ready) return <Page title="Standings" />;
   const { weeks, graded, config } = state;
-  const rows = computeStandings(weeks, graded, config);
+  // Every money figure on this page names payers the same way as the Week and Money pages.
+  const payersOf = (w) => store.weekPayers(w);
+  const rows = computeStandings(weeks, graded, config, payersOf);
   const ranks = rankLabels(rows);
   const disc = history ? reconcile({ weeks }, history) : null;
   const issues = disc ? disc.items.filter((i) => i.severity !== 'wording').length : 0;
@@ -75,9 +77,9 @@ export default function StandingsView() {
   const owing = current ? store.weekPayers(current) : [];
   const { legs: totLegs, hit: totHit } = leagueLegTally(weeks, graded);
   const payers = {};
-  for (const w of weeks) if (w.payer) payers[w.payer] = (payers[w.payer] || 0) + 1;
+  for (const w of weeks) for (const who of payersOf(w)) payers[who] = (payers[who] || 0) + 1;
   const topPayer = Object.entries(payers).sort((a, b) => b[1] - a[1])[0];
-  const styles = computeBettingStyles(weeks, graded);
+  const styles = computeBettingStyles(weeks, graded, payersOf);
 
   return (
     <Page title="Standings" sub="By leg hit rate, then fewest busts">
