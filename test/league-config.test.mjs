@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeSettings, mergeNicknames, changedNicknames } from '../lib/league-config.mjs';
+import { mergeSettings, mergeNicknames, changedNicknames, NICK_MAX } from '../lib/league-config.mjs';
+import { NICK_MAX as CLAUDE_NICK_MAX } from '../lib/nicknames.mjs';
 
 const fresh = { leagueName: 'Our Holm League', chat: 'x', roster: ['A'], abstain: ['Kyle Heller'], nicknames: { 'Brad Holm': 'Commish', 'John Sachs': 'Jarn' } };
 
@@ -20,8 +21,9 @@ test('nickname save changes only the edited names; blank clears one', () => {
   assert.deepEqual(fresh.nicknames, { 'Brad Holm': 'Commish', 'John Sachs': 'Jarn' }, 'input unchanged');
 });
 
-test('nicknames are capped at 24 characters', () => {
-  assert.equal(mergeNicknames({}, { X: 'a'.repeat(40) }).nicknames.X.length, 24);
+test('commissioner nicknames have the same 28-character cap as Claude\'s', () => {
+  assert.equal(NICK_MAX, CLAUDE_NICK_MAX);
+  assert.equal(mergeNicknames({}, { X: 'a'.repeat(40) }).nicknames.X.length, 28);
 });
 
 test('changedNicknames lists only real edits', () => {

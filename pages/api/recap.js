@@ -2,6 +2,8 @@
  *  against Supabase (holm_parlay_check_pass) before anything is sent to Claude. Nothing is posted
  *  anywhere; the commissioner reviews the draft and shares it by hand.
  *  Needs ANTHROPIC_API_KEY in Vercel (server-only). ANTHROPIC_MODEL overrides the model. */
+import { NICK_MAX } from '../../lib/nicknames.mjs';
+
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5';
@@ -50,7 +52,7 @@ export default async function handler(req, res) {
     if (!parsed || typeof parsed.recap !== 'string') { res.status(200).json({ recap: textOut.trim(), nicknames: [], model: MODEL }); return; }
     const nicknames = (Array.isArray(parsed.nicknames) ? parsed.nicknames : [])
       .filter((n) => n && n.who && n.nick)
-      .map((n) => ({ who: String(n.who).slice(0, 60), nick: String(n.nick).slice(0, 24), why: String(n.why || '').slice(0, 140) }));
+      .map((n) => ({ who: String(n.who).slice(0, 60), nick: String(n.nick).slice(0, NICK_MAX), why: String(n.why || '').slice(0, 140) }));
     res.status(200).json({ recap: parsed.recap.trim(), nicknames, model: MODEL });
   } catch (e) {
     res.status(502).json({ error: 'Claude unreachable' });
