@@ -1,4 +1,5 @@
--- 004: Close the open write on holm_parlay_upsert_week_open.
+-- 004: Close the open write on holm_parlay_upsert_week_open. Applied to live 2026-11-07, after
+-- /api/pick?health=1 reported serviceKey ok and writes with the server key.
 --
 -- Before: anyone holding the public (publishable) key could call this function directly and overwrite
 -- the current, unlocked week's ticket with any JSON. Only /api/pick is meant to call it.

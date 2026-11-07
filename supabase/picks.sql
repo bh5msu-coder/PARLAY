@@ -3,7 +3,8 @@
 -- EXPORTED FROM THE LIVE DATABASE (project ivucfpduvaiyxjcqbsqa, 2026-10-31): table columns, keys,
 -- row security, policies and every function body below were read from pg_catalog, not inferred.
 -- The one change from live is the `p_week <= 0` guard in holm_parlay_upsert_week_open, applied to
--- live on 2026-10-31 (migration holm_parlay_upsert_week_open_positive_week).
+-- live on 2026-10-31 (migration holm_parlay_upsert_week_open_positive_week), and the placed/settled
+-- guard below, applied to live on 2026-11-07 (supabase/migrations/006_placed_ticket_guard.sql).
 -- Every statement is idempotent. Run supabase/migrations/002_expanded_model.sql after this file.
 --
 -- holm_parlay_admin holds the commissioner passphrase. It has row security on and no policy, so
@@ -99,8 +100,8 @@ as $function$
     and exists (select 1 from public.holm_parlay_admin where passphrase = p_pass);
 $function$;
 
--- Called by pages/api/pick.js when 11 valid picks are in. Anon can call it, so it must never touch
--- week 0 (commissioner-only league config) and never overwrite a locked week.
+-- Called by pages/api/pick.js when 11 valid picks are in. It must never touch week 0 (commissioner-only
+-- league config) and never overwrite a locked week or a placed or settled ticket (006).
 create or replace function public.holm_parlay_upsert_week_open(p_season integer, p_week integer, p_data jsonb)
 returns void
 language plpgsql
@@ -118,15 +119,22 @@ begin
   if cur is not null and cur->'locked' is not null and cur->'locked' != 'null'::jsonb then
     raise exception 'Week % is locked', p_week;
   end if;
+  -- A placed or settled ticket's legs are what the book took; picks no longer change them.
+  if cur is not null and coalesce(cur->'ticket'->>'state', '') in ('placed', 'settled') then
+    raise exception 'Week % ticket is %', p_week, cur->'ticket'->>'state';
+  end if;
   insert into holm_parlay_weeks as w (season, week, data, updated_at)
   values (p_season, p_week, p_data, now())
   on conflict (season, week) do update
     set data = excluded.data, updated_at = now()
-    where w.data->'locked' is null or w.data->'locked' = 'null'::jsonb;
+    where (w.data->'locked' is null or w.data->'locked' = 'null'::jsonb)
+      and coalesce(w.data->'ticket'->>'state', '') not in ('placed', 'settled');
 end;
 $function$;
 
 grant execute on function public.holm_parlay_check_pass(text) to anon;
 grant execute on function public.holm_parlay_save_week(text, integer, integer, jsonb) to anon;
 grant execute on function public.holm_parlay_delete_week(text, integer, integer) to anon;
-grant execute on function public.holm_parlay_upsert_week_open(integer, integer, jsonb) to anon;
+-- Only the site's server key may auto-commit (migration 004, applied to live 2026-11-07).
+revoke execute on function public.holm_parlay_upsert_week_open(integer, integer, jsonb) from public, anon, authenticated;
+grant execute on function public.holm_parlay_upsert_week_open(integer, integer, jsonb) to service_role;
