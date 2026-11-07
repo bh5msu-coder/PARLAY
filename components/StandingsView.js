@@ -1,6 +1,8 @@
 'use client';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
+import { ScoreNotice } from './Skeletons';
+import { scoreNotice } from '../lib/load-status.mjs';
 import { StatusBadge } from './ui';
 import { fmtMoney, fmtOdds, pct } from '../lib/format.mjs';
 import { sitHandle, whoLabel } from '../lib/ident.mjs';
@@ -61,7 +63,7 @@ export default function StandingsView() {
   const { state } = store;
   const [history, setHistory] = useState(cachedHistory());
   useEffect(() => { let live = true; loadHistory().then((h) => { if (live) setHistory(h); }); return () => { live = false; }; }, []);
-  if (!state.ready) return <Page title="Standings" />;
+  if (!state.ready) return <Page title="Standings" skeleton="standings" />;
   const { weeks, graded, config } = state;
   // Every money figure on this page names payers the same way as the Week and Money pages.
   const payersOf = (w) => store.weekPayers(w);
@@ -83,6 +85,7 @@ export default function StandingsView() {
 
   return (
     <Page title="Standings" sub="By leg hit rate, then fewest busts">
+      <ScoreNotice notice={scoreNotice(graded, { weeks: weeks.map((w) => w.week) })} onRetry={() => store.refreshScores(true)} />
       <section className="stats">
         <div className="card stat"><span className="label">Winnings</span><span className="stat__value">{fmtMoney(totals.payouts)}</span><span className="stat__delta">{`${totals.cashed} cashed · ${settled.length} of ${weeks.length} parlays settled`}</span></div>
         <div className="card stat"><span className="label">Owes this week</span><span className="stat__value" style={{ font: '600 26px/40px var(--font-display)', letterSpacing: 0 }}>{owing.length ? owing.map((p) => whoLabel(p)).join(' + ') : '–'}</span><span className="stat__delta">{current ? `Week ${current.week} · ${fmtMoney(current.stake || 10)} · settled on the side` : ''}</span></div>

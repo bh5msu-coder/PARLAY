@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { weekShareText } from '../lib/share-card.mjs';
 import { useLeague } from './LeagueProvider';
 import { Page } from './Topbar';
+import { ScoreNotice } from './Skeletons';
+import { scoreNotice } from '../lib/load-status.mjs';
 import { StatusBadge } from './ui';
 import { fmtMoney, fmtOdds } from '../lib/format.mjs';
 import { ident, sitHandle, whoLabel } from '../lib/ident.mjs';
@@ -230,7 +232,7 @@ function WeekTabs({ store }) {
 export default function WeekView() {
   const store = useLeague();
   const { state } = store;
-  if (!state.ready) return <Page title="Parlay" />;
+  if (!state.ready) return <Page title="This week\u2019s parlay" skeleton="week" />;
   const n = state.selectedWeek || (state.nfl && state.nfl.active);
   const week = (n && store.weekRecord(n)) || (state.weeks.length ? state.weeks[state.weeks.length - 1] : null);
   if (!week) {
@@ -292,6 +294,7 @@ export default function WeekView() {
   return (
     <Page title={`Week ${week.week} parlay`} sub={pending ? 'Picks are open' : `${participants}-way split`}>
       <WeekTabs store={store} />
+      <ScoreNotice notice={scoreNotice(state.graded, { week: week.week, scope: 'week' })} onRetry={() => store.refreshScores(true)} />
       {kick ? <p className="rules rules--warn">{kick}</p> : null}
       {state.dataConflicts && state.dataConflicts.length
         ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>

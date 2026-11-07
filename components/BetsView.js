@@ -16,6 +16,7 @@ import { cachedHistory, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
 import SeasonGlance from './SeasonGlance';
 import Fold from './Fold';
+import { PageSkeleton } from './Skeletons';
 
 // parlay-history.json is static and read-only: lib/history.mjs loads it with one GET and deep-freezes it.
 // This page never writes anything — no Supabase call, no POST, no change to data/bets.json.
@@ -180,8 +181,8 @@ export default function BetsView() {
     return () => { live = false; };
   }, []);
   return (
-    <Page title="Parlay history" sub="Weekly $10 group parlay · 11–12 leg tickets only">
-      {!loaded ? null : !data
+    <Page title="Parlay history" sub="Weekly $10 group parlay · 11–12 leg tickets only" skeleton="bets">
+      {!loaded ? <PageSkeleton kind="bets" label="Loading parlay history" /> : !data
         ? <div className="card"><div className="empty">Parlay history did not load.</div></div>
         : <History data={data} selectedOwner={state.config.you || state.selectedOwner} weeks={state.weeks} payments={state.payments} store={store} />}
     </Page>

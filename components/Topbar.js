@@ -1,10 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { HOME_PATH, ROUTES, routeFor, useHydrated, useLeague } from './LeagueProvider';
 import { GearIcon, ParlayMenu } from './NavMenus';
+import { PageSkeleton } from './Skeletons';
 import { ident } from '../lib/ident.mjs';
+import { THEME_CHOICES, THEME_KEY, applyTheme, normalizeChoice } from '../lib/theme.mjs';
 
 /** The league emblem: the Our Holm League shield from the Canva logo set. */
 function LockupMark() {
@@ -28,18 +30,47 @@ function MoonIcon() {
   );
 }
 
-/** Theme switch as an icon: a sun while dark (tap for light), a moon while light (tap for dark). */
-function ThemeButton() {
-  const [theme, setTheme] = useState('dark');
-  useEffect(() => { setTheme(document.documentElement.dataset.theme || 'dark'); }, []);
-  const toggle = () => {
-    const t = theme === 'light' ? 'dark' : 'light';
-    try { localStorage.setItem('hp_theme', t); } catch (e) { /* ignore */ }
-    document.documentElement.dataset.theme = t;
-    setTheme(t);
+function AutoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.2" />
+      <path d="M12 3.8a8.2 8.2 0 0 1 0 16.4z" fill="currentColor" />
+    </svg>
+  );
+}
+
+/** Theme menu: System (follow the phone), Light or Dark. The icon shows the current choice. */
+function ThemeMenu() {
+  const ref = useRef(null);
+  const [choice, setChoice] = useState('dark');
+  useEffect(() => { setChoice(normalizeChoice(document.documentElement.dataset.themeChoice)); }, []);
+  // While on System, follow the phone when it switches between light and dark.
+  useEffect(() => {
+    if (choice !== 'system' || !window.matchMedia) return undefined;
+    const mq = window.matchMedia('(prefers-color-scheme: light)');
+    const on = () => applyTheme(document, window, 'system');
+    if (mq.addEventListener) mq.addEventListener('change', on); else if (mq.addListener) mq.addListener(on);
+    return () => { if (mq.removeEventListener) mq.removeEventListener('change', on); else if (mq.removeListener) mq.removeListener(on); };
+  }, [choice]);
+  const pick = (c) => {
+    try { localStorage.setItem(THEME_KEY, c); } catch (e) { /* ignore */ }
+    applyTheme(document, window, c);
+    setChoice(c);
+    if (ref.current) ref.current.open = false;
   };
-  const label = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
-  return <button className="iconbtn" type="button" aria-label={label} title={label} onClick={toggle}>{theme === 'light' ? <MoonIcon /> : <SunIcon />}</button>;
+  const label = 'Theme: ' + (THEME_CHOICES.find((t) => t.value === choice) || THEME_CHOICES[2]).label;
+  return (
+    <details ref={ref} className="more more--theme">
+      <summary className="iconbtn" aria-label={label} title={label}>{choice === 'system' ? <AutoIcon /> : choice === 'light' ? <SunIcon /> : <MoonIcon />}</summary>
+      <div className="more__list" role="menu" aria-label="Theme">
+        {THEME_CHOICES.map((t) => (
+          <button key={t.value} type="button" role="menuitemradio" aria-checked={choice === t.value} onClick={() => pick(t.value)}>
+            {t.value === 'system' ? <AutoIcon /> : t.value === 'light' ? <SunIcon /> : <MoonIcon />}<span>{t.label}</span>
+          </button>
+        ))}
+      </div>
+    </details>
+  );
 }
 
 /** Who is using this phone. Remembered in this browser only; highlights your leg and rows across the site. */
@@ -70,7 +101,7 @@ export default function Topbar({ title, sub }) {
   const clockBit = clock
     ? `NFL Week ${clock.active}${clock.firstKick && Date.parse(clock.firstKick) <= Date.now() ? '' : clock.wednesday ? ' · Wednesday kickoff' : clock.firstKickLabel ? ' · ' + clock.firstKickLabel : ''}`
     : '';
-  const subText = (hydrated && state.bootError) || (ready ? [sub || '', clockBit].filter(Boolean).join(' · ') : 'Loading…');
+  const subText = (hydrated && state.bootError) ? 'The league data didn\u2019t load' : (ready ? [sub || '', clockBit].filter(Boolean).join(' · ') : 'Loading the league\u2026');
   const lore = ident.lore;
   const est = lore && lore.champions && lore.champions.length ? lore.champions[0].year : null;
   const eyebrow = [est ? 'Est. ' + est : '', lore ? `${lore.seasonCount} seasons` : ''].filter(Boolean).join(' · ');
@@ -96,27 +127,28 @@ export default function Topbar({ title, sub }) {
           </nav>
           {hydrated && state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
           {ready ? <YouPicker /> : null}
-          <ThemeButton />
+          <ThemeMenu />
         </div>
       </div>
       {/* On League the wordmark already says it, so the page title is kept for screen readers only. */}
       <div className={'titles' + (current === 'league' ? ' titles--home' : '')}>
-        <h1 className={current === 'league' ? 'sr-only' : undefined}>{ready ? title : 'Our Holm League'}</h1>
-        <span className="sub">{subText}</span>
+        <h1 className={current === 'league' ? 'sr-only' : undefined}>{title || 'Our Holm League'}</h1>
+        <span className="sub" aria-live="polite">{subText}</span>
       </div>
     </header>
   );
 }
 
 /** Wraps a page: renders the Topbar and, once data is loaded, the page body. */
-/** `early`: the page can paint before the store boots (League renders its lore from the server). */
-export function Page({ title, sub, children, early }) {
+/** `early`: the page can paint before the store boots (League renders its lore from the server).
+ *  `skeleton`: which placeholder layout to show until then (see Skeletons.js). */
+export function Page({ title, sub, children, early, skeleton }) {
   const { state } = useLeague();
   const hydrated = useHydrated();
   return (
     <>
       <Topbar title={title} sub={sub} />
-      <main id="view">{(hydrated && state.ready) || early ? children : null}</main>
+      <main id="view">{(hydrated && state.ready) || early ? children : <PageSkeleton kind={skeleton} label={'Loading ' + (title || 'the page')} />}</main>
     </>
   );
 }
