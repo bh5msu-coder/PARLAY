@@ -705,3 +705,34 @@ details.manual>.row{margin-bottom:12px}
 .nicks__who{min-width:130px;font-weight:600}
 .nicks li>input[id^=nick-]{max-width:none;width:220px;flex:0 1 220px}
 @media (max-width:719px){.changes__row{grid-template-columns:1fr}}
+
+/* Casino Sports Book Host (components/BookingHost.js): a gold chip button and a co-pilot panel.
+ *  Phones: the panel sits above the bottom nav, full width. Desktop: a 380px card at the bottom right. */
+.host__launch{position:fixed;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:15;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px 8px 10px;border-radius:var(--radius-pill);border:1px solid var(--accent2);background:var(--surface-100);color:var(--accent2);font:600 13px/16px var(--font-display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.host__launch:hover{background:var(--surface-200)}
+.host__launch--open{background:var(--surface-200)}
+.host{position:fixed;left:8px;right:8px;bottom:calc(128px + env(safe-area-inset-bottom));z-index:16;display:flex;flex-direction:column;max-height:min(68vh,560px);border-color:var(--accent2);box-shadow:0 12px 32px rgba(0,0,0,.45);overflow:hidden}
+.host__head{display:flex;align-items:center;gap:10px;padding:10px 8px 10px 14px;border-bottom:1px solid var(--line);color:var(--accent2)}
+.host__title{display:flex;flex-direction:column;min-width:0;flex:1}
+.host__title h2{margin:0;font:700 20px/22px var(--font-display);letter-spacing:.02em;text-transform:uppercase;color:var(--cream)}
+.host__close{color:var(--ink-muted)}
+.host__body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.host__msg{max-width:92%;padding:8px 12px;border-radius:var(--radius-md);font-size:14px;line-height:20px}
+.host__msg p{margin:0}.host__msg p+p{margin-top:6px}
+.host__msg--host{align-self:flex-start;background:var(--surface-200);border:1px solid var(--line)}
+.host__msg--you{align-self:flex-end;background:var(--teal-deep);color:#fff}
+.host__bet{margin:8px 0 0;padding:8px 10px;background:var(--surface-0);border:1px dashed var(--accent2);border-radius:var(--radius-sm);font:500 13px/18px var(--font-mono);white-space:pre-wrap;word-break:break-word}
+.host__betacts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.host__who{padding:4px 0}
+.host__chips{display:flex;gap:6px;padding:8px 14px;border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.host__chips .btn{flex-shrink:0;white-space:nowrap}
+.host .btn--sm{min-height:40px}
+.host__form{display:flex;gap:8px;padding:8px 14px}
+.host__form input{flex:1;min-width:0;min-height:40px;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);background:var(--surface-0);color:var(--ink);font:400 14px/20px var(--font-sans)}
+.host__fine{font-size:12px;line-height:16px;color:var(--ink-muted)}
+.host__foot{margin:0;padding:0 14px 10px}
+@media (min-width:720px){
+  .host__launch{right:24px;bottom:24px}
+  .host{left:auto;right:24px;bottom:80px;width:380px}
+}
+@media (prefers-reduced-motion:no-preference){.host{animation:host-in .16s ease-out}@keyframes host-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
