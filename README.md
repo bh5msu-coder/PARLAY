@@ -55,7 +55,7 @@ The site is a Next.js App Router app written in JavaScript, with no TypeScript a
 
 ## Dashboards
 
-Standings reads the **weekly record** (data/bets.json plus live grades). Bets reads the **history** (parlay-history.json, loaded read-only through `lib/history.mjs`, which makes one GET and deep-freezes the result). The two sources are never merged, and each card says which one it uses. `lib/stats.mjs` computes both levels:
+Standings reads the **weekly record** (the Supabase weeks plus live grades). Bets reads the **history** (parlay-history.json, loaded read-only through `lib/history.mjs`, which makes one GET and deep-freezes the result). The two sources are never merged, and each card says which one it uses. `lib/stats.mjs` computes both levels:
 
 - **Selections** (one manager's picks):
   - hit rate, record, current and best streak
@@ -100,7 +100,7 @@ These are built only from recorded results, with no new rules:
 | Record | Where it lives | Notes |
 |---|---|---|
 | Player | `league-lore.json` people → `holm_players` | id, name, nick, aliases, parlay, abstain |
-| Week | `data/bets.json` weeks | The only record that adds or grades a week |
+| Week | Supabase `holm_tickets` + `holm_legs` (since 2026-11-07) | The record that adds or grades a week. `data/bets.json` is the archive it was copied from. |
 | Leg | `week.legs` (synced one way to `holm_legs`) | Status is `open`, `won`, `lost`, `unknown`, `void` or `push`. Each leg also has a confidence label (`espn-final`, `espn-consensus-line` or `inferred-margin`, history only) and a source. |
 | Pick (saved) | `holm_parlay_picks` | A saved selection. **It is not a placed bet.** |
 | Contribution (recorded) | `week.contributions` / `holm_payments` | Money someone put in. **It does not mean the ticket was placed.** |
@@ -115,15 +115,14 @@ These are built only from recorded results, with no new rules:
 
 **Migration.** Run `node scripts/migrate-bets-v2.mjs` (or `--check` in CI). It's idempotent and only adds fields: `schemaVersion`, `ticket`, and empty `contributions` and `payouts` arrays. It never changes a leg, result, stake or payer, and it never reads `parlay-history.json`. For Supabase, run `supabase/picks.sql` and then `supabase/migrations/002_expanded_model.sql`. Both files were applied to the live database on 2026-10-31 (002 as written; `picks.sql` as the guard fix only, since the rest already existed).
 
-**Moving weeks to Supabase (in progress).** The plan is in `OUTPUTS/holm-parlay/week-data-audit.md`. Done so far:
-- Migration 007 (applied 2026-11-07) lets `holm_tickets` and `holm_legs` hold a whole week. Writes are limited to the server key, and every change is logged in `holm_week_audit`.
-- `lib/week-rows.mjs` maps a week to these rows and back, and a test round-trips every week in this file.
-- `scripts/backfill-weeks.mjs` copied the weeks the site shows (the file's, plus Supabase-only Week 9) into the tables. All 79 legs and 7 tickets were checked against the source.
-
-- `GET /api/weeks` serves the weeks from these tables. On the Commissioner page, the **Database copy** card compares them with what the site shows, and can switch one phone to read from the database.
-- Migration 008: every auto-commit at 11 picks (`holm_week_put_auto`, server key) and every commissioner Save, Lock or Delete (`holm_week_put_commish` / `holm_week_delete_commish`, passphrase) also writes the week here, so the copy stays current.
-
-**Everyone still reads this file and `holm_parlay_weeks`.** The switch for everyone comes after the comparison stays clean through a live week. Until then, an edit to this file reaches the database copy only when the backfill is re-run.
+**Weeks moved to Supabase (2026-11-07).** The plan is in `OUTPUTS/holm-parlay/week-data-audit.md`.
+- **Tables:** migration 007 lets `holm_tickets` and `holm_legs` hold a whole week. Writes are limited to the server key and the passphrase functions, and every change is logged in `holm_week_audit`.
+- **Mapping:** `lib/week-rows.mjs` maps a week to rows and back. A test round-trips every week in `data/bets.json`.
+- **Backfill:** `scripts/backfill-weeks.mjs` copied the weeks in once, and all 79 legs and 7 tickets were checked against the source. **Don't re-run it.** It would overwrite the record with the archive, so it now refuses unless you pass `--overwrite-db`.
+- **Writes:** migration 008. Each auto-commit at 11 picks (`holm_week_put_auto`, server key) and each commissioner Save, Lock or Delete (`holm_week_put_commish` / `holm_week_delete_commish`, passphrase) writes the week here. The same saves still go to `holm_parlay_weeks`, so the fallback stays current.
+- **Reads:** every page reads its weeks from `GET /api/weeks` (`DEFAULT_WEEKS_SOURCE = 'db'` in `lib/league-store.mjs`). The Week page share image does too, rebuilt every 5 minutes.
+- **Fallback:** if the database read fails, pages use `data/bets.json` + `holm_parlay_weeks` and the Commissioner page says so.
+- **Checking and rolling back:** Commissioner → **Weeks database** compares the two sources and can switch one phone back to the old ones. To roll everyone back, set `DEFAULT_WEEKS_SOURCE` to `'site'`.
 
 **Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
 
@@ -144,7 +143,7 @@ These are built only from recorded results, with no new rules:
 
 **Sportsbook slips** (Commissioner → Sportsbook slip). Paste slip text or JSON. `lib/import/slip.mjs` matches each slip leg to one pick by team, player, side and line.
 - **Unmatched or ambiguous legs** are listed, never guessed.
-- **Placement evidence:** only a slip where every leg and every pick matched counts. For weeks stored in data/bets.json, the tool prints the `ticket` JSON to add to the file.
+- **Placement evidence:** only a slip where every leg and every pick matched counts. Attach it to the week and save; the week is stored in Supabase.
 
 ## House rules
 
@@ -180,9 +179,11 @@ These were decided by the league (commissioner answers, 2026-10-31) and recorded
 - A paid checkmark for the stake: Venmo has no public payments API for this. The planned path is the commissioner-only `holm_parlay_record_payment` in migration 002.
 - No one opts out, except Kyle Heller, who left the $10 bet on Oct 3, 2026: from Week 5 he does not pay (the next lowest scorer does) and forfeits his share of winnings. The roster already has him sitting.
 
-## Weekly tape (`data/bets.json`)
+## Weekly tape (Supabase weeks)
 
-Wins and losses live only in `data/bets.json`. That file is the only place a week is added or graded. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into this file.
+Since 2026-11-07, weeks live in Supabase: one `holm_tickets` row and its `holm_legs` per week. They are added and graded from the Commissioner page (Save, Lock, slip import) and by the 11-pick auto-commit, and every change is logged in `holm_week_audit`. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into a week.
+
+`data/bets.json` is the archive the weeks were copied from. **Editing it no longer changes the site.** Pages fall back to it, plus `holm_parlay_weeks`, only when the database can't be read.
 
 ## Parlay history (`parlay-history.json`)
 
