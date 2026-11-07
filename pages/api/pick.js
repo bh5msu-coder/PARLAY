@@ -7,6 +7,7 @@ import { rule } from '../../lib/rules.mjs';
 import { checkPickLock, loadScoreboard } from '../../lib/pick-lock.mjs';
 import { shouldAlert, sendTicketAlert, alertClaimRow, claimWon } from '../../lib/ticket-alert.mjs';
 import { commitPayload, frozenWeek } from '../../lib/commit.mjs';
+import { weekToRows } from '../../lib/week-rows.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ivucfpduvaiyxjcqbsqa.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D';
@@ -214,6 +215,7 @@ async function maybeCommit(week, roster, beforePicks) {
     alert = (await claimTicketAlert(week)) ? await sendTicketAlert(ticket, week) : { sent: false, skipped: 'already sent for this week' };
   }
   let committed = false;
+  let mirror = null;
   if (ticket.complete) {
     const stored = await loadWeekRow(week);
     const payload = commitPayload(stored && stored.data, stored && stored.updatedAt, ticket, picks.data);
@@ -224,9 +226,27 @@ async function maybeCommit(week, roster, beforePicks) {
     if (!rpc.ok) {
       const t = await rpc.text();
       ticket.commitError = t;
+    } else {
+      mirror = await mirrorWeek(week, payload);
     }
   }
-  return { picks: picks.data, ticket, committed, ...(alert ? { alert } : {}) };
+  return { picks: picks.data, ticket, committed, ...(mirror ? { mirror } : {}), ...(alert ? { alert } : {}) };
+}
+
+/** Copy the week just committed into holm_tickets + holm_legs (migration 008), so the database copy
+ *  stays current while the site still reads holm_parlay_weeks. Never fails the save: the result is
+ *  reported as `mirror` ('ok' or why not) and the Commissioner page's comparison shows any gap. */
+async function mirrorWeek(week, data) {
+  try {
+    const { ticket, legs } = weekToRows(SEASON, Object.assign({}, data, { week }));
+    const r = await writeFetch(`${SUPABASE_URL}/rest/v1/rpc/holm_week_put_auto`, null,
+      JSON.stringify({ p_season: SEASON, p_week: week, p_ticket: ticket, p_legs: legs }));
+    if (r.ok) return 'ok';
+    const t = await r.text().catch(() => '');
+    return 'failed ' + r.status + (t ? ': ' + t.slice(0, 200) : '');
+  } catch (e) {
+    return 'failed: ' + (e.message || 'unreachable');
+  }
 }
 
 /** Import a WhatsApp paste: parse → validate → dedupe against saved picks → save accepted → log.

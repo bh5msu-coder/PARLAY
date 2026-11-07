@@ -120,7 +120,10 @@ These are built only from recorded results, with no new rules:
 - `lib/week-rows.mjs` maps a week to these rows and back, and a test round-trips every week in this file.
 - `scripts/backfill-weeks.mjs` copied the weeks the site shows (the file's, plus Supabase-only Week 9) into the tables. All 79 legs and 7 tickets were checked against the source.
 
-**The site does not read these tables yet.** Until the read path is switched over, this file and `holm_parlay_weeks` stay the records, so re-run the backfill after changing either one.
+- `GET /api/weeks` serves the weeks from these tables. On the Commissioner page, the **Database copy** card compares them with what the site shows, and can switch one phone to read from the database.
+- Migration 008: every auto-commit at 11 picks (`holm_week_put_auto`, server key) and every commissioner Save, Lock or Delete (`holm_week_put_commish` / `holm_week_delete_commish`, passphrase) also writes the week here, so the copy stays current.
+
+**Everyone still reads this file and `holm_parlay_weeks`.** The switch for everyone comes after the comparison stays clean through a live week. Until then, an edit to this file reaches the database copy only when the backfill is re-run.
 
 **Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
 
