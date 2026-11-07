@@ -93,7 +93,12 @@ test('loading: the season banner names each week whose scores failed', () => {
 
 test('loading: every parlay page shows its title and a placeholder layout before data loads', () => {
   const src = (f) => readFileSync(new URL('../components/' + f, import.meta.url), 'utf8');
-  assert.match(src('WeekView.js'), /<Page title="This week\\u2019s parlay" skeleton="week" \/>/);
+  assert.match(src('WeekView.js'), /<Page title="This week’s parlay" skeleton="week" \/>/);
+  assert.match(src('PickView.js'), /<Page title="This week’s picks" skeleton="pick" \/>/);
+  for (const f of ['WeekView.js', 'PickView.js', 'StandingsView.js', 'ChatView.js', 'BetsView.js']) {
+    // JSX attribute strings do not decode \u escapes, so they would show on screen literally.
+    assert.doesNotMatch(src(f), /="[^"]*\\u[0-9a-fA-F]{4}/, f);
+  }
   assert.match(src('PickView.js'), /skeleton="pick"/);
   assert.match(src('StandingsView.js'), /skeleton="standings"/);
   assert.match(src('ChatView.js'), /skeleton="chat"/);

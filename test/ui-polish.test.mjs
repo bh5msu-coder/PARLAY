@@ -33,3 +33,30 @@ test('chart: a Manager menu and a View data toggle sit on the season chart', () 
   assert.match(src, /aria-expanded=\{showData\}/);
   assert.match(src, /'View data'/);
 });
+
+test('size: no text is set below 13px, except the season chart axis ticks (12px SVG)', () => {
+  const tooSmall = [];
+  for (const m of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    const decls = m[2];
+    for (const d of decls.matchAll(/font(?:-size)?:\s*(?:\d{3}\s+)?([\d.]+)px/g)) {
+      const px = Number(d[1]);
+      if (px < 13 && !m[1].includes('.schart__tick')) tooSmall.push(m[1].trim() + ' ' + px + 'px');
+    }
+  }
+  assert.deepEqual(tooSmall, []);
+  assert.match(css, /\.schart__tick\{[^}]*\b12px/);
+});
+
+test('size: buttons, tabs, chips, menus and fields are at least 44px tall', () => {
+  const block = css.match(/([^{}]+)\{min-height:44px\}/g) || [];
+  const listed = block.join(',');
+  for (const sel of ['.tab', '.chip', '.seg__btn', '.btn', '.elo-now__item', '.navlink', '.more__list a', '.bottomnav a', 'details.manual>summary', 'select']) {
+    assert.ok(listed.includes(sel), sel + ' has a 44px minimum height');
+  }
+  for (const m of css.matchAll(/min-height:(\d+)px/g)) {
+    const at = css.lastIndexOf('}', m.index);
+    const sel = css.slice(at + 1, css.indexOf('{', at + 1)).trim();
+    if (Number(m[1]) < 44 && !/\.pills \.chip|skel|\.loadnote|card|lpanel|chart/.test(sel)) assert.fail(sel + ' min-height ' + m[1] + 'px');
+  }
+  assert.match(css, /\.infotip__btn::after\{[^}]*inset:-13px/, 'the 18px info button has a 44px tap area');
+});

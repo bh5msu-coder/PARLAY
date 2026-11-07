@@ -43,7 +43,13 @@ function AutoIcon() {
 function ThemeMenu() {
   const ref = useRef(null);
   const [choice, setChoice] = useState('dark');
-  useEffect(() => { setChoice(normalizeChoice(document.documentElement.dataset.themeChoice)); }, []);
+  useEffect(() => {
+    const c = normalizeChoice(document.documentElement.dataset.themeChoice);
+    setChoice(c);
+    // Re-apply after hydration: Next.js can re-insert the media-query theme-color tags,
+    // which would bring back the dark browser bar on a dark-mode phone set to Light.
+    applyTheme(document, window, c);
+  }, []);
   // While on System, follow the phone when it switches between light and dark.
   useEffect(() => {
     if (choice !== 'system' || !window.matchMedia) return undefined;

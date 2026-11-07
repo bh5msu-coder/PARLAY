@@ -45,7 +45,7 @@ function ImportReport({ report }) {
 export default function PickView() {
   const store = useLeague();
   const { state } = store;
-  if (!state.ready) return <Page title="This week\u2019s picks" skeleton="pick" />;
+  if (!state.ready) return <Page title="This week’s picks" skeleton="pick" />;
   const week = state.pick.week || openPickWeek(state.weeks, state.nfl);
   state.pick.week = week;
   const roster = ident.parlayRoster();

@@ -232,7 +232,7 @@ function WeekTabs({ store }) {
 export default function WeekView() {
   const store = useLeague();
   const { state } = store;
-  if (!state.ready) return <Page title="This week\u2019s parlay" skeleton="week" />;
+  if (!state.ready) return <Page title="This week’s parlay" skeleton="week" />;
   const n = state.selectedWeek || (state.nfl && state.nfl.active);
   const week = (n && store.weekRecord(n)) || (state.weeks.length ? state.weeks[state.weeks.length - 1] : null);
   if (!week) {
