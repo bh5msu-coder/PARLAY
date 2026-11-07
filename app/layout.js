@@ -3,6 +3,7 @@ import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
+import BookingHost from '../components/BookingHost';
 import rawLore from '../league-lore.json';
 import nicknames from '../data/nicknames.json';
 import { withNicknames } from '../lib/nicknames.mjs';
@@ -47,6 +48,7 @@ export default function RootLayout({ children }) {
         <LeagueProvider lore={lore}>
           <div className="wrap">{children}</div>
           <BottomNav />
+          <BookingHost />
         </LeagueProvider>
         <SpeedInsights />
       </body>
