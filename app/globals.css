@@ -706,7 +706,7 @@ details.manual>.row{margin-bottom:12px}
 .nicks li>input[id^=nick-]{max-width:none;width:220px;flex:0 1 220px}
 @media (max-width:719px){.changes__row{grid-template-columns:1fr}}
 
-/* Casino Sports Book Host (components/BookingHost.js): a gold chip button and a co-pilot panel.
+/* Sarge, the sports book host (components/BookingHost.js): a gold chip button and a co-pilot panel.
  *  Phones: the panel sits above the bottom nav, full width. Desktop: a 380px card at the bottom right. */
 .host__launch{position:fixed;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:15;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px 8px 10px;border-radius:var(--radius-pill);border:1px solid var(--accent2);background:var(--surface-100);color:var(--accent2);font:600 13px/16px var(--font-display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 .host__launch:hover{background:var(--surface-200)}

@@ -72,7 +72,7 @@ function Bubble({ from, lines, bet }) {
   );
 }
 
-/** The Casino Sports Book Host: introduces itself once per NFL week, then waits behind its chip button.
+/** Sarge, the sports book host: introduces itself once per NFL week, then waits behind its chip button.
  *  Read-only. It never saves or submits a pick (the pick endpoint has no auth yet) and never places a wager. */
 export default function BookingHost() {
   const store = useLeague();
@@ -118,14 +118,14 @@ export default function BookingHost() {
       <button type="button" className={'host__launch' + (open ? ' host__launch--open' : '')} aria-expanded={open} aria-controls="host-panel"
         onClick={() => setOpen((o) => !o)} title={HOST_NAME}>
         <Chip cls="host__chip" />
-        <span className="host__launchtxt">Host</span>
+        <span className="host__launchtxt">{HOST_NAME}</span>
       </button>
       {open ? (
         <section id="host-panel" className="host card" role="dialog" aria-label={HOST_NAME}>
           <header className="host__head">
             <Chip cls="host__chip" />
             <div className="host__title">
-              <span className="eyebrow">Your co-pilot</span>
+              <span className="eyebrow">Sports book host</span>
               <h2>{HOST_NAME}</h2>
             </div>
             <button type="button" className="iconbtn host__close" aria-label="Close the host" onClick={() => setOpen(false)}>
