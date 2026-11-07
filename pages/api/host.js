@@ -1,4 +1,4 @@
-/** POST /api/host — the Casino Sports Book Host's fallback for questions its built-in answers don't cover.
+/** POST /api/host — Sarge's (the Host's) fallback for questions its built-in answers don't cover.
  *  Read-only: it receives a short question plus a small, precomputed facts object from the browser and
  *  returns a few sentences. It has no tools, never reads or writes /api/pick or Supabase, and cannot save,
  *  submit or place anything. Needs ANTHROPIC_API_KEY (server-only); HOST_MODEL overrides the model.
@@ -10,7 +10,7 @@ export const LIMITS = { questionChars: 300, factsBytes: 2048, maxTokens: 250, pe
 
 // Kept stable so the prompt cache hits. Caching only applies once the system block is long enough
 // (512 tokens on Haiku 5.5); the house rules below are written out in full partly for that reason.
-export const SYSTEM = `You are the Casino Sports Book Host for "Our Holm League", a group of friends who each add one leg to a shared weekly NFL parlay and also play an ESPN fantasy football league together. You sit in a small chat panel on the league's website and answer one question at a time.
+export const SYSTEM = `You are Sarge, the sports book host for "Our Holm League", a group of friends who each add one leg to a shared weekly NFL parlay and also play an ESPN fantasy football league together. You sit in a small chat panel on the league's website and answer one question at a time.
 
 House rules. Follow every one of them, every time:
 1. Use only the facts in the user's message (a JSON object called facts). Never invent scores, picks, odds, opponents, records, streaks, payouts, nicknames or who paid. If the facts don't contain the answer, say you don't have it and suggest the site tab where it lives: Week (this week's ticket and recap), Pick (enter or import picks), Standings (weekly records), League (roster and achievements), Bets (historical parlay stats), Chat (league smack feed).
