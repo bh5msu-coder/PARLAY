@@ -1,0 +1,407 @@
+<title>Holm Parlay Chart Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column of option cards, each a question, a chart, and the trade-off, styled with the site's own tokens. */
+:root{
+  --bg:#070d14;--card:#0f1720;--card-2:#17212c;--line:#23303d;--line-strong:#5b6b7f;
+  --ink:#e8edf2;--muted:#909aa6;--brand:#4aa596;--gold:#c9a24a;--eyebrow:#c2b6ad;
+  --win:#34d8b0;--win-tint:#0f2e29;--loss:#e5484d;--loss-tint:#2e1416;--none:#2a3644;
+  --t-ml:#3987e5;--t-spread:#d95926;--t-total:#199e70;--t-player:#c98500;--x-ml:#fff;--x-spread:#fff;--x-total:#fff;--x-player:#fff;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;--sans:"Barlow",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#f2f1ef;--card:#ffffff;--card-2:#e9eaec;--line:#d5d8dc;--line-strong:#7c8896;
+  --ink:#152230;--muted:#556170;--brand:#2a7466;--gold:#8a6a1f;--eyebrow:#5d5146;
+  --win:#087a4d;--win-tint:#e2f5ec;--loss:#c8322d;--loss-tint:#fbe5e4;--none:#e3e5e8;
+  --t-ml:#2a78d6;--t-spread:#eb6834;--t-total:#1baf7a;--t-player:#eda100;--x-ml:#fff;--x-spread:#152230;--x-total:#152230;--x-player:#152230;color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#f2f1ef;--card:#ffffff;--card-2:#e9eaec;--line:#d5d8dc;--line-strong:#7c8896;
+  --ink:#152230;--muted:#556170;--brand:#2a7466;--gold:#8a6a1f;--eyebrow:#5d5146;
+  --win:#087a4d;--win-tint:#e2f5ec;--loss:#c8322d;--loss-tint:#fbe5e4;--none:#e3e5e8;
+  --t-ml:#2a78d6;--t-spread:#eb6834;--t-total:#1baf7a;--t-player:#eda100;--x-ml:#fff;--x-spread:#152230;--x-total:#152230;--x-player:#152230;color-scheme:light}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 var(--sans);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 56px}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:28px}
+header{display:grid;gap:8px}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--eyebrow)}
+h1{font:700 clamp(34px,6vw,52px)/1 var(--display);letter-spacing:.01em;margin:0;text-wrap:balance}
+h2{font:700 26px/1.05 var(--display);margin:0;text-wrap:balance}
+.lede{color:var(--muted);max-width:66ch;margin:0}
+.lede strong{color:var(--ink);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:8px 22px;font:500 13px/1.3 var(--mono);color:var(--muted);margin-top:4px}
+.facts b{color:var(--ink);font-weight:500}
+.opt{background:var(--card);border:1px solid var(--line);border-radius:8px;display:grid;gap:14px;padding:20px 20px 16px;min-width:0}
+.opt__head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.tag{font:500 11px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border:1px solid color-mix(in oklab,var(--gold) 55%,transparent);border-radius:999px;padding:5px 9px}
+.q{color:var(--muted);margin:0;max-width:66ch}
+.q b{color:var(--ink);font-weight:600}
+.chart{min-width:0;overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{fill:var(--muted);font:500 11px var(--mono)}
+.chart .t-ink{fill:var(--ink)}
+.chart .t-big{font:700 15px var(--display);fill:var(--ink)}
+.verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px 22px;border-top:1px solid var(--line);padding-top:12px;font-size:14px}
+.verdict p{margin:0;color:var(--muted)}
+.verdict b{color:var(--ink);font-weight:600;display:block;font:600 12px/1.6 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+details{font-size:13px}
+summary{cursor:pointer;color:var(--brand);font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 0;width:max-content}
+summary:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:2px}
+.tbl{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;font:400 12.5px var(--mono);font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 10px 5px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font:500 12px var(--mono);color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block}
+.g-win{width:10px;height:10px;border-radius:50%;background:var(--win);display:inline-block}
+.g-loss{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:10px solid var(--loss);display:inline-block}
+/* Grid (option 1) */
+.grid1{display:grid;grid-template-columns:minmax(52px,auto) repeat(var(--cols),minmax(22px,1fr)) minmax(38px,auto);gap:3px;min-width:280px;font:500 12px var(--mono);font-variant-numeric:tabular-nums}
+.grid1 .hd{color:var(--muted);text-align:center;padding-bottom:4px}
+.grid1 .hd.off{color:color-mix(in oklab,var(--muted) 55%,transparent)}
+.grid1 .nm{color:var(--ink);align-self:center;font-family:var(--sans);font-weight:600;font-size:14px}
+.grid1 .rec{align-self:center;text-align:right;color:var(--ink)}
+.cell{height:30px;border-radius:4px;display:grid;place-items:center;background:var(--card-2)}
+.cell.win{background:var(--win-tint)}.cell.loss{background:var(--loss-tint)}
+.cell.off{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--line) 4px 5px)}
+.cell[data-tip]{cursor:default}
+.cell[data-tip]:hover,.cell[data-tip]:focus-visible{outline:2px solid var(--line-strong);outline-offset:-2px}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--card-2);color:var(--ink);border:1px solid var(--line-strong);border-radius:6px;padding:7px 10px;font:400 12.5px/1.4 var(--sans);max-width:260px;box-shadow:0 8px 24px -12px rgba(0,0,0,.5)}
+#tip b{font-weight:600}
+.foot{color:var(--muted);font-size:13px;max-width:70ch}
+@media (prefers-reduced-motion:no-preference){.cell,.chart circle,.chart rect{transition:opacity .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Our Holm League · Parlay chart lab</div>
+    <h1>Six ways to look at the ticket</h1>
+    <p class="lede">Chart options for the site, built from the <strong>recorded, graded tickets</strong> (Weeks 2 and 4–8). Pick the ones you want and I'll add them to the site. Week 3 was never placed, and Week 9's player props aren't graded in the records yet, so neither is plotted. The Standings stake vs. return chart stays as it is.</p>
+    <div class="facts" id="facts"></div>
+  </header>
+
+  <section class="opt" id="opt-grid">
+    <div class="opt__head"><span class="tag">Option 1</span><h2>Who hit, week by week</h2></div>
+    <p class="q">Answers <b>who's carrying us and who keeps sinking it</b>, with every leg of the season on one screen.</p>
+    <div class="legend"><span><i class="g-win"></i>Hit</span><span><i class="g-loss"></i>Missed</span><span><i class="sw" style="background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line-strong) 3px 4px)"></i>Not placed / not in</span></div>
+    <div class="chart" id="c1"></div>
+    <div class="verdict"><p><b>Good for</b>The League page. It reads at a glance on a phone, and the rows sort by hit rate.</p><p><b>Trade-off</b>It shows hit or miss only, with no sense of how hard each leg was.</p></div>
+    <details><summary>View data</summary><div class="tbl" id="t1"></div></details>
+  </section>
+
+  <section class="opt" id="opt-close">
+    <div class="opt__head"><span class="tag">Option 2</span><h2>How close we came</h2></div>
+    <p class="q">Answers <b>how many legs short each ticket fell</b>. A parlay needs every leg, so the misses are the story.</p>
+    <div class="legend"><span><i class="g-win"></i>Leg hit</span><span><i class="g-loss"></i>Leg missed</span></div>
+    <div class="chart" id="c2"></div>
+    <div class="verdict"><p><b>Good for</b>The Week page and the recap. "3 legs from $7,968" lands in the group chat.</p><p><b>Trade-off</b>It shows one number per week, not who missed. Hover a dot to see the leg.</p></div>
+    <details><summary>View data</summary><div class="tbl" id="t2"></div></details>
+  </section>
+
+  <section class="opt" id="opt-time">
+    <div class="opt__head"><span class="tag">Option 3</span><h2>When the ticket died</h2></div>
+    <p class="q">Answers <b>how long we got to sweat</b>. Each leg sits at its kickoff (Eastern), and the line marks the first miss.</p>
+    <div class="legend"><span><i class="g-win"></i>Hit</span><span><i class="g-loss"></i>Missed</span><span><i class="sw" style="background:var(--gold);height:3px;width:14px"></i>Ticket dead</span></div>
+    <div class="chart" id="c3"></div>
+    <div class="verdict"><p><b>Good for</b>The Week page while games are on. It doubles as a live sweat tracker.</p><p><b>Trade-off</b>It needs some width. On phones it scrolls sideways inside its own box.</p></div>
+    <details><summary>View data</summary><div class="tbl" id="t3"></div></details>
+  </section>
+
+  <section class="opt" id="opt-fly">
+    <div class="opt__head"><span class="tag">Option 4</span><h2>Carry vs. drag</h2></div>
+    <p class="q">Answers <b>who's been net positive for the group</b>. Hits run right and misses run left, so the balance shows as length.</p>
+    <div class="legend"><span><i class="sw" style="background:var(--loss)"></i>Legs missed</span><span><i class="sw" style="background:var(--win)"></i>Legs hit</span></div>
+    <div class="chart" id="c4"></div>
+    <div class="verdict"><p><b>Good for</b>Standings, next to the money chart. It's the season in one picture.</p><p><b>Trade-off</b>Managers with fewer legs (Heller left after Week 4) look smaller, not worse.</p></div>
+    <details><summary>View data</summary><div class="tbl" id="t4"></div></details>
+  </section>
+
+  <section class="opt" id="opt-style">
+    <div class="opt__head"><span class="tag">Option 5</span><h2>Pick style</h2></div>
+    <p class="q">Answers <b>what kind of bettor each manager is</b>, by their mix of moneylines, spreads, totals and player props, with the hit count on each piece.</p>
+    <div class="legend" id="lg5"></div>
+    <div class="chart" id="c5"></div>
+    <div class="verdict"><p><b>Good for</b>The League page owner cards. It also feeds the nickname facts.</p><p><b>Trade-off</b>With 5–6 legs each, one pick moves a share a lot. Read it as character, not statistics.</p></div>
+    <details><summary>View data</summary><div class="tbl" id="t5"></div></details>
+  </section>
+
+  <section class="opt" id="opt-runs">
+    <div class="opt__head"><span class="tag">Option 6</span><h2>Running form</h2></div>
+    <p class="q">Answers <b>who's hot right now</b>. Each line climbs one step for a hit and drops one for a miss, in kickoff order.</p>
+    <div class="chart" id="c6"></div>
+    <div class="verdict"><p><b>Good for</b>The Pick page beside the name picker, or the Chat page smack feed.</p><p><b>Trade-off</b>Twelve small charts take room. It works best as a strip you scroll through.</p></div>
+    <details><summary>View data</summary><div class="tbl" id="t6"></div></details>
+  </section>
+
+  <p class="foot">All six use the site's own colours and type, and every hit or miss carries a shape (dot or triangle) as well as colour. They're drawn in plain SVG with no chart library, so each one drops into the site's components as is. Data: parlay-history.json (ESPN-graded legs), names matched to the league roster.</p>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+const D = {"weeks":[{"week":2,"stake":10,"toPay":4349,"odds":null,"result":"loss","legs":[{"who":"Adam Meltser","type":"player","label":"Derrick Henry anytime TD","result":"win","kickoff":"2026-09-20T17:00Z"},{"who":"DJ Dangerous","type":"spread","label":"Giants +7","result":"loss","kickoff":"2026-09-22T00:15Z"},{"who":"Joe Mckeon","type":"spread","label":"Seahawks -3.5","result":"win","kickoff":"2026-09-20T20:25Z"},{"who":"John Sachs","type":"ml","label":"Panthers ML","result":"win","kickoff":"2026-09-20T17:00Z"},{"who":"Jace Clark","type":"total","label":"Vikings/Bears over 48.5","result":"loss","kickoff":"2026-09-20T17:00Z"},{"who":"Kevin Sack","type":"spread","label":"Chargers -6.5","result":"loss","kickoff":"2026-09-20T20:05Z"},{"who":"Kyle Heller","type":"ml","label":"Texans ML","result":"loss","kickoff":"2026-09-20T17:00Z"},{"who":"Kyle McFadden","type":"player","label":"David Montgomery anytime TD","result":"loss","kickoff":"2026-09-20T17:00Z"},{"who":"Brad Holm","type":"player","label":"Jahmyr Gibbs anytime TD","result":"win","kickoff":"2026-09-18T00:15Z"},{"who":"Chas Rossman","type":"player","label":"Josh Allen over 249.5 pass yds","result":"loss","kickoff":"2026-09-18T00:15Z"},{"who":"Ryan Hoffman","type":"spread","label":"Chiefs -6.5","result":"loss","kickoff":"2026-09-21T00:20Z"},{"who":"Nick Curtis","type":"player","label":"Kenneth Walker III anytime TD","result":"loss","kickoff":"2026-09-21T00:20Z"}]},{"week":4,"stake":20,"toPay":7093,"odds":null,"result":"loss","legs":[{"who":"Brad Holm","type":"player","label":"David Montgomery anytime TD","result":"loss","kickoff":"2026-10-04T17:00Z"},{"who":"John Sachs","type":"player","label":"Bryce Young 250+ pass yds","result":"win","kickoff":"2026-10-05T00:20Z"},{"who":"Jace Clark","type":"total","label":"Raiders/Chiefs over","result":"win","kickoff":"2026-10-04T20:25Z"},{"who":"DJ Dangerous","type":"spread","label":"Colts -3.5","result":"win","kickoff":"2026-10-04T13:30Z"},{"who":"Kevin Sack","type":"player","label":"Amon-Ra St. Brown anytime TD","result":"loss","kickoff":"2026-10-05T00:20Z"},{"who":"Joe Mckeon","type":"total","label":"Cowboys/Texans over","result":"win","kickoff":"2026-10-04T17:00Z"},{"who":"Kyle Heller","type":"player","label":"Jared Goff over pass yds","result":"win","kickoff":"2026-10-05T00:20Z"},{"who":"Chas Rossman","type":"total","label":"Lions/Panthers over","result":"win","kickoff":"2026-10-05T00:20Z"},{"who":"Ryan Hoffman","type":"spread","label":"Bills -5.5","result":"loss","kickoff":"2026-10-04T17:00Z"},{"who":"Nick Curtis","type":"player","label":"Kenneth Walker III anytime TD","result":"win","kickoff":"2026-10-04T20:25Z"},{"who":"Adam Meltser","type":"player","label":"Derrick Henry anytime TD","result":"win","kickoff":"2026-10-04T17:00Z"},{"who":"Kyle McFadden","type":"player","label":"Ja'Marr Chase anytime TD","result":"loss","kickoff":"2026-10-04T17:00Z"}]},{"week":5,"stake":10,"toPay":null,"odds":null,"result":"loss","legs":[{"who":"Brad Holm","type":"player","label":"Trey McBride over 70 rec yds","result":"loss","kickoff":"2026-10-11T20:25Z"},{"who":"Kyle McFadden","type":"player","label":"Derrick Henry anytime TD","result":"win","kickoff":"2026-10-12T00:20Z"},{"who":"Kevin Sack","type":"player","label":"Amon-Ra St. Brown anytime TD","result":"loss","kickoff":"2026-10-11T20:25Z"},{"who":"Nick Curtis","type":"spread","label":"Steelers -3","result":"win","kickoff":"2026-10-11T17:00Z"},{"who":"Jace Clark","type":"spread","label":"Seahawks -3","result":"loss","kickoff":"2026-10-11T20:25Z"},{"who":"John Sachs","type":"ml","label":"Saints ML","result":"loss","kickoff":"2026-10-11T17:00Z"},{"who":"Joe Mckeon","type":"total","label":"Steelers/Colts over","result":"win","kickoff":"2026-10-11T17:00Z"},{"who":"Ryan Hoffman","type":"spread","label":"Patriots -3.5","result":"win","kickoff":"2026-10-11T17:00Z"},{"who":"Chas Rossman","type":"player","label":"Trey McBride anytime TD","result":"win","kickoff":"2026-10-11T20:25Z"},{"who":"DJ Dangerous","type":"total","label":"Texans/Titans over","result":"loss","kickoff":"2026-10-11T17:00Z"},{"who":"Adam Meltser","type":"player","label":"Jonathan Taylor anytime TD","result":"loss","kickoff":"2026-10-11T17:00Z"}]},{"week":6,"stake":10,"toPay":null,"odds":null,"result":"loss","legs":[{"who":"Ryan Hoffman","type":"ml","label":"Bills ML","result":"win","kickoff":"2026-10-18T20:25Z"},{"who":"Kyle McFadden","type":"player","label":"Derrick Henry anytime TD","result":"loss","kickoff":"2026-10-18T17:00Z"},{"who":"John Sachs","type":"ml","label":"Packers ML","result":"win","kickoff":"2026-10-19T00:20Z"},{"who":"Jace Clark","type":"total","label":"Bills/Raiders over","result":"win","kickoff":"2026-10-18T20:25Z"},{"who":"Nick Curtis","type":"spread","label":"Jaguars -2.5","result":"loss","kickoff":"2026-10-18T13:30Z"},{"who":"Adam Meltser","type":"player","label":"Christian Watson anytime TD","result":"loss","kickoff":"2026-10-19T00:20Z"},{"who":"Brad Holm","type":"player","label":"Jordan Love 2+ pass TD","result":"loss","kickoff":"2026-10-19T00:20Z"},{"who":"Joe Mckeon","type":"total","label":"Steelers/Bucs under","result":"loss","kickoff":"2026-10-18T17:00Z"},{"who":"Chas Rossman","type":"spread","label":"Falcons 1st half +0.5","result":"loss","kickoff":"2026-10-18T17:00Z"},{"who":"DJ Dangerous","type":"total","label":"Jets/Patriots under 43.5","result":"loss","kickoff":"2026-10-18T17:00Z"},{"who":"Kevin Sack","type":"player","label":"Josh Allen 40+ rush yds","result":"loss","kickoff":"2026-10-18T20:25Z"}]},{"week":7,"stake":10,"toPay":2294.04,"odds":22840,"result":"loss","legs":[{"who":"Ryan Hoffman","type":"ml","label":"Broncos ML","result":"win","kickoff":"2026-10-25T20:05Z"},{"who":"Joe Mckeon","type":"total","label":"Dolphins/Jets under 39.5","result":"loss","kickoff":"2026-10-25T17:00Z"},{"who":"Kyle McFadden","type":"ml","label":"Panthers ML","result":"loss","kickoff":"2026-10-25T17:00Z"},{"who":"Chas Rossman","type":"player","label":"J.J. McCarthy over 0.5 INT","result":"loss","kickoff":"2026-10-25T17:00Z"},{"who":"John Sachs","type":"ml","label":"Bears ML","result":"win","kickoff":"2026-10-23T00:15Z"},{"who":"Jace Clark","type":"total","label":"Patriots/Bears over 50.5","result":"win","kickoff":"2026-10-23T00:15Z"},{"who":"DJ Dangerous","type":"player","label":"A.J. Brown anytime TD","result":"loss","kickoff":"2026-10-23T00:15Z"},{"who":"Kevin Sack","type":"ml","label":"Lions ML","result":"win","kickoff":"2026-10-25T20:25Z"},{"who":"Nick Curtis","type":"player","label":"Jordan Love 282+ pass yds","result":"loss","kickoff":"2026-10-25T20:25Z"},{"who":"Brad Holm","type":"player","label":"Christian Watson 80+ rec yds","result":"loss","kickoff":"2026-10-25T20:25Z"},{"who":"Adam Meltser","type":"player","label":"Jahmyr Gibbs anytime TD","result":"loss","kickoff":"2026-10-25T20:25Z"}]},{"week":8,"stake":10,"toPay":7967.8,"odds":79578,"result":"loss","legs":[{"who":"Joe Mckeon","type":"total","label":"Browns/Steelers under 39.5","result":"win","kickoff":"2026-11-01T18:00Z"},{"who":"Jace Clark","type":"total","label":"Cowboys/Cardinals over 54.5","result":"win","kickoff":"2026-11-01T18:00Z"},{"who":"Adam Meltser","type":"player","label":"Jahmyr Gibbs 30+ rec yds","result":"loss","kickoff":"2026-11-01T18:00Z"},{"who":"Kyle McFadden","type":"player","label":"Justin Jefferson anytime TD","result":"win","kickoff":"2026-11-01T18:00Z"},{"who":"Ryan Hoffman","type":"spread","label":"Raiders +1.5","result":"win","kickoff":"2026-11-01T18:00Z"},{"who":"Nick Curtis","type":"spread","label":"Bills -2.5","result":"win","kickoff":"2026-11-01T18:00Z"},{"who":"Kevin Sack","type":"ml","label":"Broncos ML","result":"win","kickoff":"2026-11-01T21:25Z"},{"who":"DJ Dangerous","type":"total","label":"Panthers/Packers over 46.5","result":"loss","kickoff":"2026-10-30T00:15Z"},{"who":"Brad Holm","type":"player","label":"Ollie Gordon II over 61.5 rush yds","result":"win","kickoff":"2026-11-01T21:25Z"},{"who":"John Sachs","type":"spread","label":"Dolphins +7.5","result":"win","kickoff":"2026-11-01T21:25Z"},{"who":"Chas Rossman","type":"ml","label":"Seahawks ML","result":"loss","kickoff":"2026-11-03T01:20Z"}]}],"nick":{"Brad Holm":"Brad","John Sachs":"Jarn","Ryan Hoffman":"Hoss","Kevin Sack":"Kev","Joe Mckeon":"Joey","Nick Curtis":"Nick","Chas Rossman":"Chas","Kyle McFadden":"Kyle","Kyle Heller":"Heller","Jace Clark":"Jace","Adam Meltser":"Meltser","DJ Dangerous":"DJ"},"unplaced":[3]};
+const NS = 'http://www.w3.org/2000/svg';
+const nick = (n) => D.nick[n] || n.split(' ')[0];
+const weeks = D.weeks.slice().sort((a, b) => a.week - b.week);
+const legsAll = weeks.flatMap((w) => w.legs.map((l) => ({ ...l, week: w.week })));
+const managers = [...new Set(legsAll.map((l) => l.who))];
+const rec = (who) => { const ls = legsAll.filter((l) => l.who === who); return { w: ls.filter((l) => l.result === 'win').length, l: ls.filter((l) => l.result === 'loss').length, n: ls.length }; };
+const money = (n) => '$' + Math.round(n).toLocaleString('en-US');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const TYPES = [['ml', 'Moneyline'], ['spread', 'Spread'], ['total', 'Total'], ['player', 'Player prop']];
+
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs || {}) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+function txt(parent, x, y, s, attrs) { const t = el('text', Object.assign({ x, y }, attrs || {}), parent); t.textContent = s; return t; }
+function glyph(parent, x, y, result, r) {
+  r = r || 5;
+  if (result === 'win') return el('circle', { cx: x, cy: y, r, fill: 'var(--win)' }, parent);
+  if (result === 'loss') return el('path', { d: `M${x} ${y - r}L${x + r} ${y + r * 0.85}L${x - r} ${y + r * 0.85}Z`, fill: 'var(--loss)' }, parent);
+  return el('circle', { cx: x, cy: y, r: r - 1, fill: 'none', stroke: 'var(--muted)' }, parent);
+}
+function table(id, head, rows) {
+  document.getElementById(id).innerHTML = '<table><thead><tr>' + head.map((h) => `<th>${esc(h)}</th>`).join('') + '</tr></thead><tbody>'
+    + rows.map((r) => '<tr>' + r.map((c) => `<td>${esc(c)}</td>`).join('') + '</tr>').join('') + '</tbody></table>';
+}
+
+// Tooltip: any element with data-tip.
+const tip = document.getElementById('tip');
+function showTip(e, html) {
+  tip.innerHTML = html; tip.hidden = false;
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + w > innerWidth - 8) x = e.clientX - w - pad;
+  if (y + h > innerHeight - 8) y = e.clientY - h - pad;
+  tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+}
+document.addEventListener('pointermove', (e) => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (t) showTip(e, t.getAttribute('data-tip')); else tip.hidden = true;
+});
+document.addEventListener('focusin', (e) => {
+  const t = e.target.closest && e.target.closest('[data-tip]');
+  if (!t) return; const r = t.getBoundingClientRect();
+  showTip({ clientX: r.right, clientY: r.top }, t.getAttribute('data-tip'));
+});
+document.addEventListener('focusout', () => { tip.hidden = true; });
+const legTip = (l) => `<b>${esc(nick(l.who))}</b> · Week ${l.week}<br>${esc(l.label)}<br>${l.result === 'win' ? 'Hit' : l.result === 'loss' ? 'Missed' : 'Not graded'}`;
+
+// Header facts
+(() => {
+  const w = legsAll.filter((l) => l.result === 'win').length, l = legsAll.filter((x) => x.result === 'loss').length;
+  const staked = weeks.reduce((a, x) => a + (x.stake || 0), 0);
+  document.getElementById('facts').innerHTML = [
+    `<span><b>${weeks.length}</b> graded tickets</span>`, `<span><b>${legsAll.length}</b> legs</span>`,
+    `<span>legs <b>${w}–${l}</b> (${Math.round((w / (w + l)) * 100)}%)</span>`, `<span><b>${money(staked)}</b> staked</span>`, `<span><b>0</b> tickets cashed</span>`,
+  ].join('');
+})();
+
+// 1. Manager x week grid
+(() => {
+  const cols = [2, 3, 4, 5, 6, 7, 8];
+  const order = managers.slice().sort((a, b) => { const A = rec(a), B = rec(b); return (B.w / B.n) - (A.w / A.n) || B.w - A.w; });
+  const box = document.getElementById('c1');
+  const g = document.createElement('div'); g.className = 'grid1'; g.style.setProperty('--cols', cols.length);
+  g.innerHTML = '<div class="hd"></div>' + cols.map((c) => `<div class="hd${c === 3 ? ' off' : ''}">W${c}</div>`).join('') + '<div class="hd" style="text-align:right">W–L</div>';
+  for (const m of order) {
+    let row = `<div class="nm">${esc(nick(m))}</div>`;
+    for (const c of cols) {
+      const l = legsAll.find((x) => x.who === m && x.week === c);
+      if (c === 3) { row += '<div class="cell off" data-tip="Week 3: never placed. The stake rolled to Week 4."></div>'; continue; }
+      if (!l) { row += `<div class="cell off" data-tip="${esc(nick(m))} had no leg in Week ${c}"></div>`; continue; }
+      const sym = l.result === 'win' ? '<i class="g-win"></i>' : '<i class="g-loss"></i>';
+      row += `<div class="cell ${l.result}" tabindex="0" data-tip="${esc(legTip(l))}" aria-label="${esc(nick(m) + ' week ' + c + ': ' + l.label + ', ' + (l.result === 'win' ? 'hit' : 'missed'))}">${sym}</div>`;
+    }
+    const r = rec(m);
+    row += `<div class="rec">${r.w}–${r.l}</div>`;
+    g.insertAdjacentHTML('beforeend', row);
+  }
+  box.appendChild(g);
+  table('t1', ['Manager'].concat(cols.map((c) => 'W' + c), ['W–L']), order.map((m) => [nick(m)].concat(cols.map((c) => { const l = legsAll.find((x) => x.who === m && x.week === c); return c === 3 ? 'not placed' : l ? (l.result === 'win' ? 'hit' : 'miss') : '–'; }), [rec(m).w + '–' + rec(m).l])));
+})();
+
+const widthOf = (id) => Math.max(280, Math.min(940, document.getElementById(id).clientWidth || 760));
+const renders = [];
+// 2. How close we came: dot strip per week
+renders.push(() => {
+  const W = widthOf('c2'), narrow = W < 520, rowH = narrow ? 52 : 46, top = 10, left = narrow ? 0 : 70;
+  const dot = Math.min(22, (W - left - (narrow ? 0 : 190)) / 12);
+  const H = top + weeks.length * rowH + 6;
+  const s = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Legs hit and missed per ticket' });
+  const closest = weeks.slice().sort((a, b) => a.legs.filter((l) => l.result === 'loss').length - b.legs.filter((l) => l.result === 'loss').length)[0].week;
+  weeks.forEach((w, i) => {
+    const y = top + i * rowH + rowH / 2;
+    const legs = w.legs.slice().sort((a, b) => (a.result === 'win' ? 0 : 1) - (b.result === 'win' ? 0 : 1));
+    const miss = legs.filter((l) => l.result === 'loss').length;
+    const dy = narrow ? 10 : 0;
+    txt(s, 0, narrow ? y - 10 : y + 4, 'Week ' + w.week, { class: 't-ink' });
+    legs.forEach((l, j) => {
+      const x = left + j * dot + dot / 2;
+      const yy = y + dy;
+      const g = el('g', { 'data-tip': legTip(Object.assign({ week: w.week }, l)), tabindex: 0 }, s);
+      el('rect', { x: x - dot / 2, y: yy - 14, width: dot, height: 28, fill: 'transparent' }, g);
+      glyph(g, x, yy, l.result, Math.min(6, dot / 2 - 1.5));
+    });
+    const pays = w.toPay ? ` from ${money(w.toPay)}` : '';
+    const t = narrow
+      ? txt(s, W, y - 10, `${miss} short${pays}`, { class: w.week === closest ? 't-ink' : '', 'text-anchor': 'end' })
+      : txt(s, left + 12 * dot + 18, y + 4, `${miss} leg${miss === 1 ? '' : 's'} short${pays}`, { class: w.week === closest ? 't-big' : 't-ink' });
+    if (w.week === closest) t.setAttribute('style', 'fill:var(--gold)');
+  });
+  document.getElementById('c2').replaceChildren(s);
+});
+(() => {
+  table('t2', ['Week', 'Legs', 'Hit', 'Missed', 'To pay'], weeks.map((w) => ['W' + w.week, w.legs.length, w.legs.filter((l) => l.result === 'win').length, w.legs.filter((l) => l.result === 'loss').length, w.toPay ? money(w.toPay) : 'not recorded']));
+})();
+
+// 3. When the ticket died: kickoff timeline, Thu..Tue in Eastern time
+(() => {
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: false });
+  const DAY = { Thu: 0, Fri: 1, Sat: 2, Sun: 3, Mon: 4, Tue: 5 };
+  const pos = (iso) => {
+    const p = Object.fromEntries(fmt.formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+    return (DAY[p.weekday] ?? 0) + (Number(p.hour) % 24 + Number(p.minute) / 60) / 24;
+  };
+  const label = (iso) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(iso));
+  const W = 760, left = 64, right = 16, top = 26, x0 = 0, x1 = 5;
+  const sx = (v) => left + ((v - x0) / (x1 - x0)) * (W - left - right);
+  const rows = weeks.map((w) => {
+    const legs = w.legs.map((l) => ({ ...l, week: w.week, p: pos(l.kickoff) }));
+    const buckets = {};
+    for (const l of legs) { const k = l.p.toFixed(3); (buckets[k] = buckets[k] || []).push(l); }
+    const stack = Math.max(...Object.values(buckets).map((b) => b.length));
+    const lossT = legs.filter((l) => l.result === 'loss').map((l) => l.p);
+    const dead = lossT.length ? Math.min(...lossT) : null;
+    const deadLeg = dead == null ? null : legs.find((l) => l.result === 'loss' && l.p === dead);
+    return { w, legs, buckets, h: Math.max(34, stack * 11 + 14), dead, deadLeg };
+  });
+  const H = top + rows.reduce((a, r) => a + r.h + 8, 0) + 4;
+  const s = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Leg kickoffs by day with the moment each ticket died', style: 'min-width:600px' });
+  ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'].forEach((d, i) => {
+    el('line', { x1: sx(i), x2: sx(i), y1: top - 6, y2: H - 2, stroke: 'var(--line)', 'stroke-width': 1 }, s);
+    if (i < 5) txt(s, sx(i) + 4, 12, d.toUpperCase());
+  });
+  let y = top;
+  for (const r of rows) {
+    const mid = y + r.h / 2;
+    txt(s, 0, mid + 4, 'Week ' + r.w.week, { class: 't-ink' });
+    if (r.dead != null) {
+      el('rect', { x: sx(r.dead), y: y + 2, width: Math.max(0, sx(x1) - sx(r.dead)), height: r.h - 4, fill: 'var(--loss-tint)', opacity: 0.7 }, s);
+      el('line', { x1: sx(r.dead), x2: sx(r.dead), y1: y, y2: y + r.h, stroke: 'var(--gold)', 'stroke-width': 2 }, s);
+    }
+    for (const k in r.buckets) {
+      r.buckets[k].forEach((l, j) => {
+        const cy = y + r.h - 9 - j * 11;
+        const g = el('g', { 'data-tip': legTip(l) + '<br>' + esc(label(l.kickoff)) + ' ET', tabindex: 0 }, s);
+        el('rect', { x: sx(l.p) - 7, y: cy - 6, width: 14, height: 12, fill: 'transparent' }, g);
+        glyph(g, sx(l.p), cy, l.result, 4.5);
+      });
+    }
+    y += r.h + 8;
+  }
+  document.getElementById('c3').appendChild(s);
+  table('t3', ['Week', 'Died at (ET)', 'First miss'], rows.map((r) => ['W' + r.w.week, r.deadLeg ? label(r.deadLeg.kickoff) : '–', r.deadLeg ? nick(r.deadLeg.who) + ': ' + r.deadLeg.label : '–']));
+})();
+
+// 4. Carry vs drag: butterfly
+renders.push(() => {
+  const order = managers.slice().sort((a, b) => (rec(b).w - rec(b).l) - (rec(a).w - rec(a).l) || rec(b).w - rec(a).w);
+  const max = Math.max(...managers.map((m) => Math.max(rec(m).w, rec(m).l)));
+  const W = widthOf('c4'), rowH = 28, top = 22, nameW = W < 520 ? 60 : 72, mid = nameW + (W - nameW) / 2, half = (W - nameW) / 2 - 22;
+  const sx = (n) => (n / max) * half;
+  const H = top + order.length * rowH + 4;
+  const s = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Legs hit and missed per manager' });
+  txt(s, mid - 8, 12, 'MISSED', { 'text-anchor': 'end' });
+  txt(s, mid + 8, 12, 'HIT');
+  order.forEach((m, i) => {
+    const r = rec(m), y = top + i * rowH;
+    txt(s, 0, y + 17, nick(m), { class: 't-ink', style: 'font:600 14px var(--sans)' });
+    const g = el('g', { 'data-tip': `<b>${esc(nick(m))}</b><br>${r.w} hit · ${r.l} missed · net ${r.w - r.l > 0 ? '+' : ''}${r.w - r.l}`, tabindex: 0 }, s);
+    el('rect', { x: nameW, y, width: W - nameW, height: rowH - 2, fill: 'transparent' }, g);
+    el('rect', { x: mid - sx(r.l) - 1, y: y + 5, width: sx(r.l), height: rowH - 12, rx: 3, fill: 'var(--loss)' }, g);
+    el('rect', { x: mid + 1, y: y + 5, width: sx(r.w), height: rowH - 12, rx: 3, fill: 'var(--win)' }, g);
+    txt(g, mid - sx(r.l) - 6, y + 17, String(r.l), { 'text-anchor': 'end' });
+    txt(g, mid + sx(r.w) + 6, y + 17, String(r.w));
+  });
+  el('line', { x1: mid, x2: mid, y1: top - 4, y2: H, stroke: 'var(--line-strong)', 'stroke-width': 1 }, s);
+  document.getElementById('c4').replaceChildren(s);
+});
+(() => {
+  const order = managers.slice().sort((a, b) => (rec(b).w - rec(b).l) - (rec(a).w - rec(a).l) || rec(b).w - rec(a).w);
+  table('t4', ['Manager', 'Hit', 'Missed', 'Net'], order.map((m) => [nick(m), rec(m).w, rec(m).l, (rec(m).w - rec(m).l > 0 ? '+' : '') + (rec(m).w - rec(m).l)]));
+})();
+
+// 5. Pick style: 100% stacked bars by type
+document.getElementById('lg5').innerHTML = TYPES.map(([k, n]) => `<span><i class="sw" style="background:var(--t-${k})"></i>${n}</span>`).join('');
+const mix5 = (m) => { const ls = legsAll.filter((l) => l.who === m); return TYPES.map(([k]) => { const t = ls.filter((l) => l.type === k); return { k, n: t.length, w: t.filter((l) => l.result === 'win').length }; }); };
+const order5 = managers.slice().sort((a, b) => mix5(b)[3].n / rec(b).n - mix5(a)[3].n / rec(a).n);
+renders.push(() => {
+  const mix = (m) => { const ls = legsAll.filter((l) => l.who === m); return TYPES.map(([k]) => { const t = ls.filter((l) => l.type === k); return { k, n: t.length, w: t.filter((l) => l.result === 'win').length }; }); };
+  const order = managers.slice().sort((a, b) => mix(b)[3].n / rec(b).n - mix(a)[3].n / rec(a).n);
+  const W = widthOf('c5'), rowH = 30, top = 4, nameW = W < 520 ? 60 : 72, bw = W - nameW - 4;
+  const H = top + order.length * rowH;
+  const s = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Share of each pick type per manager' });
+  order.forEach((m, i) => {
+    const y = top + i * rowH, parts = mix(m), n = rec(m).n;
+    txt(s, 0, y + 18, nick(m), { class: 't-ink', style: 'font:600 14px var(--sans)' });
+    let x = nameW;
+    for (const p of parts) {
+      if (!p.n) continue;
+      const w = (p.n / n) * bw;
+      const name = TYPES.find((t) => t[0] === p.k)[1];
+      const g = el('g', { 'data-tip': `<b>${esc(nick(m))}</b> · ${name}<br>${p.n} of ${n} legs · hit ${p.w} of ${p.n}`, tabindex: 0 }, s);
+      el('rect', { x: x + 1, y: y + 4, width: Math.max(0, w - 2), height: rowH - 9, rx: 3, fill: `var(--t-${p.k})` }, g);
+      if (w > 30) txt(g, x + 6, y + 19, `${p.w}/${p.n}`, { style: `fill:var(--x-${p.k});font:600 11px var(--mono)` });
+      x += w;
+    }
+  });
+  document.getElementById('c5').replaceChildren(s);
+});
+(() => {
+  table('t5', ['Manager'].concat(TYPES.map((t) => t[1] + ' (hit/legs)')), order5.map((m) => [nick(m)].concat(mix5(m).map((p) => p.n ? `${p.w}/${p.n}` : '–'))));
+})();
+
+let lastW = 0;
+const drawAll = () => { const w = document.querySelector('.wrap').clientWidth; if (w === lastW) return; lastW = w; renders.forEach((r) => r()); };
+drawAll();
+let rT; addEventListener('resize', () => { clearTimeout(rT); rT = setTimeout(drawAll, 120); });
+
+// 6. Running form: small multiples of cumulative net
+(() => {
+  const box = document.getElementById('c6');
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px';
+  const series = managers.map((m) => {
+    const ls = legsAll.filter((l) => l.who === m).sort((a, b) => a.kickoff.localeCompare(b.kickoff));
+    let c = 0; const pts = [0].concat(ls.map((l) => (c += l.result === 'win' ? 1 : -1)));
+    return { m, ls, pts };
+  }).sort((a, b) => b.pts[b.pts.length - 1] - a.pts[a.pts.length - 1]);
+  const lo = Math.min(...series.flatMap((s) => s.pts)), hi = Math.max(...series.flatMap((s) => s.pts));
+  const maxN = Math.max(...series.map((s) => s.pts.length - 1));
+  for (const sr of series) {
+    const W = 150, H = 74, pl = 4, pr = 30, pt = 22, pb = 6;
+    const sx = (i) => pl + (i / maxN) * (W - pl - pr), sy = (v) => pt + ((hi - v) / (hi - lo || 1)) * (H - pt - pb);
+    const s = el('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `${nick(sr.m)} running form` });
+    txt(s, 0, 13, nick(sr.m), { class: 't-ink', style: 'font:600 13px var(--sans)' });
+    el('line', { x1: pl, x2: W - pr, y1: sy(0), y2: sy(0), stroke: 'var(--line-strong)', 'stroke-dasharray': '2 3' }, s);
+    el('path', { d: sr.pts.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)} ${sy(v).toFixed(1)}`).join(''), fill: 'none', stroke: 'var(--brand)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, s);
+    sr.ls.forEach((l, i) => {
+      const g = el('g', { 'data-tip': legTip(l), tabindex: 0 }, s);
+      el('rect', { x: sx(i + 1) - 5, y: pt - 4, width: 10, height: H - pt, fill: 'transparent' }, g);
+      if (i === sr.ls.length - 1) glyph(g, sx(i + 1), sy(sr.pts[i + 1]), l.result, 4);
+    });
+    const end = sr.pts[sr.pts.length - 1];
+    txt(s, sx(sr.pts.length - 1) + 7, sy(end) + 4, (end > 0 ? '+' : '') + end, { class: 't-ink' });
+    const cell = document.createElement('div'); cell.appendChild(s); grid.appendChild(cell);
+  }
+  box.appendChild(grid);
+  table('t6', ['Manager', 'Legs in order (kickoff)', 'Net'], series.map((s) => [nick(s.m), s.ls.map((l) => (l.result === 'win' ? 'W' : 'L')).join(' '), (s.pts.at(-1) > 0 ? '+' : '') + s.pts.at(-1)]));
+})();
+</script>
