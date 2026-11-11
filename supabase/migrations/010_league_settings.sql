@@ -22,9 +22,11 @@ grant select on public.holm_settings to anon, authenticated;
 drop policy if exists holm_settings_read on public.holm_settings;
 create policy holm_settings_read on public.holm_settings for select to anon, authenticated using (true);
 
+-- One-time copy. A season already in holm_settings is left alone, so re-running this file never
+-- replaces settings saved since with the old week-0 row.
 insert into public.holm_settings (season, data, updated_at)
   select season, data, updated_at from public.holm_parlay_weeks where week = 0
-on conflict (season) do update set data = excluded.data, updated_at = excluded.updated_at;
+on conflict (season) do nothing;
 
 create or replace function public.holm_settings_save(p_pass text, p_season int, p_data jsonb)
 returns void language plpgsql security definer set search_path = public as $$
