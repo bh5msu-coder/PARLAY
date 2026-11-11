@@ -7,6 +7,11 @@
 -- guard below, applied to live on 2026-11-07 (supabase/migrations/006_placed_ticket_guard.sql).
 -- Every statement is idempotent. Run supabase/migrations/002_expanded_model.sql after this file.
 --
+-- SUPERSEDED IN PART: weeks moved to holm_tickets + holm_legs (migrations 007, 008) and league settings
+-- to holm_settings (010). Migration 011 drops holm_parlay_save_week, holm_parlay_delete_week and
+-- holm_parlay_upsert_week_open and makes holm_parlay_weeks a read-only archive. The definitions of
+-- those three below are kept only as the record of what ran before; apply 007-011 after this file.
+--
 -- holm_parlay_admin holds the commissioner passphrase. It has row security on and no policy, so
 -- only the security-definer functions below can read it. Never add a policy to it, and never put
 -- its contents in this repo.

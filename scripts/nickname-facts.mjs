@@ -13,7 +13,7 @@ ident.load(lore);
 // Commissioner nicknames (league settings, public read). Claude must leave these managers alone.
 let commish = {};
 try {
-  const r = await fetch('https://ivucfpduvaiyxjcqbsqa.supabase.co/rest/v1/holm_parlay_weeks?season=eq.2026&week=eq.0&select=data',
+  const r = await fetch('https://ivucfpduvaiyxjcqbsqa.supabase.co/rest/v1/holm_settings?season=eq.2026&select=data',
     { headers: { apikey: 'sb_publishable_l8oekCrp1RalXOZBZjtTNQ_LmR6x-8D' } });
   const rows = r.ok ? await r.json() : [];
   commish = (rows[0] && rows[0].data && rows[0].data.nicknames) || {};

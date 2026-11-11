@@ -23,7 +23,7 @@ Live weekly parlay tracker for Our Holm League.
 
 **Health check.** `GET /api/health` returns which of the variables above are set, as booleans only, never their values. It also returns the deployed commit and a list of problems. `"ok": true` means ESPN is configured.
 
-**Supabase.** `supabase/picks.sql` documents the picks and weeks tables, the commissioner passphrase table, the policies and all four `holm_parlay_*` functions. It was exported from the live database on 2026-10-31 and matches it, apart from the `p_week <= 0` guard that was added to live the same day.
+**Supabase.** `supabase/picks.sql` documents (as of 2026-10-31; see `supabase/migrations/` 004–011 for what changed since) the picks and weeks tables, the commissioner passphrase table, the policies and all four `holm_parlay_*` functions. It was exported from the live database on 2026-10-31 and matches it, apart from the `p_week <= 0` guard that was added to live the same day.
 
 **Local dev.**
 1. Run `npm install`.
@@ -119,10 +119,10 @@ These are built only from recorded results, with no new rules:
 - **Tables:** migration 007 lets `holm_tickets` and `holm_legs` hold a whole week. Writes are limited to the server key and the passphrase functions, and every change is logged in `holm_week_audit`.
 - **Mapping:** `lib/week-rows.mjs` maps a week to rows and back. A test round-trips every week in `data/bets.json`.
 - **Backfill:** `scripts/backfill-weeks.mjs` copied the weeks in once, and all 79 legs and 7 tickets were checked against the source. **Don't re-run it.** It would overwrite the record with the archive, so it now refuses unless you pass `--overwrite-db`.
-- **Writes:** migration 008. Each auto-commit at 11 picks (`holm_week_put_auto`, server key) and each commissioner Save, Lock or Delete (`holm_week_put_commish` / `holm_week_delete_commish`, passphrase) writes the week here. Since migration 009, `holm_parlay_weeks` refuses writes for weeks above 0. It keeps league settings (week 0) and the old Week 7 and Week 9 rows.
-- **Reads:** every page reads its weeks from `GET /api/weeks` (`DEFAULT_WEEKS_SOURCE = 'db'` in `lib/league-store.mjs`). The Week page share image does too, rebuilt every 5 minutes.
-- **Fallback:** if the database read fails, pages use `data/bets.json` + `holm_parlay_weeks` and the Commissioner page says so. That fallback is frozen at Nov 7, so a week saved since then shows its Nov 7 state there.
-- **Checking and rolling back:** Commissioner → **Weeks database** compares the two sources and can switch one phone back to the old ones. To roll everyone back, set `DEFAULT_WEEKS_SOURCE` to `'site'`.
+- **Writes:** migration 008. Each auto-commit at 11 picks (`holm_week_put_auto`, server key) and each commissioner Save, Lock or Delete (`holm_week_put_commish` / `holm_week_delete_commish`, passphrase) writes the week here.
+- **Settings:** league settings (name, chat link, roster, abstain list, nicknames) live in `holm_settings` (migration 010), saved with `holm_settings_save` (passphrase).
+- **Old table:** `holm_parlay_weeks` is a read-only archive (migrations 009 and 011). The functions that wrote it are gone.
+- **Reads:** every page reads its weeks from `GET /api/weeks` (`lib/league-store.mjs`). There is no second copy to fall back to: if the first read fails the page says the data didn't load; if a later refresh fails, the weeks already on screen stay and the Week page says the refresh failed. The Week page share image reads the database too, rebuilt every 5 minutes.
 
 **Discrepancies.** `lib/reconcile.mjs` lists every place the two sources disagree (stakes, payers, results, picks). It reports the differences without fixing them. Today the list starts with the stakes: Standings shows **$40** (data/bets.json, Weeks 5–8, including open Week 8) and Bets shows **$60** (parlay-history.json, graded Weeks 2 and 4–7, with Week 4 at $20).
 
@@ -156,7 +156,7 @@ These were decided by the league (commissioner answers, 2026-10-31) and recorded
 | `splitStake` | Yes, a stake can be split between payers. |
 | `rollover` | A stake that is not placed rolls over to the next week. |
 | `pickDeadline` | No hard deadline. Push to have picks in by Thursday. |
-| `editsAndLocks` | A pick can be changed until its game kicks off; then it is locked. |
+| `editsAndLocks` | A pick can be changed until the ticket is placed. A pick saved after its game kicks off still saves, with a warning. |
 | `pushHandling` | The House decides. |
 | `voidHandling` | The House decides, including postponed games (TBD by the House). |
 | `missingPicks` | Go with what is in: the ticket is placed with the picks submitted. |
@@ -168,7 +168,7 @@ These were decided by the league (commissioner answers, 2026-10-31) and recorded
 | `importConflict` | The pick that is on the placed sportsbook ticket wins. Until a slip settles it, conflicting imports are flagged, not overwritten. |
 
 **Rules the site enforces:**
-- **Pick lock** (`lib/pick-lock.mjs`). `/api/pick` refuses to save or change a pick once its game has kicked off, or once the manager's saved pick's game has. The Pick tab also greys out games that have started. If ESPN can't be reached, the check is skipped and the response says so.
+- **Kickoff warning** (`lib/pick-lock.mjs`). The league bets together, so what matters is getting the ticket to the book in time, not when a pick reached the sheet. `/api/pick` never refuses a pick for kickoff: a save after the game started (ESPN shows it live, or its scheduled kickoff has passed) goes through with a warning that the book may not take that leg pre-game. A placed, settled or locked week is still frozen. If ESPN can't be reached, the check is skipped and the response says so.
 - **Going with what's in.** The Pick tab shows the slip so far before all 11 picks are in. Auto-save still waits for 11.
 - **Import conflicts.** These are flagged and never overwritten. The pick on the placed slip decides.
 - **Payouts.** Winnings are settled in person, so the site shows no per-person share.
@@ -183,7 +183,7 @@ These were decided by the league (commissioner answers, 2026-10-31) and recorded
 
 Since 2026-11-07, weeks live in Supabase: one `holm_tickets` row and its `holm_legs` per week. They are added and graded from the Commissioner page (Save, Lock, slip import) and by the 11-pick auto-commit, and every change is logged in `holm_week_audit`. Set a week's results to `unknown` when the slate is not graded yet. Do not invent a result. Do not copy grades from `parlay-history.json` into a week.
 
-`data/bets.json` is the archive the weeks were copied from. **Editing it no longer changes the site.** Pages fall back to it, plus `holm_parlay_weeks`, only when the database can't be read.
+`data/bets.json` is the archive the weeks were copied from. **Editing it does not change the site**, and no page reads it.
 
 ## Parlay history (`parlay-history.json`)
 
@@ -226,7 +226,9 @@ runs only from Actions → nicknames → Run workflow and skips anyone with a co
 `data/nicknames.json`; `scripts/check-nicknames.mjs` enforces the rules (real manager ids, 3–28 characters, family-friendly,
 no clash with anyone else's name or alias); tests and the build run; then the job opens a `nicknames/<date>` PR. Nothing
 ships until it is merged. The nickname shows on the League page Owner card and joins the roster lookup; the short handle
-(`nick`) the tables use never changes. Needs the repo secret `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`.
+(`nick`) the tables use never changes. Runs on Claude Fable 5.2 (`--model claude-fable-5-2`). Needs the repo secret `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`.
+
+The Commissioner page's **Claude recap** (`pages/api/recap.js`) also runs on Claude Fable 5.2. It gets the week's results plus a profile for every manager (`lib/recap-context.mjs`: league history, titles, last-place finishes, team names, current and past nicknames, commissioner locks) and returns the recap and nickname ideas as JSON. Locked managers and repeated nicknames are dropped, and nothing saves until the commissioner ticks it. If Claude declines, the API retries on a fallback model; if that declines too, the page keeps the template recap.
 
 ## "Ticket's full" push
 

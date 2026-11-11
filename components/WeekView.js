@@ -30,13 +30,13 @@ const TONE = { won: 'win', lost: 'loss', live: 'live', push: 'push' };
 function RecapCard({ week, state }) {
   const t = weeklyTickets([week], state.graded)[0];
   const legs = weeklyLegs([week], state.graded);
-  const r = buildRecap(Object.assign({}, t, { legs }), 'data/bets.json');
+  const r = buildRecap(Object.assign({}, t, { legs }), 'recorded results');
   if (!r.settled) return null;
   const share = () => window.open('https://wa.me/?text=' + encodeURIComponent(r.text + '\n\nHolm chat: ' + (state.config.chat || DEFAULT_CHAT_URL)), '_blank');
   const copy = async () => { try { await navigator.clipboard.writeText(r.text); toast('Recap copied'); } catch (e) { toast('Copy failed'); } };
   return (
     <section className="card">
-      <div className="card__head"><h2>{r.title}</h2><span className="sub">From recorded results · data/bets.json</span></div>
+      <div className="card__head"><h2>{r.title}</h2><span className="sub">From recorded results</span></div>
       <div className="card__body">
         <p className="recap">{r.text}</p>
         <div className="inline">
@@ -296,9 +296,7 @@ export default function WeekView() {
       <WeekTabs store={store} />
       <ScoreNotice notice={scoreNotice(state.graded, { week: week.week, scope: 'week' })} onRetry={() => store.refreshScores(true)} />
       {kick ? <p className="rules rules--warn">{kick}</p> : null}
-      {state.dataConflicts && state.dataConflicts.length
-        ? <p className="rules">{'Supabase has a different ticket for week ' + state.dataConflicts.map((c) => c.week).join(', ') + '. This board is showing data/bets.json.'}</p>
-        : null}
+      {state.weeksError ? <p className="rules rules--warn">{'Couldn\u2019t refresh the weeks just now, so this is the last copy loaded. ' + state.weeksError}</p> : null}
 
       {pending ? null : sweatOn(graded) ? <SweatBar graded={graded} /> : <LegDots graded={graded} />}
 

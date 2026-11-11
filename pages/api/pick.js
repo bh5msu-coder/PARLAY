@@ -74,15 +74,15 @@ async function sbGet(path) {
   return { ok: r.ok, status: r.status, data };
 }
 
-/** League settings (week 0) and the nicknames that work as names: the commissioner's and Claude's. */
+/** League settings (holm_settings) and the nicknames that work as names: the commissioner's and Claude's. */
 async function loadSettings() {
-  const r = await sbGet(`/rest/v1/holm_parlay_weeks?season=eq.${SEASON}&week=eq.0&select=data`);
+  const r = await sbGet(`/rest/v1/holm_settings?season=eq.${SEASON}&select=data`);
   const cfg = (r.data && r.data[0] && r.data[0].data) || {};
   return { cfg, aliases: nicknameAliases(cfg.nicknames, titles) };
 }
 
 /** The stored week (data and when it was last written), or null. Weeks live in holm_tickets + holm_legs
- *  since 2026-11-07; holm_parlay_weeks keeps only league settings (week 0). A failed read throws, so a
+ *  since 2026-11-07 (holm_parlay_weeks is a read-only archive). A failed read throws, so a
  *  save never goes ahead on a week whose placed or locked state could not be checked. */
 async function loadWeekRow(week) {
   return loadDbWeek(SEASON, week);
@@ -172,13 +172,13 @@ export default async function handler(req, res) {
     const board = await loadScoreboard(SEASON, wk);
     const current = await loadPicks(wk);
     const mine = current.ok ? current.data.find((r) => canonicalWho(r.who, roster) === who) : null;
+    // Late saves are never refused (the group bets together); they come back with a warning.
     const lock = checkPickLock(board, leg, mine);
-    if (!lock.ok) { json(res, 409, { error: lock.reason, locked: true }); return; }
 
     const result = await upsertOne(wk, who, Object.assign({}, leg, { source: { kind: source === 'whatsapp' ? 'whatsapp' : 'web', savedAt: new Date().toISOString() } }), source, roster);
     if (!result.ok) { json(res, result.status, result); return; }
     const committed = await maybeCommit(wk, roster, current.ok ? current.data : null);
-    json(res, 200, { row: result.row, lockChecked: lock.checked, ...committed });
+    json(res, 200, { row: result.row, lockChecked: lock.checked, late: lock.late, warning: lock.warning || '', ...committed });
   } catch (e) {
     json(res, 500, { error: e.message || 'pick failed' });
   }
@@ -279,9 +279,10 @@ async function importPicks(week, body, roster, cfg, aliases) {
   const savedByWho = new Map(existing.data.map((r) => [canonicalWho(r.who, roster), r]));
   const saved = [];
   const failed = [];
+  const warnings = [];
   for (const p of accepted) {
     const lock = checkPickLock(board, p.leg, savedByWho.get(p.who));
-    if (!lock.ok) { parsed.errors.push({ line: p.source && p.source.lineNo, text: p.leg.label, reason: lock.reason, who: p.who, leg: p.leg }); continue; }
+    if (lock.warning) warnings.push({ who: p.who, label: p.leg.label, line: p.source && p.source.lineNo, reason: lock.warning });
     const leg = Object.assign({}, p.leg, { source: p.source });
     const r = await upsertOne(week, p.who, leg, 'whatsapp', roster);
     if (r.ok) saved.push({ who: p.who, label: leg.label, source: p.source, row: r.row });
@@ -313,6 +314,7 @@ async function importPicks(week, body, roster, cfg, aliases) {
       skipped: (parsed.skipped || []).length,
       importLog,
       lockChecked: !!board,
+      warnings,
       ...committed,
     },
   };

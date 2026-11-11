@@ -378,7 +378,7 @@ export default function LeagueView() {
       {ready ? (
         <Achievements groups={[
           ...(history ? [{ title: 'Season so far', source: 'parlay-history.json', legs: historyLegs(history) }] : []),
-          { title: 'Weekly record', source: 'data/bets.json', legs: weeklyLegs(state.weeks, state.graded) },
+          { title: 'Weekly record', source: 'league database', legs: weeklyLegs(state.weeks, state.graded) },
         ]} />) : <section className="card skel" aria-busy="true"><div className="skel__bar" /><div className="skel__bar skel__bar--short" /></section>}
       <div className="inline lpanel__links">
         <Link className="btn btn--primary" href="/pick">Make your pick</Link>

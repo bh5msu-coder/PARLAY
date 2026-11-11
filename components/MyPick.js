@@ -20,7 +20,7 @@ export function MyPick({ week, row, locked, games }) {
         <p className="mypick__leg"><strong>{row.leg.label}</strong>{row.leg.odds ? <span className="muted">{' ' + (row.leg.odds > 0 ? '+' : '') + row.leg.odds}</span> : null}</p>
         <p className="muted">{[game, savedAtLabel(row.updated_at), row.source === 'whatsapp' ? 'from WhatsApp' : 'on the website'].filter(Boolean).join(' · ')}</p>
         {move && move.status === 'moved' ? <p className="rules rules--warn mypick__move">{move.text + (move.book ? ` on ${move.book}` : '') + '. Re-save it if you want the new number.'}</p> : null}
-        <p className="mypick__stored">{locked ? 'Stored on the league board. This game has kicked off, so the pick is locked.' : 'Stored on the league board. Change it any time before kickoff.'}</p>
+        <p className="mypick__stored">{locked ? 'Stored on the league board. This game has kicked off. You can still change it, but the book may not take a new leg pre-game, so tell the group.' : 'Stored on the league board. Change it any time; get it in before kickoff so it makes the ticket.'}</p>
         <div className="inline">
           <a className="btn btn--primary" href={waShareHref(text)} target="_blank" rel="noopener">Post to WhatsApp</a>
           <button className="btn btn--secondary" type="button" onClick={copy}>Copy</button>

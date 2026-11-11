@@ -51,6 +51,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ github.token }}
           claude_args: |
+            --model claude-fable-5-2
             --max-turns 8
             --allowedTools "Read,Edit,Write"
           prompt: |
@@ -66,6 +67,10 @@ jobs:
               a hot run, a title chase). Aim to change about half of them each run.
             - Ground each one in a real fact from the file: a streak, a busted leg, a title, last-place
               finishes, a team name, a bet type they love or miss. Never invent results.
+            - For each manager, come up with several candidates first (puns on their name or fantasy team
+              name, callbacks to titles or last-place years, their betting habits) and keep the one with
+              the sharpest link to a real fact. The league bets together on one ticket, so the ribbing is
+              the kind friends give each other after a shared loss, never mean.
             - Funny, ribbing, family-friendly. No profanity, slurs, or jokes about looks, family,
               health, jobs or money trouble. 3–28 characters; letters, numbers, spaces and ' . & ! ? - only.
             - Do not reuse anyone else's name, short handle or alias, and no two managers may share a nickname.

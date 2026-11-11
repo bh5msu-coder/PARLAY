@@ -1,6 +1,4 @@
 import { ImageResponse } from 'next/og';
-import bets from '../../data/bets.json';
-import { normalizeFile } from '../../lib/weeks.mjs';
 import { loadDbWeeks } from '../../lib/db-weeks.mjs';
 import { ident } from '../../lib/ident.mjs';
 import { weekCardFacts } from '../../lib/share-card.mjs';
@@ -13,12 +11,11 @@ export const contentType = 'image/png';
 export const revalidate = 300;
 
 export default async function Image() {
-  // The database is the record; the bundled data/bets.json archive is only a fallback if it can't be read.
+  // The database is the record. If it can't be read, the card says only "The weekly parlay".
   let weeks;
-  try { weeks = await loadDbWeeks(2026); } catch (e) { weeks = null; }
-  if (!weeks || !weeks.length) weeks = normalizeFile(bets).weeks;
-  const week = weeks.slice().sort((a, b) => b.week - a.week)[0];
-  const f = weekCardFacts(week, (n) => ident.nick(n) || n);
+  try { weeks = await loadDbWeeks(2026); } catch (e) { weeks = []; }
+  const week = (weeks || []).slice().sort((a, b) => b.week - a.week)[0];
+  const f = week ? weekCardFacts(week, (n) => ident.nick(n) || n) : null;
   return new ImageResponse(await cardElement({
     eyebrow: 'THE WEEKLY PARLAY',
     title: f ? `Week ${f.week} parlay` : 'The weekly parlay',
