@@ -1,6 +1,6 @@
 /** GET /api/weeks: the season's weeks from holm_tickets + holm_legs, in the shape the pages use
  *  (lib/week-rows.mjs). Read-only, public key. Every page reads its weeks from here (lib/league-store.mjs);
- *  if this fails, the store falls back to data/bets.json + holm_parlay_weeks. */
+ *  there is no second copy to fall back to (data/bets.json is the season archive only). */
 import { loadDbWeeks } from '../../lib/db-weeks.mjs';
 
 export { loadDbWeeks };

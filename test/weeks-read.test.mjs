@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { weekToRows, weeksFromRows, compareWeekSets } from '../lib/week-rows.mjs';
 import { loadDbWeeks } from '../pages/api/weeks.js';
 import handler from '../pages/api/weeks.js';
-import { createLeagueStore, WEEKS_SOURCE_LS, DEFAULT_WEEKS_SOURCE } from '../lib/league-store.mjs';
+import { createLeagueStore } from '../lib/league-store.mjs';
 
 const file = JSON.parse(readFileSync(new URL('../data/bets.json', import.meta.url), 'utf8'));
 const asDb = (weeks) => {
@@ -53,47 +53,38 @@ test('/api/weeks reads both tables with the public key and returns weeks; a fail
 function storeWith(dbResponse) {
   const { tickets, legs } = asDb(file.weeks);
   const dbWeeks = weeksFromRows(tickets, legs);
-  return createLeagueStore({ fetch: async (url) => {
+  const urls = [];
+  const store = createLeagueStore({ fetch: async (url) => {
     const u = String(url);
-    if (u.includes('/data/bets.json')) return okJson(file);
+    urls.push(u);
     // A fresh copy per call, like a real fetch: the store tidies names in place after loading.
     if (u.includes('/api/weeks')) return dbResponse ? dbResponse(dbWeeks) : okJson({ weeks: JSON.parse(JSON.stringify(dbWeeks)) });
+    if (u.includes('holm_settings')) return okJson([{ data: { leagueName: 'Our Holm League', nicknames: {} } }]);
     return okJson([]);
   } });
+  store.urls = urls;
+  return store;
 }
 
-test('everyone reads weeks from the database; a phone can opt back to the old sources; a failed read falls back', async () => {
-  const mem = {};
-  global.localStorage = { getItem: (k) => mem[k] ?? null, setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
-  try {
-    assert.equal(DEFAULT_WEEKS_SOURCE, 'db');
-    const plain = storeWith();
-    await plain.loadData();
-    assert.equal(plain.state.weeksSource, 'db', 'the database by default');
-    assert.ok(plain.state.weeks.every((w) => w.source === 'db'));
-    await plain.checkShadow();
-    assert.deepEqual(plain.state.shadow.diffs, [], 'the database matches the old sources');
+test('the site reads weeks only from the database; the archive file and the old weeks table are never read', async () => {
+  const store = storeWith();
+  await store.loadData();
+  assert.ok(store.state.weeks.length > 0);
+  assert.ok(store.state.weeks.every((w) => w.source === 'db'));
+  assert.deepEqual(store.state.weeks.map((w) => w.week), file.weeks.map((w) => Number(w.week)).sort((a, b) => a - b));
+  assert.ok(!store.urls.some((u) => u.includes('bets.json') || u.includes('holm_parlay_weeks')), store.urls.join('\n'));
+  assert.ok(store.urls.some((u) => u.includes('holm_settings')), 'settings come from holm_settings');
+});
 
-    mem[WEEKS_SOURCE_LS] = 'site';
-    const old = storeWith();
-    await old.loadData();
-    assert.equal(old.state.weeksSource, 'site');
-    assert.deepEqual(old.state.weeks.map((w) => w.week), plain.state.weeks.map((w) => w.week));
-
-    delete mem[WEEKS_SOURCE_LS];
-    const broken = storeWith(() => okJson({ error: 'down' }, 502));
-    await broken.loadData();
-    assert.equal(broken.state.weeksSource, 'site', 'falls back to the old sources');
-    assert.match(broken.state.weeksSourceError, /down/);
-    assert.deepEqual(broken.state.weeks.map((w) => w.week), plain.state.weeks.map((w) => w.week));
-
-    try {
-      await plain.setWeeksSource('site');
-      assert.equal(mem[WEEKS_SOURCE_LS], 'site');
-      assert.equal(plain.state.weeksSource, 'site');
-      await plain.setWeeksSource('db');
-      assert.equal(mem[WEEKS_SOURCE_LS], undefined, 'back on the default leaves nothing stored');
-      assert.equal(plain.state.weeksSource, 'db');
-    } finally { clearTimeout(plain.state.timer); }  // the switch re-grades and schedules the next refresh
-  } finally { delete global.localStorage; }
+test('a failed weeks read stops the first load, and keeps what is on screen on a reload', async () => {
+  let down = false;
+  const store = storeWith((dbWeeks) => (down ? okJson({ error: 'down' }, 502) : okJson({ weeks: JSON.parse(JSON.stringify(dbWeeks)) })));
+  await store.loadData();
+  const shown = store.state.weeks.map((w) => w.week);
+  down = true;
+  await store.loadData();
+  assert.deepEqual(store.state.weeks.map((w) => w.week), shown, 'last good copy stays');
+  assert.match(store.state.weeksError, /down/);
+  const fresh = storeWith(() => okJson({ error: 'down' }, 502));
+  await assert.rejects(fresh.loadData(), /down/);
 });

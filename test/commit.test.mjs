@@ -86,14 +86,13 @@ test('payments shown on a week are never written back into it', () => {
 });
 
 test('loading a week that already holds a saved copy of a payment counts it once', async () => {
-  const sbRows = [{ week: 9, data: { stake: 10, legs: [], contributions: [{ who: 'Brad Holm', amount: 10, source: 'supabase' }] } }];
+  const dbWeeks = [{ week: 9, stake: 10, legs: [], contributions: [{ who: 'Brad Holm', amount: 10, source: 'supabase' }], source: 'db' }];
   const payments = [{ id: 1, week: 9, who: 'Brad Holm', amount: 10, recorded_at: '2026-11-06T00:00:00Z', source: { date_known: false } }];
   const ok = (d) => ({ ok: true, status: 200, async json() { return d; } });
   const store = createLeagueStore({ fetch: async (url) => {
     const u = String(url);
-    if (u.includes('/data/bets.json')) return ok({ weeks: [] });
+    if (u.includes('/api/weeks')) return ok({ weeks: dbWeeks });
     if (u.includes('holm_payments')) return ok(payments);
-    if (u.includes('holm_parlay_weeks')) return ok(sbRows);
     return ok({});
   } });
   await store.loadData();

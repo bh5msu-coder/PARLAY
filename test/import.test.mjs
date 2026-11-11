@@ -266,7 +266,7 @@ test('league answers are recorded, and config can still override them', () => {
   assert.equal(undecidedRules({}).length, 0, 'every rule has a league answer');
   assert.deepEqual([rule({}, 'payoutSplit').value, rule({}, 'payoutSplit').source], ['in-person', 'answer']);
   assert.equal(rule({}, 'importConflict').value, 'slip');
-  assert.equal(rule({}, 'editsAndLocks').value, 'until-kickoff');
+  assert.equal(rule({}, 'editsAndLocks').value, 'until-placed-warn-late');
   assert.equal(rule({}, 'missingPicks').value, 'go-with-what-is-in');
   const o = rule({ rules: { importConflict: 'latest' } }, 'importConflict');
   assert.deepEqual([o.value, o.source], ['latest', 'config']);

@@ -75,7 +75,7 @@ export default function LineBoard({ games, form, submissions, you, onTap, onSave
           );
         })}
       </div>
-      {started ? <p className="muted lineboard__started">{`${started} game${started === 1 ? '' : 's'} already kicked off and locked.`}</p> : null}
+      {started ? <p className="muted lineboard__started">{`${started} game${started === 1 ? '' : 's'} already kicked off. A late pick can still go in by hand below; the book may not take it pre-game.`}</p> : null}
       {formKey ? (
         <div className="pickbar" role="region" aria-label="Confirm your pick">
           <div className="pickbar__text">

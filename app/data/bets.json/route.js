@@ -1,5 +1,5 @@
-// Serves data/bets.json at its historical URL. data/bets.json is the only record that adds or
-// grades a week; this route only reads it (bundled at build, so edits ship with a deploy).
+// Serves the season archive (data/bets.json) at its historical URL, read-only. The site no longer reads
+// it: weeks are recorded in the league database (holm_tickets + holm_legs, through /api/weeks).
 import bets from '../../../data/bets.json';
 
 export const dynamic = 'force-static';

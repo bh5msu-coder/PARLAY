@@ -53,9 +53,9 @@ test('roster lines that are not a manager are set aside, not used as names', asy
   const cfg = { roster: ['Ryan Hoffman; H0$$', 'Brad Holm', 'Hoss'], abstain: ['Kyle Heller'] };
   const store = createLeagueStore({ fetch: async (url) => {
     const u = String(url);
-    if (u.includes('/data/bets.json')) return ok({ weeks: [] });
+    if (u.includes('/api/weeks')) return ok({ weeks: [] });
     if (u.includes('holm_payments')) return ok([]);
-    if (u.includes('holm_parlay_weeks')) return ok([{ week: 0, data: cfg }]);
+    if (u.includes('holm_settings')) return ok([{ data: cfg }]);
     return ok({});
   } });
   await store.loadData();
@@ -74,7 +74,7 @@ test('the pick API saves a pick sent under a commissioner nickname for the right
   global.fetch = async (url, opts) => {
     const u = String(url);
     if (opts && opts.method === 'POST') { posts.push({ u, body: JSON.parse(opts.body) }); return ok([JSON.parse(opts.body)]); }
-    if (u.includes('holm_parlay_weeks') && u.includes('week=eq.0')) return ok([{ data: { nicknames: { 'Kevin Sack': 'Wally' } } }]);
+    if (u.includes('holm_settings')) return ok([{ data: { nicknames: { 'Kevin Sack': 'Wally' } } }]);
     if (u.includes('site.api.espn.com')) return ok(board);
     return ok([]);
   };

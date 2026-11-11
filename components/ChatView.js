@@ -113,7 +113,7 @@ export default function ChatView() {
       <SmackFeed
         records={[
           ...(history ? [{ legs: historyLegs(history), tickets: historyTickets(history), source: 'parlay-history.json' }] : []),
-          { legs: weeklyLegs(state.weeks, state.graded), tickets: weeklyTickets(state.weeks, state.graded), source: 'data/bets.json' },
+          { legs: weeklyLegs(state.weeks, state.graded), tickets: weeklyTickets(state.weeks, state.graded), source: 'league database' },
         ]}
         onDraft={(t) => { setText(t); setTimeout(() => boxRef.current && boxRef.current.focus(), 0); }}
         onShare={(t) => share(t, whoValue)} />

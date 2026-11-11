@@ -27,11 +27,12 @@ function ImportReport({ report }) {
   if (report.error) return <p className="rules rules--error">{report.error}</p>;
   const rows = (list, cls) => list.map((x, i) => (
     <tr key={i}><td className="num">{x.line || '–'}</td><td>{x.who || '–'}</td><td>{x.label || x.text || ''}</td><td className={cls}>{x.reason || ''}</td></tr>));
-  const saved = report.saved || [], dup = report.duplicates || [], conf = report.conflicts || [], errs = report.errors || [], failed = report.failed || [];
+  const saved = report.saved || [], dup = report.duplicates || [], conf = report.conflicts || [], errs = report.errors || [], failed = report.failed || [], late = report.warnings || [];
   return (
     <div className="import-report">
       <p className="muted">{`Saved ${saved.length} · duplicates ${dup.length} · conflicts ${conf.length} · could not read ${errs.length} · chat lines skipped ${report.skipped || 0}. ` + (POLICY_TEXT[report.policy] || '')}</p>
       {saved.length ? <p className="rules rules--info">{'Saved: ' + saved.map((x) => `${x.who} (${x.label}${x.source && x.source.lineNo ? ', line ' + x.source.lineNo : ''})`).join('; ') + '. Saved picks are not a placed bet.'}</p> : null}
+      {late.length ? <p className="rules rules--warn">{'Saved after kickoff: ' + late.map((x) => `${x.who} (${x.label})`).join('; ') + '. The book may not take these legs pre-game, so check before the ticket goes in.'}</p> : null}
       {conf.length || errs.length || dup.length || failed.length ? (
         <div className="tablewrap"><table>
           <thead><tr><th>Line</th><th>Manager</th><th>Pick</th><th>What happened</th></tr></thead>
@@ -90,7 +91,7 @@ export default function PickView() {
     }
     if (storage) clearPending(storage);
     state.pick.pending = null;
-    toast(data.committed ? 'You are in. All 11 saved, ticket built' : 'Pick saved to the board');
+    toast(data.warning ? data.warning : data.committed ? 'You are in. All 11 saved, ticket built' : 'Pick saved to the board');
     state.pick.rows = data.picks || state.pick.rows;
     state.pick.ticket = data.ticket || null;
     state.pick.committed = !!data.committed;
@@ -221,7 +222,7 @@ export default function PickView() {
             <div className="field"><label>Game</label>
               <select value={gameValue} onChange={(e) => { const [away, home] = e.target.value.split('|'); state.pick.form.gameAway = away || ''; setF('gameHome', home || ''); }}>
                 <option value="">Select NFL game</option>
-                {state.pick.games.map((g) => <option key={g.away + '|' + g.home} value={g.away + '|' + g.home} disabled={!g.pre}>{g.detail + (g.pre ? '' : ' · kicked off, locked')}</option>)}
+                {state.pick.games.map((g) => <option key={g.away + '|' + g.home} value={g.away + '|' + g.home}>{g.detail + (g.pre ? '' : ' · kicked off')}</option>)}
               </select>
             </div>
             <div className="field"><label>Market</label>

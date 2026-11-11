@@ -111,7 +111,7 @@ function NicknameEditor({ store }) {
     setBusy(true);
     try {
       const fresh = await store.sb.config();
-      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeNicknames(fresh, changed) });
+      await store.sb.rpc('holm_settings_save', { p_pass: state.admin.pass, p_season: SEASON, p_data: mergeNicknames(fresh, changed) });
       await store.loadData();
       const after = (store.state.config.nicknames) || {};
       const missed = Object.entries(changed).filter(([k, v]) => (after[k] || '') !== v);
@@ -186,7 +186,7 @@ function LeagueSettings({ store }) {
       }
       if (bad.length) { toast(`Not a manager: ${bad.join(', ')}. Use full names; nicknames go in the Nicknames card.`); return; }
       const fresh = await store.sb.config();
-      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeSettings(fresh, out) });
+      await store.sb.rpc('holm_settings_save', { p_pass: state.admin.pass, p_season: SEASON, p_data: mergeSettings(fresh, out) });
       toast('Settings saved'); await store.loadData(); cfgRef.current = null; store.emit();
     } catch (e) { toast('Save failed: ' + e.message); }
   };
@@ -282,7 +282,6 @@ function WeekEditor({ store }) {
       const rows = weekToRows(SEASON, Object.assign({}, payload, { week }));
       await store.sb.rpc('holm_week_put_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: week, p_ticket: rows.ticket, p_legs: rows.legs });
       toast(lock ? `Week ${week} locked` : `Week ${week} saved`);
-      state.shadow = null;
       state.admin.editing = null; state.selectedWeek = week;
       await store.loadData(); await store.refreshScores(true); store.emit();
     } catch (e) { toast('Save failed: ' + e.message); }
@@ -291,7 +290,6 @@ function WeekEditor({ store }) {
     if (!confirm(`Delete Week ${wk.week}?`)) return;
     try {
       await store.sb.rpc('holm_week_delete_commish', { p_pass: state.admin.pass, p_season: SEASON, p_week: Number(wk.week) });
-      state.shadow = null;
       state.admin.editing = null; await store.loadData(); store.emit();
     } catch (e) { toast(e.message); }
   };
@@ -308,12 +306,11 @@ function WeekEditor({ store }) {
     store.emit();
   };
 
-  const fileWeek = state.weeks.some((w) => w.week === wk.week && w.source === 'file');
   return (
     <>
     <section className="card">
       <div className="card__head"><h2>Week ticket</h2><button className="btn btn--ghost btn--sm" type="button" onClick={lockAdmin}>Lock admin</button></div>
-      <p className="muted" style={{ margin: '0 16px 8px' }}>Add a week by editing data/bets.json. Weeks in that file stay on the board. A Supabase week shows up only when its week number is not in the file.</p>
+      <p className="muted" style={{ margin: '0 16px 8px' }}>Weeks are saved to the league database. Pick a week to edit it, or add a new one.</p>
       <div className="card__body form" key={formKey}>
         <div className="row">
           <div className="field"><label>Week</label>
@@ -353,14 +350,14 @@ function WeekEditor({ store }) {
         {isSaved ? <button className="btn btn--ghost" type="button" onClick={remove}>Delete week</button> : null}
       </div>
     </section>
-    <SlipImport key={'slip-' + wk.week} store={store} wk={wk} fileWeek={fileWeek} />
+    <SlipImport key={'slip-' + wk.week} store={store} wk={wk} />
     </>
   );
 }
 
 /** Paste a sportsbook slip, match it leg-by-leg to the week's picks, and (only if every leg matches)
  *  attach it as placement evidence. Unmatched legs are listed; nothing is guessed or graded. */
-function SlipImport({ store, wk, fileWeek }) {
+function SlipImport({ store, wk }) {
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
   const run = () => {
@@ -403,12 +400,7 @@ function SlipImport({ store, wk, fileWeek }) {
                 {m.unmatchedPicks.map((x, i) => <tr key={'p' + i}><td>–</td><td>{`${whoLabel(x.pick.who)}: ${x.pick.leg.label}`}</td><td className="neg">{x.reason}</td></tr>)}
               </tbody>
             </table></div>
-            {evidence ? (fileWeek ? (
-              <>
-                <p className="muted">{`Week ${wk.week} lives in data/bets.json, which wins over Supabase. Add this to the week in that file to record the placement:`}</p>
-                <pre className="slip">{JSON.stringify({ ticket: { state: 'placed', evidence: evidence.evidence }, odds: evidence.odds, toPay: evidence.toPay, book: evidence.book || wk.book }, null, 2)}</pre>
-              </>
-            ) : <div className="inline"><button className="btn btn--primary" type="button" onClick={apply}>Attach slip to the draft</button></div>) : null}
+            {evidence ? <div className="inline"><button className="btn btn--primary" type="button" onClick={apply}>Attach slip to the draft</button></div> : null}
           </>) : null}
       </div>
     </section>
@@ -424,7 +416,6 @@ export default function CommissionerView() {
         <>
           <WeekEditor store={store} />
           <NicknameEditor store={store} />
-          <DatabaseCopy store={store} />
           <ClaudeRecap store={store} />
           <LeagueSettings store={store} />
         </>)}
@@ -462,7 +453,7 @@ function ClaudeRecap({ store }) {
       const edits = {};
       for (const n of picked) edits[n.who] = n.nick.trim();
       const fresh = await store.sb.config();
-      await store.sb.rpc('holm_parlay_save_week', { p_pass: state.admin.pass, p_season: SEASON, p_week: 0, p_data: mergeNicknames(fresh, edits) });
+      await store.sb.rpc('holm_settings_save', { p_pass: state.admin.pass, p_season: SEASON, p_data: mergeNicknames(fresh, edits) });
       toast(`${picked.length} nickname${picked.length === 1 ? '' : 's'} saved`); await store.loadData(); store.emit();
     } catch (e) { toast('Save failed: ' + e.message); }
   };
@@ -500,42 +491,3 @@ function ClaudeRecap({ store }) {
   );
 }
 
-/** The move to Supabase (OUTPUTS/holm-parlay/week-data-audit.md): the weeks are copied into holm_tickets +
- *  holm_legs. This card compares that copy with what the site shows, and lets this phone read from it. */
-function DatabaseCopy({ store }) {
-  const { state } = store;
-  const [busy, setBusy] = useState(false);
-  useEffect(() => { if (!state.shadow) store.checkShadow(); }, [store, state.shadow]);
-  const sh = state.shadow;
-  const onDb = state.weeksSource === 'db';
-  const toggle = async () => {
-    setBusy(true);
-    try { await store.setWeeksSource(onDb ? 'site' : 'db'); toast(onDb ? 'This phone now reads the old sources' : 'This phone reads the database again'); } finally { setBusy(false); }
-  };
-  const describe = (d) => d.kind === 'missing-db' ? `Week ${d.week}: not in the database`
-    : d.kind === 'missing-site' ? `Week ${d.week}: only in the database`
-      : `Week ${d.week}: ${[d.fields.length ? d.fields.join(', ') : '', d.legs.length ? 'legs for ' + d.legs.join(', ') : ''].filter(Boolean).join('; ')} differ`;
-  return (
-    <section className="card">
-      <div className="card__head"><h2>Weeks database</h2><span className="sub">Checked against the old sources</span></div>
-      <div className="card__body form">
-        {!sh ? <p className="muted">Checking…</p>
-          : sh.error ? <p className="rules rules--warn">{'Could not read the weeks database: ' + sh.error}</p>
-            : !sh.diffs.length ? <p className="rules rules--info">{`All ${state.siteWeeksRaw.length} weeks match the old sources.`}</p>
-              : (
-                <>
-                  <p className="rules rules--warn">{`${sh.diffs.length} week${sh.diffs.length === 1 ? '' : 's'} differ from the old sources:`}</p>
-                  <ul className="small">{sh.diffs.map((d) => <li key={d.week}>{describe(d)}</li>)}</ul>
-                </>)}
-        <p className="muted small">{onDb
-          ? 'The site reads weeks from the database. If it cannot be read, pages fall back to the old sources (data/bets.json and the old weeks table), which stopped taking week saves on Nov 7, so weeks saved since then differ there. You can switch this phone to the old sources to compare.'
-          : 'This phone reads the old sources (data/bets.json and the picks database). Everyone else reads the database.'}</p>
-        {state.weeksSourceError ? <p className="rules rules--error">{'Database read failed, showing the old sources: ' + state.weeksSourceError}</p> : null}
-        <div className="inline">
-          <button className="btn btn--secondary btn--sm" type="button" disabled={busy} onClick={toggle}>{onDb ? 'Read the old sources on this phone' : 'Read from the database'}</button>
-          <button className="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => store.checkShadow()}>Check again</button>
-        </div>
-      </div>
-    </section>
-  );
-}

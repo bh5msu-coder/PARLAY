@@ -127,8 +127,8 @@ export default function StandingsView() {
         </table></div>
       </section>
 
-      <TicketSection tickets={tickets} sourceNote="data/bets.json + live grades" killers={killersByWeek} />
-      <SelectionCharts legs={weeklyLegs(weeks, graded)} sourceNote="data/bets.json + live grades · decided picks only" />
+      <TicketSection tickets={tickets} sourceNote="League database + live grades" killers={killersByWeek} />
+      <SelectionCharts legs={weeklyLegs(weeks, graded)} sourceNote="League database + live grades · decided picks only" />
 
       <ParlayExtras weeks={weeks} graded={graded} />
 
