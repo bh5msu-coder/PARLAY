@@ -4,6 +4,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 import BookingHost from '../components/BookingHost';
+import PickCue from '../components/PickCue';
 import rawLore from '../league-lore.json';
 import nicknames from '../data/nicknames.json';
 import { withNicknames } from '../lib/nicknames.mjs';
@@ -47,6 +48,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <LeagueProvider lore={lore}>
+          <PickCue />
           <div className="wrap">{children}</div>
           <BottomNav />
           <BookingHost />

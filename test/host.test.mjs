@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import lore from '../league-lore.json' with { type: 'json' };
 import { ident } from '../lib/ident.mjs';
 import {
-  HOST_NAME, echoBet, fantasyRecap, findGame, hostBriefing, hostIntro, hostReply, matchupFor, oweStatus,
+  HOST_NAME, echoBet, fantasyRecap, findGame, findGameByTeam, hostBriefing, hostIntro, hostReply, matchupFor, oweStatus,
   routeIntent, shouldAutoOpen, markSeen, thursdayDeadline, youStats, parlayLastWeek,
 } from '../lib/host.mjs';
 
@@ -80,11 +80,11 @@ test('host: Thursday push counts down before kickoff and passes once the week is
   assert.deepEqual([mon.passed, mon.label], [false, 'Thu, Nov 19']);
 });
 
-test('host: the reminder offers to type the bet back when no pick is saved, and confirms one that is', () => {
+test('host: the reminder offers to take the bet when no pick is saved, and confirms one that is', () => {
   const none = hostBriefing({ you: 'Brad Holm', clock, lastPlace, now: tuesday, pickRows: [] });
   const lines = hostReply('when is my pick due', none).lines;
   assert.match(lines[0], /by Thursday, Nov 12/);
-  assert.match(lines[1], /type it back/);
+  assert.match(lines[1], /read it back, and one tap on Save/);
   const saved = hostBriefing({ you: 'Brad Holm', clock, lastPlace, now: tuesday, pickRows: [{ who: 'Brad Holm', leg: { label: 'Bills -3.5', game: ['BUF', 'MIA'] } }] });
   assert.match(hostReply('when is my pick due', saved).lines[0], /You're in for Week 10: Bills -3.5 \(BUF at MIA\)/);
 });
@@ -137,10 +137,10 @@ test('host: intent routing keeps "place my bet" away from the echo and ignores f
   assert.equal(routeIntent('do I owe'), 'owe');
   assert.equal(routeIntent('who do i play'), 'matchup');
   assert.equal(routeIntent('my win %'), 'stats');
-  assert.match(hostReply('place my bet', hostBriefing({ you: 'Brad Holm', clock, now: tuesday })).lines[0], /can't place a wager or save a pick/);
+  assert.match(hostReply('place my bet', hostBriefing({ you: 'Brad Holm', clock, now: tuesday })).lines[0], /can't place a wager/);
 });
 
-test('host: typing a bet back builds a HOLM PICK block the importer reads, and saves nothing', () => {
+test('host: a typed bet is read back as a HOLM PICK block and a leg, and nothing is saved by the read-back', () => {
   const roster = ident.parlayRoster();
   const spread = echoBet('BUF at MIA Bills -3.5 -110', { week: 10, who: 'Brad Holm', roster });
   assert.equal(spread.ok, true);
@@ -154,8 +154,40 @@ test('host: typing a bet back builds a HOLM PICK block the importer reads, and s
   assert.deepEqual([ml.leg.type, ml.leg.team, ml.leg.odds], ['ml', 'NYJ', 150]);
   assert.equal(echoBet('Bills -3', { week: 10, who: 'Brad Holm' }).ok, false);
   const r = hostReply('BUF at MIA Bills -3.5', hostBriefing({ you: 'Brad Holm', clock, now: tuesday }), { roster });
-  assert.match(r.lines[0], /I haven't saved anything/);
+  assert.match(r.lines[0], /Nothing is saved yet/);
   assert.match(r.bet, /^HOLM PICK W10/);
+  assert.equal(r.ok, true);
+  assert.deepEqual([r.leg.type, r.leg.team, r.leg.line], ['spread', 'BUF', -3.5]);
+});
+
+test('host: a bet that only names a team finds this week\'s game, and never guesses between two', () => {
+  const roster = ident.parlayRoster();
+  const games = [{ away: 'BUF', home: 'MIA' }, { away: 'KC', home: 'LV' }];
+  assert.deepEqual(findGameByTeam('Bills -3.5', games), ['BUF', 'MIA']);
+  assert.equal(findGameByTeam('Bills and Chiefs', games), null);
+  assert.equal(findGameByTeam('Packers ML', games), null);
+  assert.equal(routeIntent('Bills -3.5', games), 'echo');
+  assert.equal(routeIntent('Bills -3.5'), 'unknown');
+  assert.equal(routeIntent('do I owe', games), 'owe');
+  const b = hostBriefing({ you: 'Brad Holm', clock, now: tuesday });
+  const r = hostReply('Chiefs ML -150', b, { roster, games });
+  assert.equal(r.ok, true);
+  assert.deepEqual([r.leg.type, r.leg.team, r.leg.game, r.leg.odds], ['ml', 'KC', ['KC', 'LV'], -150]);
+});
+
+test('host: touchdown props and scores-first bets read back as saveable legs; a bet missing a piece is not', () => {
+  const roster = ident.parlayRoster();
+  const b = hostBriefing({ you: 'Brad Holm', clock, now: tuesday });
+  const any = hostReply('KC at LV Travis Kelce anytime TD', b, { roster });
+  assert.equal(any.ok, true);
+  assert.deepEqual([any.leg.type, any.leg.stat, any.leg.player], ['player', 'anyTD', 'Travis Kelce']);
+  const first = hostReply('KC at LV Travis Kelce first TD', b, { roster });
+  assert.deepEqual([first.ok, first.leg.stat, first.leg.player], [true, 'firstTD', 'Travis Kelce']);
+  const team = hostReply('KC at LV Chiefs scores first', b, { roster });
+  assert.deepEqual([team.ok, team.leg.type, team.leg.team], [true, 'first', 'KC']);
+  const bad = hostReply('KC at LV over', b, { roster });
+  assert.equal(bad.ok, false);
+  assert.match(bad.lines[0], /can't save it yet/);
 });
 
 test('host: the intro greets by nickname and leads with the week, or asks who you are', () => {

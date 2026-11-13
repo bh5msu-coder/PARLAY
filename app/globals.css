@@ -1,9 +1,11 @@
-/* Classic Banner tokens (Canva header option A, 2026-10-31): navy ground, cream wordmark, muted teal, old gold.
- *  --cream is the wordmark and page titles; --rule is the gold line under a title. Dark primary, light mirror. */
+/* Bold tokens (2026-11-13, replaces the muted Classic Banner teal and gold): navy ground, white wordmark, bright
+ *  green for bet buttons and selected lines (--brand), hot orange for the main call to action (--cta) and accents.
+ *  --cream is the wordmark and page titles; --rule is the line under a title. Dark primary, light mirror. */
 :root{
   --surface-0:#070d14;--surface-100:#0f1720;--surface-200:#17212c;--line:#23303d;--line-strong:#5b6b7f;
-  --ink:#e8edf2;--ink-muted:#909aa6;--brand:#4aa596;--on-brand:#06101f;--accent2:#c9a24a;--focus:var(--accent2);
-  --cream:#ebd9c5;--eyebrow:#c2b6ad;--teal-deep:#2f8478;--rule:#a97817;
+  --ink:#f2f5f8;--ink-muted:#9aa6b4;--brand:#2ee66b;--on-brand:#04140a;--accent2:#ff8a2a;--focus:var(--accent2);
+  --cta:#ff7a1a;--on-cta:#1a0c00;
+  --cream:#ffffff;--eyebrow:#b9c4d0;--teal-deep:#19b354;--rule:#ff7a1a;
   --win:#34d8b0;--win-tint:#0f2e29;--loss:#e5484d;--loss-tint:#2e1416;--pending:#6ea8ff;--push:var(--ink-muted);
   --font-display:var(--f-display),"Barlow Condensed","Arial Narrow",sans-serif;--font-sans:var(--f-sans),"Barlow",system-ui,sans-serif;--font-mono:var(--f-mono),"IBM Plex Mono",ui-monospace,monospace;
   --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-6:24px;--space-8:32px;
@@ -11,8 +13,9 @@
 }
 :root[data-theme="light"]{
   --surface-0:#f2f1ef;--surface-100:#ffffff;--surface-200:#e9eaec;--line:#d5d8dc;--line-strong:#7c8896;
-  --ink:#152230;--ink-muted:#556170;--brand:#2a7466;--on-brand:#ffffff;--accent2:#8a6a1f;--focus:#8a6a1f;
-  --cream:#152230;--eyebrow:#5d5146;--teal-deep:#2a7466;--rule:#c2a562;
+  --ink:#0b1622;--ink-muted:#4d5968;--brand:#0a7d38;--on-brand:#ffffff;--accent2:#b84a00;--focus:#b84a00;
+  --cta:#c2410c;--on-cta:#ffffff;
+  --cream:#0b1622;--eyebrow:#4d5968;--teal-deep:#0a7d38;--rule:#e8590c;
   --win:#087a4d;--win-tint:#e2f5ec;--loss:#c8322d;--loss-tint:#fbe5e4;--pending:#2b6cd9;
 }
 *{box-sizing:border-box}
@@ -719,7 +722,7 @@ details.manual>.row{margin-bottom:12px}
 .host__msg{max-width:92%;padding:8px 12px;border-radius:var(--radius-md);font-size:14px;line-height:20px}
 .host__msg p{margin:0}.host__msg p+p{margin-top:6px}
 .host__msg--host{align-self:flex-start;background:var(--surface-200);border:1px solid var(--line)}
-.host__msg--you{align-self:flex-end;background:var(--teal-deep);color:#fff}
+.host__msg--you{align-self:flex-end;background:var(--brand);color:var(--on-brand)}
 .host__bet{margin:8px 0 0;padding:8px 10px;background:var(--surface-0);border:1px dashed var(--accent2);border-radius:var(--radius-sm);font:500 13px/18px var(--font-mono);white-space:pre-wrap;word-break:break-word}
 .host__betacts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
 .host__who{padding:4px 0}
@@ -772,3 +775,70 @@ details.manual>.row{margin-bottom:12px}
 .infotip__btn{position:relative}
 .infotip__btn::after{content:"";position:absolute;inset:-13px}
 .pills .chip{min-height:28px}
+
+/* Bold pass (2026-11-13): larger buttons, the orange call to action, the Pick shortcut and the props panel.
+ *  Kept after the 44px floor above so these sizes win. */
+.btn{min-height:52px;padding:12px 20px;font:700 16px/20px var(--font-sans);border-radius:10px;justify-content:center}
+.btn--sm{min-height:44px;padding:8px 14px;font-size:14px;line-height:18px}
+.btn--cta{background:var(--cta);color:var(--on-cta)}
+a.btn--primary:hover{color:var(--on-brand)}
+a.btn--cta:hover{color:var(--on-cta)}
+@media (hover:hover){.btn--primary:not(:disabled):hover,.btn--cta:not(:disabled):hover{filter:brightness(1.08)}}
+.card{border-radius:12px}
+.navpick{min-height:44px;padding:8px 20px;margin:0 6px}
+.navpick[aria-current="page"],.bottomnav__pick[aria-current="page"]{box-shadow:0 0 0 2px var(--surface-0),0 0 0 4px var(--cta)}
+.bottomnav{grid-template-columns:repeat(5,1fr);align-items:center}
+.bottomnav a,.bottomnav .more>summary{min-height:52px}
+.bottomnav a.bottomnav__pick,.bottomnav a.bottomnav__pick[aria-current="page"]{margin:0 4px;background:var(--cta);color:var(--on-cta);border-radius:12px;font:700 15px/20px var(--font-sans)}
+.pickcue{position:sticky;top:0;z-index:12;display:flex;align-items:center;justify-content:center;gap:12px;padding:calc(8px + env(safe-area-inset-top)) 16px 8px;background:var(--surface-200);border-bottom:2px solid var(--cta)}
+.pickcue__text{font:500 15px/20px var(--font-sans);min-width:0}
+.pickcue .btn{min-height:44px;padding:8px 16px;flex:0 0 auto;white-space:nowrap}
+.pickas{margin:0;display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;font-size:15px;line-height:20px}
+.linkbtn{border:0;background:transparent;color:var(--brand);font:600 15px/20px var(--font-sans);text-decoration:underline;cursor:pointer;min-height:44px;padding:0 8px}
+.line{min-height:60px;border-width:2px;border-radius:10px}
+.line__top{font:700 18px/22px var(--font-mono)}
+.lgame{border-radius:12px;padding:10px 10px 12px;gap:8px}
+.lgame__team{font-size:18px;line-height:22px}
+.lgame__nolines{margin:0;font:700 18px/22px var(--font-display);letter-spacing:.03em}
+.lgame__props{width:100%;min-height:48px;padding:8px 12px;border:2px solid var(--brand);border-radius:10px;background:transparent;color:var(--brand);font:700 15px/20px var(--font-sans);cursor:pointer}
+.lgame__props[aria-expanded="true"]{border-color:var(--line-strong);color:var(--ink)}
+@media (hover:hover){.lgame__props:hover{background:var(--surface-100)}}
+@media (min-width:720px){.lgame--open{grid-column:1/-1}}
+.props{display:flex;flex-direction:column;gap:10px}
+.props__tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;background:var(--surface-0);border-radius:12px}
+.props__tabs .seg__btn{min-height:48px;padding:6px 4px;font:700 14px/18px var(--font-sans);border-radius:9px;white-space:normal}
+.props__tabs .seg__btn[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);box-shadow:none}
+.props__filter{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.props__pos{display:flex;gap:6px;flex-wrap:wrap}
+.props__filter input{flex:1 1 160px;width:auto}
+.props__team{display:flex;flex-direction:column;gap:6px}
+.props__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+@media (min-width:720px){.props__grid{grid-template-columns:repeat(4,minmax(0,1fr))}.props__grid--two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.props__none{margin:0}
+.props__more{align-self:flex-start}
+.pbtn{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;min-height:56px;min-width:0;padding:8px 12px;border-radius:10px;border:2px solid var(--line-strong);background:var(--surface-100);color:var(--ink);cursor:pointer;text-align:left}
+.pbtn__name{font:700 15px/19px var(--font-sans);overflow-wrap:anywhere}
+.pbtn__sub{font-size:13px;line-height:17px;color:var(--ink-muted)}
+@media (hover:hover){.pbtn:hover{border-color:var(--brand)}}
+.pbtn--on{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.pbtn--on .pbtn__sub{color:var(--on-brand)}
+.pbtn--mine{border-color:var(--win)}
+.pbtn--mine .pbtn__sub{color:var(--win)}
+.pbtn--taken{border-style:dashed}
+.pickbar{border:2px solid var(--cta);border-radius:12px}
+.pickbar__text strong{font-size:20px;line-height:24px}
+@media (max-width:719px){.manual .inline .btn--cta{width:100%}}
+.host__launch{min-height:52px;padding:10px 18px 10px 12px;border-width:2px;font-size:15px;line-height:18px}
+.host__betacts .btn{min-height:48px;padding:10px 16px}
+/* The confirm bar on phones: the pick on its own line so it is never cut, the two buttons under it.
+ *  Sarge's button moves up out of the way while the bar is showing. */
+@media (max-width:719px){
+  .pickbar{flex-wrap:wrap}
+  .pickbar__text{flex:1 1 100%}
+  .pickbar .btn{flex:1 1 0}
+  body:has(.pickbar) .host__launch{bottom:calc(206px + env(safe-area-inset-bottom))}
+}
+@media (min-width:720px){body:has(.pickbar) .host__launch{bottom:104px}}
+/* The kickoff time gets its own line above the column labels, so it does not wrap inside the team column. */
+.lgame__head .lgame__kick{grid-column:1/-1;white-space:nowrap}
+.lgame__cols span:first-child{grid-column:2}

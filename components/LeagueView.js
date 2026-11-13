@@ -54,7 +54,7 @@ function LeagueHero({ store }) {
       <div className="hero__side">
         {shares.length ? <span className="paychips">{shares.map((p) => <span key={p.who} className={'pill ' + (p.open ? 'pill--open' : 'pill--paid')}>{`${whoLabel(p.who)} · ${p.open ? fmtMoney(p.open) + ' open' : 'funded'}`}</span>)}</span> : null}
         <div className="hero__ctas">
-          {f.wantsPicks ? <Link className="btn btn--primary" href="/pick">Make your pick</Link> : null}
+          {f.wantsPicks ? <Link className="btn btn--cta" href="/pick">Make your pick</Link> : null}
           <Link className={'btn ' + (f.wantsPicks ? 'btn--secondary' : 'btn--primary')} href="/week">Open this week</Link>
           <NudgeButton className="hero__nudge" week={week.week} missing={missing} kick={kick} />
         </div>
@@ -381,7 +381,7 @@ export default function LeagueView() {
           { title: 'Weekly record', source: 'league database', legs: weeklyLegs(state.weeks, state.graded) },
         ]} />) : <section className="card skel" aria-busy="true"><div className="skel__bar" /><div className="skel__bar skel__bar--short" /></section>}
       <div className="inline lpanel__links">
-        <Link className="btn btn--primary" href="/pick">Make your pick</Link>
+        <Link className="btn btn--cta" href="/pick">Make your pick</Link>
         <Link className="btn btn--secondary" href="/week">This week</Link>
         <Link className="btn btn--secondary" href="/standings">Parlay standings</Link>
       </div>
