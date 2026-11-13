@@ -10,7 +10,7 @@ import { PICK_API, toast } from '../lib/clients.mjs';
 import { rule } from '../lib/rules.mjs';
 import LineBoard from './LineBoard';
 import { MyPick, PendingPick } from './MyPick';
-import { clearPending, keepPending, readPending, shouldKeep } from '../lib/pick-share.mjs';
+import { clearPending, readPending } from '../lib/pick-share.mjs';
 import NudgeButton from './NudgeButton';
 import { missingPickers } from '../lib/nudge.mjs';
 
@@ -65,50 +65,15 @@ export default function PickView() {
   const storage = typeof window !== 'undefined' ? window.localStorage : null;
   if (storage && state.pick.pendingWeek !== week) { state.pick.pending = readPending(storage, week); state.pick.pendingWeek = week; }
 
-  /** Send one pick. On a network or server failure the pick is kept on the phone for retry;
-   *  on a rule rejection (bad pick, locked game) it is not, since a retry would fail the same way. */
-  const sendPick = async (who, leg, source, quiet) => {
-    let r = null;
-    let data = {};
-    try {
-      r = await fetch(PICK_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ week, who, source, leg }) });
-      data = await r.json().catch(() => ({}));
-    } catch (e) { r = null; }
-    if (!r || !r.ok) {
-      const status = r ? r.status : 0;
-      if (storage && shouldKeep(status)) {
-        keepPending(storage, { week, who, leg, source });
-        state.pick.pending = readPending(storage, week);
-        if (!quiet) toast('No connection to the board. Your pick is kept on this phone and will retry');
-      } else {
-        if (storage) clearPending(storage);
-        state.pick.pending = null;
-        toast(data.error || 'Submit failed');
-        if (data.error && status === 412) state.pick.setupError = data.error;
-      }
-      store.emit();
-      return false;
-    }
-    if (storage) clearPending(storage);
-    state.pick.pending = null;
-    toast(data.warning ? data.warning : data.committed ? 'You are in. All 11 saved, ticket built' : 'Pick saved to the board');
-    state.pick.rows = data.picks || state.pick.rows;
-    state.pick.ticket = data.ticket || null;
-    state.pick.committed = !!data.committed;
-    store.resetPickForm();
-    state.pick.form.who = who;
-    if (data.committed) await store.loadData();
-    store.emit();
-    return true;
-  };
+  /** Send one pick through the store (the same path Sarge uses). */
+  const sendPick = async (who, leg, source, quiet) => (await store.savePick({ week, who, leg, source, quiet })).ok;
 
   const submitPick = async (source) => {
     const who = ident.canonical(f.who);
     const leg = formToLeg(f);
     const errs = validatePick(leg, who, roster);
     if (errs.length) { toast(errs[0]); return; }
-    try { localStorage.setItem('hp_who', who); } catch (e) { /* ignore */ }
-    state.config.you = who;
+    store.setYou(who);
     await sendPick(who, leg, source, false);
   };
 
@@ -144,12 +109,11 @@ export default function PickView() {
     store.emit();
   };
 
+  const youSet = ident.canonical(f.who) || '';
   const gameValue = f.gameAway && f.gameHome ? f.gameAway + '|' + f.gameHome : '';
 
   return (
     <Page title={`Week ${week} picks`} sub="One bet each">
-      {kick ? <p className="rules rules--warn">{kick}</p> : null}
-      {placed ? null : <p className="rules rules--info">{rule(state.config, 'pickDeadline').text + ' ' + rule(state.config, 'editsAndLocks').text}</p>}
       {state.pick.setupError ? (
         <section className="card"><div className="card__body">
           <p className="rules">{state.pick.setupError}</p>
@@ -160,19 +124,83 @@ export default function PickView() {
         onDiscard={() => { if (storage) clearPending(storage); state.pick.pending = null; store.emit(); }} />}
       {placed ? null : <MyPick week={week} row={myRow} locked={myLocked} games={state.pick.games || []} />}
 
-      <section className="stats">
-        <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{placed ? 'Ticket placed' : ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>
-        <div className="card stat"><span className="label">Heller</span><span className="stat__value stat__value--name">Sits</span><span className="stat__delta">Does not pick</span></div>
-        <div className="card stat"><span className="label">Book</span><span className="stat__value stat__value--name">Any</span><span className="stat__delta">One parlay · boosts encouraged · placed in MI or OH</span></div>
-        <div className="card stat"><span className="label">Stake</span><span className="stat__value">$10</span><span className="stat__delta">{payer ? ident.nick(payer) + ' pays' : 'Last place last week pays'}</span></div>
-      </section>
-
       {placed ? (
         <section className="card"><div className="card__body">
           <p>{`Week ${week} is placed${record.book ? ' at ' + record.book : ''}. Picks for the next week open when this one is final.`}</p>
           <div className="inline"><Link className="btn btn--primary" href="/week">Follow it on the Week tab</Link></div>
         </div></section>) : null}
 
+      {placed ? null : (<>
+      <section className="card">
+        <div className="card__head"><h2>{myRow ? 'Change your bet' : 'Enter your bet'}</h2><span className="sub">One tap, then Save · change it any time before kickoff</span></div>
+        <div className="card__body form">
+          {youSet && !state.pick.changeWho ? (
+            <p className="pickas">Picking as <strong>{whoLabel(youSet)}</strong>
+              <button type="button" className="linkbtn" onClick={() => { state.pick.changeWho = true; store.emit(); }}>Change</button></p>
+          ) : (
+            <div className="row">
+              <div className="field field--who"><label htmlFor="pick-who">I am</label>
+                <select id="pick-who" value={youSet} onChange={(e) => { state.pick.changeWho = false; store.setYou(e.target.value); }}>
+                  <option value="">Select yourself</option>
+                  {roster.map((n) => <option key={n} value={n}>{whoLabel(n)}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+          <LineBoard games={state.pick.games} form={f} submissions={submissions} you={youSet} espn={store.espn}
+            onTap={(next) => { Object.assign(state.pick.form, next, { who: f.who }); store.emit(); }}
+            onClear={() => { store.resetPickForm(); store.emit(); }}
+            onSave={() => submitPick('web')}
+            onManual={(g) => {
+              Object.assign(state.pick.form, { gameAway: g.away, gameHome: g.home, type: 'player', stat: 'recYds', label: '' });
+              state.pick.manualOpen = true;
+              store.emit();
+              setTimeout(() => { const el = document.getElementById('pick-manual'); if (el) el.scrollIntoView({ block: 'start' }); }, 0);
+            }} />
+          <details className="manual" id="pick-manual" open={!!state.pick.manualOpen} onToggle={(e) => { state.pick.manualOpen = e.currentTarget.open; }}>
+          <summary>Type a pick by hand</summary>
+          <div className="row">
+            <div className="field"><label>Game</label>
+              <select value={gameValue} onChange={(e) => { const [away, home] = e.target.value.split('|'); state.pick.form.gameAway = away || ''; setF('gameHome', home || ''); }}>
+                <option value="">Select NFL game</option>
+                {state.pick.games.map((g) => <option key={g.away + '|' + g.home} value={g.away + '|' + g.home}>{g.detail + (g.pre ? '' : ' · kicked off')}</option>)}
+              </select>
+            </div>
+            <div className="field"><label>Market</label>
+              <select value={f.type} onChange={(e) => setF('type', e.target.value)}>
+                {[['ml', 'Moneyline'], ['spread', 'Spread'], ['total', 'Total'], ['player', 'Player prop'], ['first', 'Scores first']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="row">
+            {f.type === 'ml' || f.type === 'spread' || f.type === 'first' ? <div className="field"><label>Team</label><input type="text" placeholder={f.gameAway || 'KC'} value={f.team} onChange={(e) => setF('team', e.target.value.toUpperCase())} /></div> : null}
+            {f.type === 'spread' || f.type === 'total' || (f.type === 'player' && f.stat !== 'anyTD' && f.stat !== 'firstTD') ? <div className="field"><label>Line</label><input type="number" step="any" value={f.line} onChange={(e) => setF('line', e.target.value)} /></div> : null}
+            {f.type === 'total' || (f.type === 'player' && f.stat !== 'anyTD' && f.stat !== 'firstTD') ? (
+              <div className="field"><label>Side</label>
+                <select value={f.side} onChange={(e) => setF('side', e.target.value)}>{[['over', 'Over'], ['under', 'Under']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
+              </div>) : null}
+            {f.type === 'player' ? (
+              <>
+                <div className="field"><label>Player (ESPN spelling)</label><input type="text" value={f.player} placeholder="Patrick Mahomes" onChange={(e) => setF('player', e.target.value)} /></div>
+                <div className="field"><label>Stat</label>
+                  <select value={f.stat} onChange={(e) => setF('stat', e.target.value)}>{STAT_OPTS.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
+                </div>
+              </>) : null}
+          </div>
+          <div className="row">
+            <div className="field"><label>Label on the ticket</label><input type="text" placeholder="Chiefs ML" value={f.label} onChange={(e) => setF('label', e.target.value)} /></div>
+            <div className="field"><label>Your price (optional)</label><input type="number" placeholder="-110" value={f.odds} onChange={(e) => setF('odds', e.target.value)} /></div>
+          </div>
+          <div className="inline">
+            <button className="btn btn--cta" type="button" onClick={() => submitPick('web')}>Save my pick</button>
+          </div>
+          </details>
+        </div>
+      </section>
+
+      </>)}
+
+      {kick ? <p className="rules rules--warn">{kick}</p> : null}
       {!placed && ticket.complete ? (
         <section className="card"><div className="card__body">
           <p className="rules">{state.pick.committed
@@ -200,65 +228,14 @@ export default function PickView() {
 
       {(placed ? [] : ticket.issues || []).map((iss, i) => <p key={i} className={'rules rules--' + iss.level}>{iss.names ? `${iss.lead} ${iss.names.map((n) => whoLabel(n)).join(', ')}` : iss.text}</p>)}
 
-      {placed ? null : (<>
-      <section className="card">
-        <div className="card__head"><h2>{myRow ? 'Change your bet' : 'Enter your bet'}</h2><span className="sub">Tap a line · change it any time before kickoff</span></div>
-        <div className="card__body form">
-          <div className="row">
-            <div className="field field--who"><label>I am</label>
-              <select value={ident.canonical(f.who) || ''} onChange={(e) => setF('who', e.target.value)}>
-                <option value="">Select yourself</option>
-                {roster.map((n) => <option key={n} value={n}>{whoLabel(n)}</option>)}
-              </select>
-            </div>
-          </div>
-          <LineBoard games={state.pick.games} form={f} submissions={submissions} you={ident.canonical(f.who)}
-            onTap={(next) => { Object.assign(state.pick.form, next, { who: f.who }); store.emit(); }}
-            onClear={() => { store.resetPickForm(); store.emit(); }}
-            onSave={() => submitPick('web')} />
-          <details className="manual">
-          <summary>Player prop or custom line</summary>
-          <div className="row">
-            <div className="field"><label>Game</label>
-              <select value={gameValue} onChange={(e) => { const [away, home] = e.target.value.split('|'); state.pick.form.gameAway = away || ''; setF('gameHome', home || ''); }}>
-                <option value="">Select NFL game</option>
-                {state.pick.games.map((g) => <option key={g.away + '|' + g.home} value={g.away + '|' + g.home}>{g.detail + (g.pre ? '' : ' · kicked off')}</option>)}
-              </select>
-            </div>
-            <div className="field"><label>Market</label>
-              <select value={f.type} onChange={(e) => setF('type', e.target.value)}>
-                {[['ml', 'Moneyline'], ['spread', 'Spread'], ['total', 'Total'], ['player', 'Player prop']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="row">
-            {f.type === 'ml' || f.type === 'spread' ? <div className="field"><label>Team</label><input type="text" placeholder={f.gameAway || 'KC'} value={f.team} onChange={(e) => setF('team', e.target.value.toUpperCase())} /></div> : null}
-            {f.type === 'spread' || f.type === 'total' || f.type === 'player' ? <div className="field"><label>Line</label><input type="number" step="any" value={f.line} onChange={(e) => setF('line', e.target.value)} /></div> : null}
-            {f.type === 'total' || f.type === 'player' ? (
-              <div className="field"><label>Side</label>
-                <select value={f.side} onChange={(e) => setF('side', e.target.value)}>{[['over', 'Over'], ['under', 'Under']].map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
-              </div>) : null}
-            {f.type === 'player' ? (
-              <>
-                <div className="field"><label>Player (ESPN spelling)</label><input type="text" value={f.player} placeholder="Patrick Mahomes" onChange={(e) => setF('player', e.target.value)} /></div>
-                <div className="field"><label>Stat</label>
-                  <select value={f.stat} onChange={(e) => setF('stat', e.target.value)}>{STAT_OPTS.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
-                </div>
-              </>) : null}
-          </div>
-          <div className="row">
-            <div className="field"><label>Label on the ticket</label><input type="text" placeholder="Chiefs ML" value={f.label} onChange={(e) => setF('label', e.target.value)} /></div>
-            <div className="field"><label>Your price (optional)</label><input type="number" placeholder="-110" value={f.odds} onChange={(e) => setF('odds', e.target.value)} /></div>
-          </div>
-          <div className="inline">
-            <button className="btn btn--primary" type="button" onClick={() => submitPick('web')}>Save my pick</button>
-          </div>
-          </details>
-        </div>
+      <section className="stats">
+        <div className="card stat"><span className="label">Picks in</span><span className="stat__value">{`${ticket.count} / ${ticket.need}`}</span><span className="stat__delta">{placed ? 'Ticket placed' : ticket.complete ? 'Ticket ready' : 'Waiting on the room'}</span></div>
+        <div className="card stat"><span className="label">Heller</span><span className="stat__value stat__value--name">Sits</span><span className="stat__delta">Does not pick</span></div>
+        <div className="card stat"><span className="label">Book</span><span className="stat__value stat__value--name">Any</span><span className="stat__delta">One parlay · boosts encouraged · placed in MI or OH</span></div>
+        <div className="card stat"><span className="label">Stake</span><span className="stat__value">$10</span><span className="stat__delta">{payer ? ident.nick(payer) + ' pays' : 'Last place last week pays'}</span></div>
       </section>
 
-      </>)}
-
+      {placed ? null : <p className="rules rules--info">{rule(state.config, 'pickDeadline').text + ' ' + rule(state.config, 'editsAndLocks').text}</p>}
       <section className="card">
         <div className="card__head"><h2>The 11</h2>{placed ? <span className="sub">H-Bomb sits</span> : (
           <NudgeButton className="btn--sm" week={week} missing={missingPickers(roster, submissions)}

@@ -1,3 +1,5 @@
+import { slimRoster } from '../../lib/props.mjs';
+
 const FFL_SEASON = '2026';
 
 function allowBrowser(res) {
@@ -138,8 +140,17 @@ export default async function handler(req, res) {
     cache = 's-maxage=30, stale-while-revalidate=60';
     const cookie = espnCookies();
     if (cookie) headers.Cookie = cookie;
+  } else if (path === 'roster') {
+    // One NFL team's players, slimmed to the skill positions the prop buttons list. ESPN team ids are 1-34.
+    const team = typeof req.query.team === 'string' ? req.query.team : '';
+    if (!/^[0-9]{1,2}$/.test(team)) {
+      res.status(400).json({ error: 'Need a numeric team id' });
+      return;
+    }
+    url = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/' + team + '/roster';
+    cache = 's-maxage=3600, stale-while-revalidate=86400';
   } else {
-    res.status(400).json({ error: 'Need path=scoreboard|summary|ffl' });
+    res.status(400).json({ error: 'Need path=scoreboard|summary|ffl|roster' });
     return;
   }
 
@@ -170,6 +181,17 @@ export default async function handler(req, res) {
         return;
       }
       res.status(200).json(slimFfl(data, week));
+      return;
+    }
+    if (path === 'roster') {
+      let data;
+      try { data = JSON.parse(text); } catch (e) { data = null; }
+      if (!r.ok || !data) {
+        res.setHeader('Cache-Control', 'no-store');
+        res.status(502).json({ error: 'ESPN roster request failed', players: [] });
+        return;
+      }
+      res.status(200).json({ players: slimRoster(data) });
       return;
     }
     res.status(r.status).send(text);

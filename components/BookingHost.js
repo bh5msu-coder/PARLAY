@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLeague, useReady } from './LeagueProvider';
 import { ident } from '../lib/ident.mjs';
 import { weeklyLegs } from '../lib/stats.mjs';
 import { toast } from '../lib/clients.mjs';
+import { legToForm, placedTicketPicks } from '../lib/pick-form.mjs';
+import { savedPickText, waShareHref } from '../lib/pick-share.mjs';
 import { HOST_NAME, hostBriefing, hostIntro, hostReply, markSeen, shouldAutoOpen } from '../lib/host.mjs';
 
 /** Quick asks. Each one is answered from the store with lib/host.mjs; nothing here calls a model. */
@@ -14,7 +16,7 @@ const CHIPS = [
   ['Do I owe?', 'do I owe the stake'],
   ['My streaks', 'my streak and win rate'],
   ['Who do I play?', 'who do I play this week'],
-  ['Thursday pick', 'when is my pick due'],
+  ['Pick due?', 'when is my pick due'],
 ];
 
 function Chip({ cls }) {
@@ -54,26 +56,37 @@ function briefingFrom(store) {
   });
 }
 
-function Bubble({ from, lines, bet }) {
-  const copy = async () => { try { await navigator.clipboard.writeText(bet); toast('Bet copied. Enter it on the Pick tab'); } catch (e) { toast('Copy failed'); } };
+/** One message. A bet Sarge read back carries Save pick (when it can be saved) and Edit; a saved pick carries
+ *  Post to WhatsApp, which opens WhatsApp with the text filled in for the manager to send. */
+function Bubble({ from, lines, bet, canSave, busy, done, share, onSave, onEdit }) {
+  const copy = async (text, note) => { try { await navigator.clipboard.writeText(text); toast(note); } catch (e) { toast('Copy failed'); } };
   return (
     <div className={'host__msg host__msg--' + from}>
       {lines.map((l, i) => <p key={i}>{l}</p>)}
       {bet ? (
         <>
           <pre className="host__bet">{bet}</pre>
-          <div className="host__betacts">
-            <button type="button" className="btn btn--secondary btn--sm" onClick={copy}>Copy</button>
-            <Link className="btn btn--primary btn--sm" href="/pick">Open Pick</Link>
-          </div>
+          {done ? null : (
+            <div className="host__betacts">
+              {canSave ? <button type="button" className="btn btn--cta" disabled={busy} onClick={onSave}>{busy ? 'Saving…' : 'Save pick'}</button> : null}
+              <button type="button" className="btn btn--secondary" onClick={onEdit}>Edit on Pick tab</button>
+            </div>
+          )}
         </>
+      ) : null}
+      {share ? (
+        <div className="host__betacts">
+          <a className="btn btn--primary" href={waShareHref(share)} target="_blank" rel="noopener">Post to WhatsApp</a>
+          <button type="button" className="btn btn--secondary" onClick={() => copy(share, 'Pick copied. Paste it in the Holm chat')}>Copy</button>
+        </div>
       ) : null}
     </div>
   );
 }
 
 /** Sarge, the sports book host: introduces itself once per NFL week, then waits behind its chip button.
- *  Read-only. It never saves or submits a pick (the pick endpoint has no auth yet) and never places a wager. */
+ *  Type a bet and Sarge reads it back; the pick is saved only when the manager taps Save pick (the same
+ *  store.savePick the Pick page uses). It never places a wager. */
 export default function BookingHost() {
   const store = useLeague();
   const ready = useReady();
@@ -81,6 +94,8 @@ export default function BookingHost() {
   const [open, setOpen] = useState(false);
   const [thread, setThread] = useState([]);
   const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(-1);
+  const router = useRouter();
   const endRef = useRef(null);
   const inputRef = useRef(null);
   const active = ready ? (store.state.pick.week || (store.state.nfl && store.state.nfl.active)) : null;
@@ -104,12 +119,37 @@ export default function BookingHost() {
   if (pathname === '/' || !ready) return null;
 
   const b = briefingFrom(store);
+  const roster = ident.parlayRoster();
+  const placed = active ? placedTicketPicks(store.weekRecord(active)).length > 0 : false;
+  const canPick = !!b.you && roster.includes(b.you) && !placed;
   const ask = (text) => {
     const q = String(text || '').trim();
     if (!q) return;
-    const r = hostReply(q, b, { roster: store.state.config.roster });
-    setThread((t) => t.concat([{ from: 'you', lines: [q] }, { from: 'host', lines: r.lines, bet: r.bet }]).slice(-20));
+    const r = hostReply(q, b, { roster, games: store.state.pick.games });
+    const lines = r.leg && r.ok && placed ? [`Week ${active} is already placed, so I can't take a new pick for it.`] : r.lines;
+    setThread((t) => t.concat([{ from: 'you', lines: [q] }, { from: 'host', lines, bet: r.bet, leg: r.leg, canSave: !!(r.ok && r.leg && canPick) }]).slice(-20));
     setInput('');
+  };
+  const say = (lines, extra) => setThread((t) => t.concat([Object.assign({ from: 'host', lines }, extra || {})]).slice(-20));
+  const closeBet = (m) => setThread((t) => t.map((x) => (x === m ? Object.assign({}, x, { done: true }) : x)));
+  const save = async (m, i) => {
+    setBusy(i);
+    const r = await store.savePick({ week: active, who: b.you, leg: m.leg, source: 'web' });
+    setBusy(-1);
+    if (r.ok) {
+      closeBet(m);
+      say([`Saved to the board: ${m.leg.label}. ${r.data.warning ? r.data.warning + ' ' : ''}Post it to the chat so the room sees it.`], { share: savedPickText(active, { who: b.you, leg: m.leg }) });
+    } else if (store.state.pick.pending) {
+      closeBet(m);
+      say(['No connection to the board. I kept the pick on this phone and it will retry when you are back online.']);
+    } else say([(r.data && r.data.error) || 'That did not save. Try it on the Pick tab.']);
+  };
+  const edit = (m) => {
+    Object.assign(store.state.pick.form, legToForm(m.leg, b.you));
+    store.state.pick.manualOpen = true;
+    store.emit();
+    setOpen(false);
+    router.push('/pick');
   };
   const submit = (e) => { e.preventDefault(); ask(input); };
 
@@ -144,22 +184,23 @@ export default function BookingHost() {
                 <span className="host__fine">Saved on this phone only.</span>
               </label>
             ) : null}
-            {thread.map((m, i) => <Bubble key={i} {...m} />)}
+            {thread.map((m, i) => <Bubble key={i} {...m} busy={busy === i} onSave={() => save(m, i)} onEdit={() => edit(m)} />)}
             <div ref={endRef} />
           </div>
           {b.you ? (
             <div className="host__chips">
+              {canPick ? <button type="button" className="btn btn--cta btn--sm" onClick={() => { say(['Type your bet below, like "Bills -3.5", "Chiefs ML" or "KC at LV Kelce anytime TD". I\u2019ll read it back before anything is saved.']); if (inputRef.current) inputRef.current.focus(); }}>Make my pick</button> : null}
               {CHIPS.map(([label, q]) => <button key={label} type="button" className="btn btn--secondary btn--sm" onClick={() => ask(q)}>{label}</button>)}
-              <button type="button" className="btn btn--secondary btn--sm" onClick={() => { setInput('BUF at MIA Bills -3.5 -110'); if (inputRef.current) inputRef.current.focus(); }}>Type my bet back</button>
+
             </div>
           ) : null}
           <form className="host__form" onSubmit={submit}>
             <label className="sr-only" htmlFor="host-input">Ask the host</label>
             <input id="host-input" ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} maxLength={200}
-              placeholder="Ask, or type a bet: BUF at MIA Bills -3.5" autoComplete="off" />
-            <button type="submit" className="btn btn--primary btn--sm">Ask</button>
+              placeholder="Type a bet (Bills -3.5) or ask" autoComplete="off" />
+            <button type="submit" className="btn btn--primary btn--sm">Send</button>
           </form>
-          <p className="host__fine host__foot">I can&apos;t place wagers or save picks. You enter picks on the Pick tab; a person places the ticket.</p>
+          <p className="host__fine host__foot">A pick is saved only when you tap Save pick. I never place a wager; a person places the ticket.</p>
         </section>
       ) : null}
     </>

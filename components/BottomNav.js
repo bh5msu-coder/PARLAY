@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { HOME_PATH, ROUTES, routeFor } from './LeagueProvider';
 import { GearIcon, ParlayMenu } from './NavMenus';
 
-/** Phone tab bar: League, Parlay (menu opens upward), Chat, Commissioner gear. */
+/** Phone tab bar: League, Parlay (menu opens upward), Pick (the big centre button), Chat, Commissioner gear. */
 export default function BottomNav() {
   const current = routeFor(usePathname() || HOME_PATH);
   const link = (route, body, label) => {
@@ -15,6 +15,7 @@ export default function BottomNav() {
     <nav className="bottomnav" aria-label="Sections">
       {link('league', 'League')}
       <ParlayMenu current={current} className="more--up" />
+      <Link href="/pick" className="bottomnav__pick" aria-current={current === 'pick' ? 'page' : undefined}>Pick</Link>
       {link('chat', 'Chat')}
       {link('admin', <GearIcon />, 'Commissioner')}
     </nav>

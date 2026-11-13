@@ -129,6 +129,7 @@ export default function Topbar({ title, sub }) {
               return <Link key={r.path} className="navlink" href={r.path} aria-current={r.route === current ? 'page' : undefined}>{r.label}</Link>;
             })}
             <ParlayMenu current={current} className="more--down navlink" />
+            <Link className="btn btn--cta navpick" href="/pick" aria-current={current === 'pick' ? 'page' : undefined}>Pick</Link>
             <Link className="navlink navlink--icon" href={top('admin').path} aria-label="Commissioner" aria-current={current === 'admin' ? 'page' : undefined}><GearIcon /><span>Commissioner</span></Link>
           </nav>
           {hydrated && state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
