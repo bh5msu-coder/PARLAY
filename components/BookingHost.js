@@ -141,7 +141,7 @@ export default function BookingHost() {
       say([`Saved to the board: ${m.leg.label}. ${r.data.warning ? r.data.warning + ' ' : ''}Post it to the chat so the room sees it.`], { share: savedPickText(active, { who: b.you, leg: m.leg }) });
     } else if (store.state.pick.pending) {
       closeBet(m);
-      say(['No connection to the board. I kept the pick on this phone and it will retry when you are back online.']);
+      say(['No connection to the board. I kept the pick on this phone. Open the Pick tab when you are back online and it sends from there.']);
     } else say([(r.data && r.data.error) || 'That did not save. Try it on the Pick tab.']);
   };
   const edit = (m) => {

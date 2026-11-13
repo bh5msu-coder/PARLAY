@@ -6,6 +6,11 @@ import { marketKey, parseType, guessStat, validatePick } from '../lib/ticket.mjs
 import { firstScoringTeam, firstTouchdown, gradeLeg } from '../lib/grade.mjs';
 import { legMarket } from '../lib/pick-lines.mjs';
 import handler from '../pages/api/espn.js';
+import { parseWhatsAppExport } from '../lib/import/whatsapp.mjs';
+import lore from '../league-lore.json' with { type: 'json' };
+import { ident } from '../lib/ident.mjs';
+
+ident.load(lore);
 
 const game = { away: 'KC', home: 'LV', awayId: '12', homeId: '13' };
 const espnRoster = {
@@ -57,6 +62,7 @@ test('props: typed and imported bets read "first TD" and "scores first"', () => 
   assert.equal(guessStat('Kelce anytime TD'), 'anyTD');
   // A touchdown prop is yes or no; a yardage prop still needs its number.
   assert.deepEqual(validatePick({ type: 'player', label: 'Kelce TD', game: ['KC', 'LV'], player: 'Kelce', stat: 'anyTD', line: '' }, 'Brad Holm'), []);
+  assert.equal(marketKey({ type: 'player', game: ['KC', 'LV'], player: 'Travis Kelce', stat: 'anyTD', line: '' }), marketKey(formToLeg(propToForm(game, 'Travis Kelce', 'anyTD', ''))));
   assert.deepEqual(validatePick({ type: 'player', label: 'Kelce yds', game: ['KC', 'LV'], player: 'Kelce', stat: 'recYds', line: '' }, 'Brad Holm'), ['Prop needs a line']);
 });
 
@@ -109,4 +115,11 @@ test('espn proxy: roster needs a numeric team id and returns only slimmed player
     await handler({ method: 'GET', query: { path: 'roster', team: '12' } }, down);
     assert.deepEqual([down.statusCode, down.body.players], [502, []]);
   } finally { global.fetch = prev; }
+});
+
+test('import: a scores-first HOLM PICK block that names the team by nickname is read, as Sarge writes it', () => {
+  const roster = ident.parlayRoster();
+  const r = parseWhatsAppExport('HOLM PICK W11\nWho: Brad Holm\nGame: KC at LV\nType: first\nPick: Chiefs scores first', { roster, week: 11 });
+  assert.deepEqual(r.errors, []);
+  assert.deepEqual([r.picks[0].leg.type, r.picks[0].leg.team], ['first', 'KC']);
 });
