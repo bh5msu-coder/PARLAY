@@ -19,6 +19,8 @@
   --win:#087a4d;--win-tint:#e2f5ec;--loss:#c8322d;--loss-tint:#fbe5e4;--pending:#2b6cd9;
 }
 *{box-sizing:border-box}
+html{color-scheme:dark}
+html[data-theme="light"]{color-scheme:light}
 html,body{margin:0;background:var(--surface-0);color:var(--ink)}
 body{font:400 15px/22px var(--font-sans);-webkit-font-smoothing:antialiased;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
 a{color:var(--brand)}a:hover{color:var(--ink)}
@@ -79,7 +81,7 @@ h2{margin:0;font:600 24px/28px var(--font-display)}
 .tabs::-webkit-scrollbar{display:none}
 .tab{font:600 14px/20px var(--font-sans);padding:8px 16px;border:0;border-radius:var(--radius-pill);background:transparent;color:var(--ink-muted);cursor:pointer;white-space:nowrap;min-height:44px}
 .tab:hover{color:var(--ink)}
-.tab[aria-selected="true"]{background:var(--brand);color:var(--on-brand)}
+.tab[aria-selected="true"],.tab[aria-pressed="true"]{background:var(--brand);color:var(--on-brand)}
 
 .card{background:var(--surface-100);border:1px solid var(--line);border-radius:var(--radius-md)}
 .card__head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
@@ -787,7 +789,7 @@ a.btn--cta:hover{color:var(--on-cta)}
 .card{border-radius:12px}
 .navpick{min-height:44px;padding:8px 20px;margin:0 6px}
 .navpick[aria-current="page"],.bottomnav__pick[aria-current="page"]{box-shadow:0 0 0 2px var(--surface-0),0 0 0 4px var(--cta)}
-.bottomnav{grid-template-columns:repeat(5,1fr);align-items:center}
+.bottomnav{grid-template-columns:repeat(4,1fr);align-items:center}
 .bottomnav a,.bottomnav .more>summary{min-height:52px}
 .bottomnav a.bottomnav__pick,.bottomnav a.bottomnav__pick[aria-current="page"]{margin:0 4px;background:var(--cta);color:var(--on-cta);border-radius:12px;font:700 15px/20px var(--font-sans)}
 .pickcue{position:sticky;top:0;z-index:12;display:flex;align-items:center;justify-content:center;gap:12px;padding:calc(8px + env(safe-area-inset-top)) 16px 8px;background:var(--surface-200);border-bottom:2px solid var(--cta)}
@@ -842,3 +844,28 @@ a.btn--cta:hover{color:var(--on-cta)}
 /* The kickoff time gets its own line above the column labels, so it does not wrap inside the team column. */
 .lgame__head .lgame__kick{grid-column:1/-1;white-space:nowrap}
 .lgame__cols span:first-child{grid-column:2}
+
+/* Phone shell: four tabs, a shorter masthead, a soft page change, install banner, More links. */
+.bottomnav a{gap:2px;padding:6px 2px 4px;text-transform:none;letter-spacing:.01em;font-size:13px;line-height:16px}
+.bottomnav svg{flex:none}
+@media (max-width:719px){
+  .lockup__mark{width:44px;height:44px}
+  .lockup__name{font-size:22px}
+  .lockup__eyebrow{display:none}
+  .masthead{min-height:48px}
+  .topbar{gap:10px}
+  .wrap{padding-top:calc(8px + env(safe-area-inset-top))}
+}
+@media (prefers-reduced-motion: no-preference){
+  #view{animation:app-rise .22s ease}
+}
+@keyframes app-rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hub{display:flex;flex-direction:column;gap:8px}
+.hub a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:12px 14px;background:var(--surface-100);border:1px solid var(--line);border-radius:12px;text-decoration:none;color:var(--ink);font:600 16px/22px var(--font-sans)}
+.hub a span:last-child{color:var(--ink-muted);font:500 14px/18px var(--font-sans);text-align:right}
+.steps{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.steps li{font-size:15px;line-height:22px}
+.a2hs{position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:18;background:var(--surface-100);border:1px solid var(--line-strong);border-radius:12px;padding:12px 14px;box-shadow:0 12px 30px -16px rgba(0,0,0,.7)}
+.a2hs p{margin:0 0 8px;font-size:15px;line-height:20px}
+@media (min-width:720px){.a2hs{display:none}}
+.slots--compact{margin-top:4px}

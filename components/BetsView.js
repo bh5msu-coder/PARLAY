@@ -24,7 +24,7 @@ import { PageSkeleton } from './Skeletons';
 const SampleTag = ({ n }) => <SmallSample n={n} threshold={SMALL_N} />;
 const TYPE_LAB = { ml: 'Moneyline', spread: 'Spread', total: 'Game total', player: 'Player prop' };
 
-function History({ data, selectedOwner, weeks, payments, store }) {
+export function History({ data, selectedOwner, weeks, payments, store }) {
   const S = calcParlayStats(data, whoLabel);
   const wins = S.decided.filter((l) => l.result === 'win').length;
   // Closest call reads finished tickets only: a week still being played has legs left to lose.

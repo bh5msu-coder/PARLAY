@@ -1,12 +1,12 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { HOME_PATH, ROUTES, routeFor, useHydrated, useLeague } from './LeagueProvider';
-import { GearIcon, ParlayMenu } from './NavMenus';
+import { HOME_PATH, ROUTES, routeFor, tabFor, useHydrated, useLeague } from './LeagueProvider';
 import { PageSkeleton } from './Skeletons';
 import { ident } from '../lib/ident.mjs';
-import { THEME_CHOICES, THEME_KEY, applyTheme, normalizeChoice } from '../lib/theme.mjs';
+import { THEME_CHOICES } from '../lib/theme.mjs';
+import { useThemeChoice } from './ThemeControl';
 
 /** The league emblem: the Our Holm League shield from the Canva logo set. */
 function LockupMark() {
@@ -42,26 +42,9 @@ function AutoIcon() {
 /** Theme menu: System (follow the phone), Light or Dark. The icon shows the current choice. */
 function ThemeMenu() {
   const ref = useRef(null);
-  const [choice, setChoice] = useState('dark');
-  useEffect(() => {
-    const c = normalizeChoice(document.documentElement.dataset.themeChoice);
-    setChoice(c);
-    // Re-apply after hydration: Next.js can re-insert the media-query theme-color tags,
-    // which would bring back the dark browser bar on a dark-mode phone set to Light.
-    applyTheme(document, window, c);
-  }, []);
-  // While on System, follow the phone when it switches between light and dark.
-  useEffect(() => {
-    if (choice !== 'system' || !window.matchMedia) return undefined;
-    const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const on = () => applyTheme(document, window, 'system');
-    if (mq.addEventListener) mq.addEventListener('change', on); else if (mq.addListener) mq.addListener(on);
-    return () => { if (mq.removeEventListener) mq.removeEventListener('change', on); else if (mq.removeListener) mq.removeListener(on); };
-  }, [choice]);
+  const [choice, pickTheme] = useThemeChoice();
   const pick = (c) => {
-    try { localStorage.setItem(THEME_KEY, c); } catch (e) { /* ignore */ }
-    applyTheme(document, window, c);
-    setChoice(c);
+    pickTheme(c);
     if (ref.current) ref.current.open = false;
   };
   const label = 'Theme: ' + (THEME_CHOICES.find((t) => t.value === choice) || THEME_CHOICES[2]).label;
@@ -102,7 +85,8 @@ export default function Topbar({ title, sub }) {
   const { state } = useLeague();
   const hydrated = useHydrated();
   const ready = hydrated && state.ready;
-  const current = routeFor(usePathname() || HOME_PATH);
+  const route = routeFor(usePathname() || HOME_PATH);
+  const current = tabFor(route);
   const clock = state.nfl;
   const clockBit = clock
     ? `NFL Week ${clock.active}${clock.firstKick && Date.parse(clock.firstKick) <= Date.now() ? '' : clock.wednesday ? ' · Wednesday kickoff' : clock.firstKickLabel ? ' · ' + clock.firstKickLabel : ''}`
@@ -111,7 +95,6 @@ export default function Topbar({ title, sub }) {
   const lore = ident.lore;
   const est = lore && lore.champions && lore.champions.length ? lore.champions[0].year : null;
   const eyebrow = [est ? 'Est. ' + est : '', lore ? `${lore.seasonCount} seasons` : ''].filter(Boolean).join(' · ');
-  const top = (route) => ROUTES.find((r) => r.route === route);
   return (
     <header className="topbar">
       <div className="masthead">
@@ -124,13 +107,9 @@ export default function Topbar({ title, sub }) {
         </Link>
         <div className="tools">
           <nav className="desknav" aria-label="Sections">
-            {['league', 'chat'].map((k) => {
-              const r = top(k);
-              return <Link key={r.path} className="navlink" href={r.path} aria-current={r.route === current ? 'page' : undefined}>{r.label}</Link>;
-            })}
-            <ParlayMenu current={current} className="more--down navlink" />
-            <Link className="btn btn--cta navpick" href="/pick" aria-current={current === 'pick' ? 'page' : undefined}>Pick</Link>
-            <Link className="navlink navlink--icon" href={top('admin').path} aria-label="Commissioner" aria-current={current === 'admin' ? 'page' : undefined}><GearIcon /><span>Commissioner</span></Link>
+            {ROUTES.filter((r) => r.group === 'tab').map((r) => (
+              <Link key={r.path} className="navlink" href={r.path} aria-current={r.route === current ? 'page' : undefined}>{r.label}</Link>
+            ))}
           </nav>
           {hydrated && state.config.chat ? <a className="navlink navlink--wa" href={state.config.chat} target="_blank" rel="noopener">WhatsApp</a> : null}
           {ready ? <YouPicker /> : null}
@@ -138,8 +117,8 @@ export default function Topbar({ title, sub }) {
         </div>
       </div>
       {/* On League the wordmark already says it, so the page title is kept for screen readers only. */}
-      <div className={'titles' + (current === 'league' ? ' titles--home' : '')}>
-        <h1 className={current === 'league' ? 'sr-only' : undefined}>{title || 'Our Holm League'}</h1>
+      <div className={'titles' + (route === 'league' ? ' titles--home' : '')}>
+        <h1 className={route === 'league' ? 'sr-only' : undefined}>{title || 'Our Holm League'}</h1>
         <span className="sub" aria-live="polite">{subText}</span>
       </div>
     </header>

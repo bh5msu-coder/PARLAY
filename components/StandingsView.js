@@ -15,7 +15,7 @@ import { cachedHistory, loadHistory } from '../lib/history.mjs';
 import { reconcile } from '../lib/reconcile.mjs';
 import SeasonMoney from './SeasonMoney';
 
-function ParlayExtras({ weeks, graded }) {
+export function ParlayExtras({ weeks, graded }) {
   const { types, fav, dog, killList } = parlayExtras(weeks, graded);
   const sideRow = (label, pair) => {
     const t = tallyRate(pair[0], pair[1]);

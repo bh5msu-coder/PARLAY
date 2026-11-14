@@ -1,21 +1,22 @@
 {
-  "name": "Our Holm League",
-  "short_name": "Holm League",
-  "description": "Our Holm League: league history, the chat, and the weekly parlay",
-  "start_url": "/league",
+  "id": "/",
+  "name": "Holm Parlay",
+  "short_name": "Holm Parlay",
+  "description": "The weekly $10 parlay. Make your pick, sweat the ticket, check the standings.",
+  "start_url": "/week",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#070d14",
   "theme_color": "#070d14",
   "icons": [
-    {
-      "src": "/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "This week", "url": "/week" },
+    { "name": "Standings", "url": "/standings" }
   ]
 }

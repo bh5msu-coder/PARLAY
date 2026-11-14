@@ -23,6 +23,7 @@ import PickChanges from './PickChanges';
 import LineAlerts from './LineAlerts';
 import TicketImageButton from './TicketImageButton';
 import { sweatOn } from '../lib/sweat.mjs';
+import QuickPick from './QuickPick';
 
 const TONE = { won: 'win', lost: 'loss', live: 'live', push: 'push' };
 
@@ -110,7 +111,7 @@ function ThisWeekCard({ store, week, pending, s, payers, need, hold }) {
     else if (me) head = 'YOU’RE NOT IN YET.';
     else head = `${inCount} OF ${need} PICKS IN.`;
     line = [payLine, missing.length ? `Still need ${nameList(missing)}` : 'Every pick is in'].join(' · ');
-    cta = { href: '/pick', text: mine ? 'Change my pick' : 'Make my pick' };
+    cta = { href: '#pick', text: mine ? 'Change my pick' : 'Make my pick' };
   }
 
   return (
@@ -301,6 +302,8 @@ export default function WeekView() {
       {pending ? null : sweatOn(graded) ? <SweatBar graded={graded} /> : <LegDots graded={graded} />}
 
       <ThisWeekCard store={store} week={week} pending={pending} s={s} payers={payers} need={participants} hold={hold} />
+
+      {pending && state.pick.week === week.week ? <QuickPick /> : null}
 
       {pending && savedRows && savedRows.length ? (
         <div className="inline">
