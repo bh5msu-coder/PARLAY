@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cronAuthorized, etParts, firstKick, gradeChanged, inMissingWindow, normalizeSubscription, planAlerts, pushEndpointAllowed, pushReady, pushStatus, secretMatch, subscriptionRoom, SUBSCRIPTION_CAP } from '../lib/push-events.mjs';
+import { cronAuthorized, etParts, firstKick, gradeChanged, inMissingWindow, normalizeSubscription, planAlerts, pushEndpointAllowed, pushReady, pushStatus, registrationAllowed, secretMatch, subscriptionRoom, SUBSCRIPTION_CAP } from '../lib/push-events.mjs';
 import pushHandler from '../pages/api/push.js';
 import { readSnapshot, writeSnapshot } from '../lib/offline-cache.mjs';
 import { claimAccepted, runSweep, targetWeek } from '../lib/push-run.mjs';
@@ -244,6 +244,10 @@ test('sweeps require the cron secret and a wrong or missing one never matches', 
   assert.equal(subscriptionRoom(SUBSCRIPTION_CAP, false), false);
   assert.equal(subscriptionRoom(SUBSCRIPTION_CAP - 1, false), true);
   assert.equal(subscriptionRoom(SUBSCRIPTION_CAP, true), true);
+  assert.equal(registrationAllowed('', 'new-key'), true);
+  assert.equal(registrationAllowed('real-key', 'real-key'), true);
+  assert.equal(registrationAllowed('real-key', 'attacker'), false);
+  assert.equal(registrationAllowed('real-key', 'rotated', 'real-key'), true);
 });
 
 function mockRes() {
@@ -286,6 +290,32 @@ test('the push route refuses an anonymous sweep and does not call the network', 
     globalThis.fetch = orig;
     if (saved == null) delete process.env.CRON_SECRET;
     else process.env.CRON_SECRET = saved;
+  }
+});
+
+test('a known endpoint cannot replace another phone’s auth key', async () => {
+  const savedKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const savedFetch = globalThis.fetch;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'srv';
+  const calls = [];
+  globalThis.fetch = async (url, opts) => {
+    calls.push((opts && opts.method) || 'GET');
+    return { ok: true, async json() { return [{ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', auth: 'real-key' }]; }, async text() { return ''; } };
+  };
+  try {
+    const res = mockRes();
+    await pushHandler({
+      method: 'POST',
+      query: {},
+      headers: {},
+      body: { subscription: { endpoint: 'https://fcm.googleapis.com/fcm/send/abc', keys: { p256dh: 'p256', auth: 'attacker' } } },
+    }, res);
+    assert.equal(res.statusCode, 403);
+    assert.equal(calls.includes('POST'), false);
+  } finally {
+    globalThis.fetch = savedFetch;
+    if (savedKey == null) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = savedKey;
   }
 });
 

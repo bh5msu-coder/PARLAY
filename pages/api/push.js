@@ -8,7 +8,7 @@
  *  Never returns private keys. Writes only holm_push_subscriptions and holm_push_state.
  *  The open app does not start a sweep. A GET job from another site cannot either. */
 import webpush from 'web-push';
-import { cronAuthorized, normalizeSubscription, pushReady, secretMatch, subscriptionRoom, sweepRequested, vapidPublicKey, SUBSCRIPTION_CAP } from '../../lib/push-events.mjs';
+import { cronAuthorized, normalizeSubscription, pushReady, registrationAllowed, secretMatch, subscriptionRoom, sweepRequested, vapidPublicKey, SUBSCRIPTION_CAP } from '../../lib/push-events.mjs';
 import { runSweep } from '../../lib/push-run.mjs';
 
 const SEASON = 2026;
@@ -88,11 +88,16 @@ export default async function handler(req, res) {
 
   const parsed = normalizeSubscription(body);
   if (parsed.error) { json(res, 400, { error: parsed.error }); return; }
-  const existing = await fetch(supabaseUrl() + '/rest/v1/holm_push_subscriptions?endpoint=eq.' + encodeURIComponent(parsed.row.endpoint) + '&select=endpoint&limit=1', {
+  const existing = await fetch(supabaseUrl() + '/rest/v1/holm_push_subscriptions?endpoint=eq.' + encodeURIComponent(parsed.row.endpoint) + '&select=endpoint,auth&limit=1', {
     headers: serviceHeaders(),
   });
   const have = await existing.json().catch(() => null);
   if (!existing.ok || !Array.isArray(have)) { json(res, 502, { error: 'Could not read subscriptions' }); return; }
+  const previousAuth = typeof body.previousAuth === 'string' ? body.previousAuth : '';
+  if (have.length && !registrationAllowed(have[0].auth, parsed.row.auth, previousAuth)) {
+    json(res, 403, { error: 'That phone is already registered' });
+    return;
+  }
   if (!have.length) {
     const counted = await fetch(supabaseUrl() + '/rest/v1/holm_push_subscriptions?select=id&limit=' + SUBSCRIPTION_CAP, {
       headers: serviceHeaders(),
