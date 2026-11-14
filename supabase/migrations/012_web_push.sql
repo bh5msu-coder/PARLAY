@@ -31,9 +31,15 @@ create table if not exists public.holm_push_state (
   season integer not null,
   week integer not null,
   snapshot jsonb not null default '{}'::jsonb,
+  -- Bumped on every claim. A sweep updates only its own version, so two phones
+  -- cannot both send the same alert.
+  version integer not null default 0,
   updated_at timestamptz not null default now(),
   primary key (season, week)
 );
+
+-- Safe to re-run if the table was created from an earlier copy of this file.
+alter table public.holm_push_state add column if not exists version integer not null default 0;
 
 alter table public.holm_push_state enable row level security;
 revoke all on public.holm_push_state from public, anon, authenticated;

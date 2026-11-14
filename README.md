@@ -33,7 +33,7 @@ The site is an installable home-screen app. The phone has four tabs: **This Week
 
 **Offline.** The service worker (`public/sw.js`) keeps the last successful `/api/weeks`, `/api/pick`, lore, and history responses. The page also saves that payload in this phone's storage, so a refresh with no signal still shows the last weeks.
 
-**Push.** Alerts are Web Push: a leg hits, the ticket busts, the ticket cashes, and a Thursday-afternoon reminder when picks are still out. Turning them on (More → Alerts) stores the browser subscription. Nothing sends until the migration below has been run and the env vars are set.
+**Push.** Alerts are Web Push: a leg hits, the ticket busts, the ticket cashes, and a Thursday-afternoon reminder when picks are still out. Turning them on (More → Alerts) stores the browser subscription. The endpoint has to be a real browser push service (Apple, Google, Mozilla, or Windows). The server will not call any other address. Nothing sends until the migration below has been run and the env vars are set. The reminder uses the week picks are open for, including a week that does not have a ticket row yet. Two phones sweeping at once share one send: the cursor has a `version`, and only the request that still owns that version sends.
 
 1. In the Supabase SQL editor, run `supabase/migrations/012_web_push.sql`. It creates `holm_push_subscriptions` and `holm_push_state`. It does not touch `holm_parlay_weeks`.
 2. Generate a key pair: `npx web-push generate-vapid-keys`.

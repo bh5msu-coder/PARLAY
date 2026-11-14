@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { etParts, firstKick, gradeChanged, inMissingWindow, normalizeSubscription, planAlerts, pushReady, pushStatus } from '../lib/push-events.mjs';
+import { etParts, firstKick, gradeChanged, inMissingWindow, normalizeSubscription, planAlerts, pushEndpointAllowed, pushReady, pushStatus } from '../lib/push-events.mjs';
 import { readSnapshot, writeSnapshot } from '../lib/offline-cache.mjs';
-import { runSweep } from '../lib/push-run.mjs';
+import { claimAccepted, runSweep, targetWeek } from '../lib/push-run.mjs';
 
 const THU = Date.parse('2026-11-12T21:30:00Z'); // Thursday 4:30pm ET
 const WED = Date.parse('2026-11-11T21:30:00Z');
@@ -43,9 +43,27 @@ test('push status is booleans and ready needs every server secret name', () => {
   const status = pushStatus(env);
   assert.equal(status.vapidPrivate, true);
   assert.equal(JSON.stringify(status).includes('priv'), false);
-  const sub = normalizeSubscription({ who: 'Brad', subscription: { endpoint: 'https://push.example/a', keys: { p256dh: 'p', auth: 'a' } } });
+  const sub = normalizeSubscription({ who: 'Brad', subscription: { endpoint: 'https://fcm.googleapis.com/fcm/send/abc', keys: { p256dh: 'p', auth: 'a' } } });
   assert.equal(sub.row.who, 'Brad');
-  assert.equal(normalizeSubscription({ subscription: { endpoint: 'http://insecure', keys: { p256dh: 'p', auth: 'a' } } }).error, 'Need an https push endpoint');
+  assert.equal(sub.row.endpoint, 'https://fcm.googleapis.com/fcm/send/abc');
+  for (const endpoint of [
+    'http://fcm.googleapis.com/fcm/send/abc',
+    'https://push.example/a',
+    'https://127.0.0.1/push',
+    'https://10.0.0.8/push',
+    'https://169.254.169.254/latest/meta-data',
+    'https://localhost/push',
+    'https://fcm.googleapis.com.evil.com/fcm/send/abc',
+    'https://user:pass@fcm.googleapis.com/fcm/send/abc',
+  ]) {
+    assert.equal(pushEndpointAllowed(endpoint), false, endpoint);
+    assert.equal(normalizeSubscription({ subscription: { endpoint, keys: { p256dh: 'p', auth: 'a' } } }).error, 'Need a browser push endpoint');
+  }
+  for (const endpoint of [
+    'https://web.push.apple.com/abc',
+    'https://updates.push.services.mozilla.com/wpush/v2/abc',
+    'https://wns2-pn1p.notify.windows.com/w/?token=abc',
+  ]) assert.equal(pushEndpointAllowed(endpoint), true, endpoint);
   assert.ok(normalizeSubscription({}).error);
 });
 
@@ -129,6 +147,91 @@ test('gradeChanged and firstKick follow the graded legs', () => {
   assert.equal(firstKick(grade([], 'open')), null);
 });
 
+test('reminder week is the open pick week, even when that week has no ticket yet', () => {
+  const settled = { week: 9, legs: Array.from({ length: 11 }, (_, i) => ({ id: 'l' + i, type: 'ml', result: 'win', who: 'Brad Holm' })) };
+  assert.equal(targetWeek([settled], { job: 'missing' }).number, 10);
+  assert.equal(targetWeek([settled], { job: 'missing' }).record, null);
+  assert.equal(targetWeek([settled], { job: 'grade' }).number, 9);
+  assert.equal(targetWeek([settled], { job: 'missing', nfl: { active: 11 } }).number, 11);
+  const open = { week: 10, legs: [{ id: 'a', type: 'tbd', result: 'unknown', who: 'Brad Holm' }], pendingTicket: true };
+  assert.equal(targetWeek([settled, open], { job: 'missing' }).number, 10);
+});
+
+test('a claim is won only when the write returns the row', () => {
+  assert.equal(claimAccepted({ ok: true, data: [{ version: 2 }] }), true);
+  assert.equal(claimAccepted({ ok: true, data: [] }), false);
+  assert.equal(claimAccepted({ ok: false, data: [{ version: 2 }] }), false);
+});
+
+function http(data, status = 200) {
+  const body = JSON.stringify(data);
+  return { ok: status >= 200 && status < 300, status, async json() { return data; }, async text() { return body; } };
+}
+
+const READY = {
+  SUPABASE_SERVICE_ROLE_KEY: 'srv',
+  VAPID_PUBLIC_KEY: 'pub',
+  VAPID_PRIVATE_KEY: 'priv',
+  VAPID_SUBJECT: 'mailto:h@example.com',
+};
+
+function settledSeason() {
+  const legs = Array.from({ length: 11 }, (_, i) => ({
+    season: 2026, week: 9, pos: i, leg_id: 'l' + i, who: 'Brad Holm', label: 'ML', type: 'ml', status: 'won', game: ['BUF', 'MIN'],
+  }));
+  return { ticket: [{ season: 2026, week: 9, stake: 10, state: 'settled' }], legs };
+}
+
+test('Thursday reminder checks the open week with no ticket, and a lost claim does not send', async () => {
+  const season = settledSeason();
+  const sent = [];
+  const calls = [];
+  const webpush = { setVapidDetails() {}, async sendNotification(sub) { sent.push(sub.endpoint); } };
+  const fetchImpl = async (url, opts) => {
+    const u = String(url);
+    const method = (opts && opts.method) || 'GET';
+    calls.push(method + ' ' + u);
+    if (u.includes('site.api.espn.com')) throw new Error('clock down');
+    if (u.includes('/holm_tickets')) return http(season.ticket);
+    if (u.includes('/holm_legs')) return http(season.legs);
+    if (u.includes('/holm_parlay_picks')) return http([]);
+    if (u.includes('/holm_push_state') && method === 'GET') return http([]);
+    if (u.includes('/holm_push_state')) return http([{ version: 1 }]);
+    if (u.includes('/holm_push_subscriptions')) return http([{ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', p256dh: 'p', auth: 'a' }]);
+    return http([]);
+  };
+  const out = await runSweep({ env: READY, fetchImpl, webpush, now: THU, job: 'missing' });
+  assert.equal(out.week, 10);
+  assert.ok(out.kinds.includes('picks-missing'));
+  assert.equal(sent.length > 0, true);
+  assert.ok(calls.some((c) => c.includes('/holm_parlay_picks') && c.includes('week=eq.10')));
+  assert.equal(calls.some((c) => c.includes('/holm_parlay_picks') && c.includes('week=eq.9')), false);
+  const claim = calls.find((c) => c.startsWith('POST') && c.includes('/holm_push_state'));
+  assert.ok(claim);
+
+  sent.length = 0;
+  const lost = await runSweep({
+    env: READY,
+    webpush,
+    now: THU,
+    job: 'missing',
+    fetchImpl: async (url, opts) => {
+      const u = String(url);
+      const method = (opts && opts.method) || 'GET';
+      if (u.includes('site.api.espn.com')) throw new Error('clock down');
+      if (u.includes('/holm_tickets')) return http(season.ticket);
+      if (u.includes('/holm_legs')) return http(season.legs);
+      if (u.includes('/holm_parlay_picks')) return http([]);
+      if (u.includes('/holm_push_state') && method === 'GET') return http([]);
+      if (u.includes('/holm_push_state')) return http([]);
+      if (u.includes('/holm_push_subscriptions')) return http([{ endpoint: 'https://fcm.googleapis.com/fcm/send/abc', p256dh: 'p', auth: 'a' }]);
+      return http([]);
+    },
+  });
+  assert.equal(lost.skipped, 'claimed');
+  assert.equal(sent.length, 0);
+});
+
 test('sweep refuses to run without the service key, and does not call the network', async () => {
   let called = false;
   const out = await runSweep({ env: {}, fetchImpl: () => { called = true; throw new Error('no'); } });
@@ -161,6 +264,7 @@ test('shell: four tabs, old pages stay, manifest and the push migration do not t
   assert.match(sql, /create table if not exists public\.holm_push_subscriptions/);
   assert.match(sql, /create table if not exists public\.holm_push_state/);
   assert.match(sql, /grant select, insert, update, delete on public\.holm_push_subscriptions to service_role/);
+  assert.match(sql, /version integer not null default 0/);
   assert.doesNotMatch(sql.replace(/--.*$/gm, ''), /holm_parlay_weeks/);
   const server = (read('lib/push-run.mjs') + read('pages/api/push.js')).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
   assert.doesNotMatch(server, /holm_parlay_weeks/);
