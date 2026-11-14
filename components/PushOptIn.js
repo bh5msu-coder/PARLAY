@@ -74,7 +74,9 @@ export default function PushOptIn({ who }) {
         return;
       }
       setStatus('on');
-      setNote('This phone will hear when a leg hits, the ticket busts or cashes, and when picks are still out.');
+      setNote(info.sweeps
+        ? 'This phone will hear when a leg hits, the ticket busts or cashes, and when picks are still out.'
+        : 'This phone is registered. Alerts start sending once the cron secret is set on the deploy.');
     } catch (e) {
       setStatus('off');
       setNote('Could not turn alerts on from this browser.');
@@ -87,10 +89,12 @@ export default function PushOptIn({ who }) {
     try {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
-      const endpoint = sub && sub.endpoint;
+      const saved = sub ? sub.toJSON() : null;
+      const endpoint = saved && saved.endpoint;
+      const auth = saved && saved.keys && saved.keys.auth;
       if (sub) await sub.unsubscribe();
-      if (endpoint) {
-        await fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'unsubscribe', endpoint }) });
+      if (endpoint && auth) {
+        await fetch('/api/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'unsubscribe', endpoint, auth }) });
       }
       setStatus('off');
       setNote('Alerts are off on this phone.');

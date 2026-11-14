@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { etParts, firstKick, gradeChanged, inMissingWindow, normalizeSubscription, planAlerts, pushEndpointAllowed, pushReady, pushStatus } from '../lib/push-events.mjs';
+import { cronAuthorized, etParts, firstKick, gradeChanged, inMissingWindow, normalizeSubscription, planAlerts, pushEndpointAllowed, pushReady, pushStatus, secretMatch, subscriptionRoom, SUBSCRIPTION_CAP } from '../lib/push-events.mjs';
+import pushHandler from '../pages/api/push.js';
 import { readSnapshot, writeSnapshot } from '../lib/offline-cache.mjs';
 import { claimAccepted, runSweep, targetWeek } from '../lib/push-run.mjs';
 
@@ -230,6 +231,62 @@ test('Thursday reminder checks the open week with no ticket, and a lost claim do
   });
   assert.equal(lost.skipped, 'claimed');
   assert.equal(sent.length, 0);
+});
+
+test('sweeps require the cron secret and a wrong or missing one never matches', () => {
+  assert.equal(cronAuthorized('', {}), false);
+  assert.equal(cronAuthorized('Bearer secret', {}), false);
+  assert.equal(cronAuthorized('Bearer no', { CRON_SECRET: 'secret' }), false);
+  assert.equal(cronAuthorized('Bearer secret', { CRON_SECRET: 'secret' }), true);
+  assert.equal(cronAuthorized('Bearer other', { PUSH_CRON_SECRET: 'other' }), true);
+  assert.equal(secretMatch('a', 'ab'), false);
+  assert.equal(secretMatch('', 'a'), false);
+  assert.equal(subscriptionRoom(SUBSCRIPTION_CAP, false), false);
+  assert.equal(subscriptionRoom(SUBSCRIPTION_CAP - 1, false), true);
+  assert.equal(subscriptionRoom(SUBSCRIPTION_CAP, true), true);
+});
+
+function mockRes() {
+  return {
+    statusCode: 200,
+    headers: {},
+    body: undefined,
+    setHeader(k, v) { this.headers[k] = v; },
+    status(n) { this.statusCode = n; return this; },
+    send(s) { this.body = JSON.parse(s); return this; },
+  };
+}
+
+test('the push route refuses an anonymous sweep and does not call the network', async () => {
+  const saved = process.env.CRON_SECRET;
+  delete process.env.CRON_SECRET;
+  delete process.env.PUSH_CRON_SECRET;
+  let called = false;
+  const orig = globalThis.fetch;
+  globalThis.fetch = () => { called = true; throw new Error('network'); };
+  try {
+    const denied = mockRes();
+    await pushHandler({ method: 'GET', query: { job: 'grade' }, headers: {}, body: {} }, denied);
+    assert.equal(denied.statusCode, 401);
+    assert.match(denied.body.error, /cron secret/);
+    const post = mockRes();
+    await pushHandler({ method: 'POST', query: {}, headers: {}, body: { op: 'sweep' } }, post);
+    assert.equal(post.statusCode, 401);
+    process.env.CRON_SECRET = 'secret';
+    const wrong = mockRes();
+    await pushHandler({ method: 'GET', query: { job: 'missing' }, headers: { authorization: 'Bearer nope' }, body: {} }, wrong);
+    assert.equal(wrong.statusCode, 401);
+    const info = mockRes();
+    await pushHandler({ method: 'GET', query: {}, headers: {}, body: {} }, info);
+    assert.equal(info.statusCode, 200);
+    assert.equal(info.body.sweeps, true);
+    assert.equal(JSON.stringify(info.body).includes('secret'), false);
+    assert.equal(called, false);
+  } finally {
+    globalThis.fetch = orig;
+    if (saved == null) delete process.env.CRON_SECRET;
+    else process.env.CRON_SECRET = saved;
+  }
 });
 
 test('sweep refuses to run without the service key, and does not call the network', async () => {
