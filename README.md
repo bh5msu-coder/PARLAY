@@ -25,6 +25,35 @@ Live weekly parlay tracker for Our Holm League.
 
 **Supabase.** `supabase/picks.sql` documents (as of 2026-10-31; see `supabase/migrations/` 004–011 for what changed since) the picks and weeks tables, the commissioner passphrase table, the policies and all four `holm_parlay_*` functions. It was exported from the live database on 2026-10-31 and matches it, apart from the `p_week <= 0` guard that was added to live the same day.
 
+## Phone app and alerts
+
+The site is an installable home-screen app. The phone has four tabs: **This Week** (your pick, the ticket, the live sweat tracker), **Standings**, **Stats** (awards, Elo, history, fun tables), and **More** (league, chat, money, the full pick form, commissioner, theme, install, alerts). The old URLs (`/pick`, `/league`, `/bets`, `/chat`, `/commissioner`) still open.
+
+**Install.** On Android, Chrome offers Install. On iPhone, open the site in Safari, tap Share, then Add to Home Screen, and open the new icon. Alerts on iPhone only work from that icon, and only on iOS 16.4 or newer. The More tab has the same steps.
+
+**Offline.** The service worker (`public/sw.js`) keeps the last successful `/api/weeks`, `/api/pick`, lore, and history responses. The page also saves that payload in this phone's storage, so a refresh with no signal still shows the last weeks.
+
+**Push.** Alerts are Web Push: a leg hits, the ticket busts, the ticket cashes, and a Thursday-afternoon reminder when picks are still out. Turning them on (More → Alerts) stores the browser subscription. The endpoint has to be a real browser push service (Apple, Google, Mozilla, or Windows). The server will not call any other address. Nothing sends until the migration below has been run and the env vars are set. The reminder uses the week picks are open for, including a week that does not have a ticket row yet. Two phones sweeping at once share one send: the cursor has a `version`, and only the request that still owns that version sends.
+
+1. In the Supabase SQL editor, run `supabase/migrations/012_web_push.sql`. It creates `holm_push_subscriptions` and `holm_push_state`. It does not touch `holm_parlay_weeks`.
+2. Generate a key pair: `npx web-push generate-vapid-keys`.
+3. Set these on the Vercel project for **Preview** (so a preview deploy can be tested) and, when you are ready, Production. Do not commit the values.
+
+| Variable | Required for alerts | What it is |
+|---|---|---|
+| `VAPID_PUBLIC_KEY` | yes | Public key. The app reads it from `GET /api/push`. Safe to expose. |
+| `VAPID_PRIVATE_KEY` | yes | Private key. Server only. |
+| `VAPID_SUBJECT` | yes | A `mailto:` address, required by the Web Push spec. |
+| `SUPABASE_SERVICE_ROLE_KEY` | yes | Already used by `/api/pick`. The server uses it to store subscriptions and the alert cursor. |
+| `CRON_SECRET` | yes, for sending | Vercel Cron sends `Authorization: Bearer …`. Sweeps refuse to run without it. The open app cannot start one. `/api/health` reports whether it is set, never the value. |
+
+4. Redeploy after the variables are saved. Open More → Alerts on the installed app and turn them on.
+5. `GET /api/health` includes a `push` object of booleans only. `ready` on `GET /api/push` is true when the four required values are set.
+
+**When alerts fire.** Only a request that carries `Authorization: Bearer $CRON_SECRET` can run a sweep (`GET /api/push?job=grade` or `?job=missing`). A plain link or another website cannot. The server grades, compares the result to `holm_push_state`, and sends only if it still holds the version it read. The first look at a week is a baseline, so turning alerts on mid-season does not replay old hits. Turning alerts off requires that phone’s auth key, not just the endpoint. Registering again on an endpoint that is already saved also requires that key, so knowing the URL cannot replace it. New phones stop being accepted after 40 subscriptions. A Vercel cron hits `GET /api/push?job=missing` Thursdays at 21:00 UTC (4pm ET in November) for the "picks still out" reminder. That schedule is once a week so it fits a daily cron limit. Live leg alerts need a tighter cron, which Vercel allows on Pro: add `{ "path": "/api/push?job=grade", "schedule": "*/5 * * * *" }` to `vercel.json`. Cron runs on production, not on preview.
+
+**Stack.** This stays the existing Next.js App Router app in JavaScript, with the CSS already in `app/globals.css`. A TypeScript or Tailwind rewrite would touch every page for no change in the data path. Live scores keep the existing grade timer (about 45 seconds while a game is on) and that same timer reloads picks. Supabase Realtime was not added: it needs a publication change on the production picks table, and the timer already covers the board.
+
 **Local dev.**
 1. Run `npm install`.
 2. Copy `.env.example` to `.env.local`.
@@ -37,7 +66,7 @@ The site is a Next.js App Router app written in JavaScript, with no TypeScript a
 
 | Path | What it holds |
 |---|---|
-| `app/<page>/page.js` | One route per tab: `/week`, `/pick`, `/standings`, `/league`, `/bets`, `/chat`, `/commissioner`. `/` redirects to `/league` and maps old `#hash` links (`#history` → `/bets`, `#admin` → `/commissioner`). |
+| `app/<page>/page.js` | Phone tabs: `/week` (home), `/standings`, `/stats`, `/more`. Older pages stay: `/pick`, `/league`, `/bets`, `/chat`, `/commissioner`. `/` opens This Week and still maps old `#hash` links (`#history` → `/bets`, `#admin` → `/commissioner`). |
 | `components/*View.js` | The client component for each page. `LeagueProvider` and `Topbar` are shared by every page. |
 | `lib/*.mjs` | Pure logic shared by the pages, the API routes and the tests: grading, standings, Elo, history stats, the NFL clock, the pick form and the league store. |
 | `pages/api/*.js` | Serverless API routes: `espn`, `pick` and `health`. |

@@ -1,5 +1,6 @@
 /** GET /api/health — reports which integrations are configured on this deployment.
  *  Only booleans and public deploy metadata are returned; secret values never leave the server. */
+import { pushStatus } from '../../lib/push-events.mjs';
 
 function has(...names) {
   return names.some((n) => typeof process.env[n] === 'string' && process.env[n].trim() !== '');
@@ -30,6 +31,7 @@ export function healthReport() {
       branch: process.env.VERCEL_GIT_COMMIT_REF || null,
     },
     problems,
+    push: pushStatus(process.env),
   };
 }
 

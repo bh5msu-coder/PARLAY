@@ -7,24 +7,31 @@ import { ident } from '../lib/ident.mjs';
 const Ctx = createContext(null);
 let singleton = null;
 
-/** Path → legacy route name. The store's refresh logic keys off these names. */
-/** League first: League and Chat sit in the top nav, the four parlay pages share one Parlay menu,
- *  and Commissioner is the gear. `group` decides where each route is shown. */
+/** Path → route name. The store's refresh logic keys off these names.
+ *  The phone shows the four `tab` routes. Everything else stays reachable from More. */
 export const ROUTES = [
-  { path: '/league', route: 'league', label: 'League', group: 'top' },
-  { path: '/chat', route: 'chat', label: 'Chat', group: 'top' },
-  { path: '/week', route: 'week', label: 'This Week', group: 'parlay' },
-  { path: '/pick', route: 'pick', label: 'Pick', group: 'parlay' },
-  { path: '/standings', route: 'standings', label: 'Standings', group: 'parlay' },
-  { path: '/bets', route: 'history', label: 'Money', group: 'parlay' },
-  { path: '/commissioner', route: 'admin', label: 'Commissioner', group: 'admin' },
+  { path: '/week', route: 'week', label: 'This Week', short: 'Week', group: 'tab' },
+  { path: '/standings', route: 'standings', label: 'Standings', short: 'Standings', group: 'tab' },
+  { path: '/stats', route: 'stats', label: 'Stats', short: 'Stats', group: 'tab' },
+  { path: '/more', route: 'more', label: 'More', short: 'More', group: 'tab' },
+  { path: '/pick', route: 'pick', label: 'Pick', group: 'more' },
+  { path: '/league', route: 'league', label: 'League', group: 'more' },
+  { path: '/bets', route: 'history', label: 'Money', group: 'more' },
+  { path: '/chat', route: 'chat', label: 'Chat', group: 'more' },
+  { path: '/commissioner', route: 'admin', label: 'Commissioner', group: 'more' },
 ];
 
-export const HOME_PATH = '/league';
+export const HOME_PATH = '/week';
 
 export function routeFor(pathname) {
   const hit = ROUTES.find((r) => pathname === r.path || pathname.startsWith(r.path + '/'));
-  return hit ? hit.route : 'league';
+  return hit ? hit.route : 'week';
+}
+
+/** Which bottom-tab is lit. League, chat, money, the full pick form, and commissioner sit under More. */
+export function tabFor(route) {
+  if (route === 'week' || route === 'standings' || route === 'stats') return route;
+  return 'more';
 }
 
 /** `lore` comes from the root layout (server), so every page renders with the same league

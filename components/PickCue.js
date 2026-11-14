@@ -11,7 +11,7 @@ export default function PickCue() {
   const store = useLeague();
   const ready = useReady();
   const pathname = usePathname() || '';
-  if (!ready || pathname === '/' || pathname.startsWith('/pick') || pathname.startsWith('/league') || pathname.startsWith('/commissioner')) return null;
+  if (!ready || pathname === '/' || pathname.startsWith('/week') || pathname.startsWith('/pick') || pathname.startsWith('/more') || pathname.startsWith('/league') || pathname.startsWith('/commissioner')) return null;
   const { state } = store;
   const week = state.pick.week;
   const you = ident.canonical(state.config.you || '');
@@ -22,7 +22,7 @@ export default function PickCue() {
   return (
     <aside className="pickcue" aria-label="Your pick">
       <span className="pickcue__text"><strong>{`Week ${week}`}</strong>{' · your pick isn’t in'}</span>
-      <Link className="btn btn--cta" href="/pick">Make my pick</Link>
+      <Link className="btn btn--cta" href="/week#pick">Make my pick</Link>
     </aside>
   );
 }

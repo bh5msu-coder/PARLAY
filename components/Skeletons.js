@@ -32,6 +32,8 @@ const LAYOUTS = {
   standings: () => (<><div className="stats" aria-hidden="true">{[0, 1, 2, 3].map((i) => <CardSkel key={i} rows={1} tall />)}</div><ListSkel rows={8} /></>),
   chat: () => (<><CardSkel rows={1} /><ListSkel rows={5} /></>),
   bets: () => (<><div className="stats" aria-hidden="true">{[0, 1, 2].map((i) => <CardSkel key={i} rows={1} tall />)}</div><CardSkel rows={4} /></>),
+  stats: () => (<><div className="skel__tabs" aria-hidden="true">{[0, 1, 2, 3].map((i) => <Bar key={i} v="pill" />)}</div><CardSkel rows={4} /></>),
+  more: () => (<><CardSkel rows={2} /><CardSkel rows={3} /></>),
   generic: () => (<><CardSkel tall rows={2} /><CardSkel rows={3} /></>),
 };
 

@@ -162,7 +162,7 @@ function LeagueTape() {
   );
 }
 
-function SeasonElo({ selected, onSelect }) {
+export function SeasonElo({ selected, onSelect }) {
   const elo = calcSeasonElo(ident.people);
   if (!elo.now.length) return <section className="card"><div className="empty">No seasons on file to rate.</div></section>;
   const noSeason = ident.people.filter((p) => !seasonRows(p).length);

@@ -6,6 +6,8 @@ import { LeagueProvider } from '../components/LeagueProvider';
 import BottomNav from '../components/BottomNav';
 import BookingHost from '../components/BookingHost';
 import PickCue from '../components/PickCue';
+import PwaClient from '../components/PwaClient';
+import { InstallBanner } from '../components/InstallPrompt';
 import rawLore from '../league-lore.json';
 import nicknames from '../data/nicknames.json';
 import { withNicknames } from '../lib/nicknames.mjs';
@@ -46,11 +48,14 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning className={`${sans.variable} ${display.variable} ${mono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <link rel="apple-touch-startup-image" href="/icon-512.png" />
       </head>
       <body>
         <LeagueProvider lore={lore}>
+          <PwaClient />
           <PickCue />
           <div className="wrap">{children}</div>
+          <InstallBanner />
           <BottomNav />
           <BookingHost />
         </LeagueProvider>

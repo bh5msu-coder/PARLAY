@@ -22,7 +22,7 @@ const POLICY_TEXT = {
 };
 
 /** Result of a WhatsApp import: what was saved, skipped as duplicate, flagged as conflict, or unreadable. */
-function ImportReport({ report }) {
+export function ImportReport({ report }) {
   if (!report) return null;
   if (report.error) return <p className="rules rules--error">{report.error}</p>;
   const rows = (list, cls) => list.map((x, i) => (
